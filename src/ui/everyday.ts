@@ -16,6 +16,8 @@ import {
   OBJECTS,
   radiativeCoefficient_W_m2K,
   radiatorArea_m2,
+  SOLAR_ARRAY_W_M2,
+  solarArrayArea_m2,
   type DeviceId,
   type PlaceId,
 } from '../model/everyday.ts';
@@ -85,27 +87,29 @@ function renderRadiator(): void {
   const T = radiator_C + 273.15;
   const area = radiatorArea_m2(d.power_W, T);
   const foot = footprint_m2(d);
+  const solar = solarArrayArea_m2(d.power_W);
   const obj = nearestObject(area);
   const times = area / obj.area_m2;
   byId('radiator-readout').innerHTML = [
     ['Radiator area', `${sig(area)} m²`, `two-sided panel at ${fmt(radiator_C)} °C`],
     ['About', times >= 0.95 && times <= 1.05 ? obj.name : times < 1 ? `${ratio(times)} of ${obj.name}` : `${ratio(times)} ${obj.name}`, `${obj.name}: ${sig(obj.area_m2)} m²`],
     ['Compared with its footprint', ratio(area / foot), `the ${d.name} covers ${sig(foot)} m²`],
+    ['Solar array area', `${sig(solar)} m²`, `at ${SOLAR_ARRAY_W_M2} W/m² in constant sunlight; ${ratio(solar / area)} the radiator`],
   ]
     .map(([k, v, sub]) => `<div class="kpi"><div class="kpi-label">${esc(k)}</div><div class="kpi-value">${esc(v)}</div><div class="kpi-sub">${esc(sub)}</div></div>`)
     .join('');
-  renderToScale(area, foot, obj);
+  renderToScale(area, solar, foot, obj);
   byId('scaling').innerHTML =
-    '<tr><th>Device</th><th>Heat</th><th>Radiator</th><th>Times its footprint</th></tr>' +
+    '<tr><th>Device</th><th>Power</th><th>Radiator</th><th>Solar array</th><th>Radiator vs its footprint</th></tr>' +
     IDS.map((id) => {
       const x = DEVICES[id];
       const a = radiatorArea_m2(x.power_W, T);
-      return `<tr${id === device ? ' class="current"' : ''}><td>${esc(x.name)}</td><td>${power(x.power_W)}</td><td>${sig(a)} m²</td><td>${ratio(a / footprint_m2(x))}</td></tr>`;
+      return `<tr${id === device ? ' class="current"' : ''}><td>${esc(x.name)}</td><td>${power(x.power_W)}</td><td>${sig(a)} m²</td><td>${sig(solarArrayArea_m2(x.power_W))} m²</td><td>${ratio(a / footprint_m2(x))}</td></tr>`;
     }).join('');
 }
 
 /** Footprint, radiator and the nearest familiar object, side by side at one scale. */
-function renderToScale(area: number, foot: number, obj: (typeof OBJECTS)[number]): void {
+function renderToScale(area: number, solar: number, foot: number, obj: (typeof OBJECTS)[number]): void {
   const box = byId('to-scale');
   const W = Math.max(300, box.clientWidth);
   const d = DEVICES[device];
@@ -113,23 +117,39 @@ function renderToScale(area: number, foot: number, obj: (typeof OBJECTS)[number]
   const shapes = [
     { label: `${d.name} footprint`, w: d.size_m[0], h: d.size_m[1], cls: 'device' },
     { label: 'radiator', w: side, h: side, cls: 'radiator' },
+    { label: 'solar array', w: Math.sqrt(solar), h: Math.sqrt(solar), cls: 'solar' },
     { label: obj.name.replace(/^an? /, ''), w: obj.size_m[0], h: obj.size_m[1], cls: 'object' },
   ];
   const gap = 24;
   // One scale for all three, limited by the width and by a 170 px drawing height.
-  const k = Math.min((W - 4 * gap) / shapes.reduce((s, x) => s + x.w, 0), 170 / Math.max(...shapes.map((x) => x.h)));
+  const k = Math.min((W - (shapes.length + 1) * gap) / shapes.reduce((s, x) => s + x.w, 0), 170 / Math.max(...shapes.map((x) => x.h)));
   const tallest = Math.max(...shapes.map((x) => x.h * k));
-  const H = tallest + 58; // one label row per shape, so labels never overlap however narrow the shapes are
+  const H1 = tallest + 26; // height with every label on one line
   let x = gap;
   const parts = shapes.map((s, i) => {
     const w = Math.max(1, s.w * k);
     const h = Math.max(1, s.h * k);
-    const g = `<rect class="${s.cls}" x="${x}" y="${tallest + 4 - h}" width="${w}" height="${h}" rx="2"/><text class="tick" x="${x}" y="${tallest + 20 + 16 * i}">${esc(s.label)}</text>`;
+    const g = `<rect class="${s.cls}" x="${x}" y="${tallest + 4 - h}" width="${w}" height="${h}" rx="2"/><text class="tick" x="${x}" y="${tallest + 20}">${esc(s.label)}</text>`;
     x += w + gap;
     return g;
   });
-  box.innerHTML = `<svg class="chart scale-drawing" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="To scale: the ${esc(d.name)} footprint (${sig(foot)} m²), its radiator (${sig(area)} m²) and ${esc(obj.name)} (${sig(obj.area_m2)} m²)">${parts.join('')}</svg>
-    <p class="chart-stamp">Drawn to scale. ${esc(d.name)}, ${power(d.power_W)}, radiator at ${fmt(radiator_C)} °C · watts-to-space by Chris Lewicki, CC BY 4.0</p>`;
+  box.innerHTML = `<svg class="chart scale-drawing" viewBox="0 0 ${W} ${H1}" width="${W}" height="${H1}" role="img" aria-label="To scale: the ${esc(d.name)} footprint (${sig(foot)} m²), its radiator (${sig(area)} m²), its solar array (${sig(solar)} m²) and ${esc(obj.name)} (${sig(obj.area_m2)} m²)">${parts.join('')}</svg>
+    <p class="chart-stamp">Drawn to scale. ${esc(d.name)}, ${power(d.power_W)}, radiator at ${fmt(radiator_C)} °C, solar array at ${SOLAR_ARRAY_W_M2} W/m² · watts-to-space by Chris Lewicki, CC BY 4.0</p>`;
+  // Measure the rendered labels and use the fewest label lines (1, 2, then one each) on which
+  // no label runs into another on the same line.
+  const svg = box.querySelector('svg');
+  const spans = [...box.querySelectorAll<SVGTextElement>('text')].map((t) => {
+    const b = t.getBBox();
+    return { t, x0: b.x, x1: b.x + b.width + 6 };
+  });
+  const fits = (rows: number) => spans.every((a, n) => spans.every((c, m) => m <= n || m % rows !== n % rows || a.x1 <= c.x0));
+  const rows = [1, 2].find(fits) ?? spans.length;
+  if (svg && rows > 1) {
+    spans.forEach(({ t }, n) => t.setAttribute('y', String(tallest + 20 + 16 * (n % rows))));
+    const H = tallest + 20 + 16 * rows;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('height', String(H));
+  }
 }
 
 function renderAir(): void {

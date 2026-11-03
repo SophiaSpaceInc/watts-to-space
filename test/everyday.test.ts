@@ -1,7 +1,7 @@
 import { test } from 'bun:test';
 import assert from 'node:assert/strict';
 import { emittedFlux } from '../src/model/thermalEmission.ts';
-import { CASE_EMISSIVITY, DEVICES, EVERYDAY_SOURCES, OBJECTS, PLACES, caseArea_m2, caseHeatLoss_W, caseTemperature_K, nearestObject, radiativeCoefficient_W_m2K, radiatorArea_m2 } from '../src/model/everyday.ts';
+import { SOLAR_ARRAY_W_M2, solarArrayArea_m2, CASE_EMISSIVITY, DEVICES, EVERYDAY_SOURCES, OBJECTS, PLACES, caseArea_m2, caseHeatLoss_W, caseTemperature_K, nearestObject, radiativeCoefficient_W_m2K, radiatorArea_m2 } from '../src/model/everyday.ts';
 
 test('case temperature balances the heat: every device, every place', () => {
   for (const d of Object.values(DEVICES))
@@ -23,6 +23,13 @@ test('warm chamber walls radiate back, and air carries heat away', () => {
 test('radiator area sheds the power from both faces', () => {
   const A = radiatorArea_m2(60, 333.15);
   assert.ok(Math.abs(2 * A * emittedFlux(333.15, 0.9) - 60) < 1e-9);
+});
+
+test('solar array area powers the device at the stated 250 W/m², about five times a 60 °C radiator', () => {
+  assert.equal(SOLAR_ARRAY_W_M2, 250);
+  assert.ok(Math.abs(solarArrayArea_m2(60) * 250 - 60) < 1e-12);
+  const ratio = solarArrayArea_m2(1000) / radiatorArea_m2(1000, 333.15);
+  assert.ok(ratio > 4.5 && ratio < 5.5, `ratio ${ratio}`);
 });
 
 test('radiation to the dark sky near 60 °C moves about as much heat per degree as still air', () => {

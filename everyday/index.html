@@ -60,10 +60,12 @@
     </section>
 
     <section class="everyday-section" aria-labelledby="radiator-title">
-      <h2 id="radiator-title">2. How big would its radiator be?</h2>
+      <h2 id="radiator-title">2. How big would its radiator and solar array be?</h2>
       <p>
         Give it a radiator instead: a white-painted panel radiating from both faces to the dark sky. The hotter the
-        panel runs, the smaller it can be, but the electronics feeding it have to run hotter still.
+        panel runs, the smaller it can be, but the electronics feeding it have to run hotter still. Then power it from a
+        solar array making 250 W per m² in sunlight, the figure SpaceX gives for its AI satellites, in an orbit that never
+        enters Earth's shadow, so it needs no battery.
       </p>
       <div class="param slider-row">
         <div class="param-head">
@@ -78,6 +80,9 @@
       <table id="scaling" class="data"></table>
       <p class="muted small">
         The denser the electronics, the worse it gets: a GPU rack packs 132 kW into less than a square metre of floor.
+        At 60 °C the solar array comes out about five times the radiator, the "5:1" often quoted for space data
+        centers. The <a href="../index.html#part-results">full model</a> shows why a real heat path, which cannot run
+        the radiator as hot as the chips, pushes the radiator larger.
       </p>
     </section>
 
@@ -96,7 +101,10 @@
       <ul>
         <li><b>Sunlight.</b> Space data centers fly dawn–dusk orbits that stay in sunlight, with their radiators edge-on
           to the Sun, so radiating to the dark sky is the fair comparison. In other orbits a device swings between
-          sunlight and Earth's shadow: baked on one side of each orbit and frozen on the other.</li>
+          sunlight and Earth's shadow: baked on one side of each orbit and frozen on the other. It would also need a
+          battery for the dark, and a larger solar array to recharge it.</li>
+        <li><b>Power losses.</b> The solar array area assumes every watt it makes reaches the device. Real power
+          conversion and wiring lose a few percent, which adds to both the solar array and the radiator.</li>
         <li><b>Earth.</b> Near Earth, the planet's own warmth costs a radiator about 9 % at 600 km altitude and 60 °C.
           The full model includes it.</li>
         <li><b>Getting the heat out.</b> Everything here assumes the heat is already spread evenly over the case or the

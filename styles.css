@@ -447,6 +447,7 @@ a.button { text-decoration: none; }
 .slider-row { max-width: 420px; margin: 16px 0 4px; }
 .scale-drawing rect.device { fill: var(--ink); }
 .scale-drawing rect.radiator { fill: color-mix(in srgb, var(--accent) 18%, var(--surface)); stroke: var(--accent); stroke-width: 1.5; }
+.scale-drawing rect.solar { fill: color-mix(in srgb, var(--s3) 22%, var(--surface)); stroke: var(--s3); stroke-width: 1.5; }
 .scale-drawing rect.object { fill: none; stroke: var(--ink-2); stroke-width: 1.25; stroke-dasharray: 5 4; }
 table.data tr.current td { font-weight: 600; }
 .left-out ul { max-width: var(--measure); padding-left: 1.2em; font: 400 15.5px/1.6 var(--sans); }

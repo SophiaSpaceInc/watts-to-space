@@ -8,6 +8,7 @@
  */
 import { SIGMA } from './constants.ts';
 import { emittedFlux } from './thermalEmission.ts';
+import { SOURCES } from './scenarios.ts';
 
 export const EVERYDAY_SOURCES: Record<string, { title: string; url: string }> = {
   'apple-iphone-17-pro': { title: 'Apple, iPhone 17 Pro technical specifications', url: 'https://www.apple.com/iphone-17-pro/specs/' },
@@ -15,6 +16,9 @@ export const EVERYDAY_SOURCES: Record<string, { title: string; url: string }> = 
   'hpe-gb200-nvl72': { title: 'HPE QuickSpecs, NVIDIA GB200 NVL72 by HPE (rack TDP 132 kW nominal; 1,068 × 600 × 2,495 mm)', url: 'https://www.hpe.com/us/en/collaterals/collateral.a50009224enw.html' },
   'eia-310': { title: 'EIA-310 rack standard: 1U = 44.45 mm; 19-inch rack', url: 'https://en.wikipedia.org/wiki/19-inch_rack' },
   incropera: { title: 'Incropera et al., Fundamentals of Heat and Mass Transfer, 6th ed. (Wiley, 2007), Table 1.1, typical convection coefficients', url: 'https://pages.mtu.edu/~fmorriso/cm3120/typical_values_heat_transfer_coefficient.pdf' },
+  // Shared with the main model, so both pages cite the same solar figure.
+  'spacex-starmind': SOURCES['spacex-starmind'] as { title: string; url: string },
+  'spacex-0608': SOURCES['spacex-0608'] as { title: string; url: string },
   'iso-7810': { title: 'ISO/IEC 7810 ID-1 card (a credit card): 85.60 × 53.98 mm', url: 'https://en.wikipedia.org/wiki/ISO/IEC_7810' },
   'iso-216': { title: 'ISO 216 paper sizes: A4 is 210 × 297 mm', url: 'https://en.wikipedia.org/wiki/ISO_216' },
   'tennis-court': { title: 'Tennis court: doubles 23.77 × 10.97 m, set by the ITF Rules of Tennis', url: 'https://en.wikipedia.org/wiki/Tennis_court' },
@@ -127,6 +131,19 @@ export function caseTemperature_K(power_W: number, area_m2: number, emissivity: 
 /** Area of a two-sided radiator panel at T that sheds `power_W` to the dark sky, m². */
 export function radiatorArea_m2(power_W: number, T_K: number, emissivity = RADIATOR_EMISSIVITY): number {
   return power_W / (2 * emittedFlux(T_K, emissivity));
+}
+
+/**
+ * Solar array output in sunlight, W/m²: the figure SpaceX gives for its AI satellites
+ * [spacex-starmind][spacex-0608], which the main model's Starmind case is calibrated to.
+ * The page assumes an always-sunlit dawn-dusk orbit, so there is no battery, and ignores
+ * conversion losses between the solar array and the device.
+ */
+export const SOLAR_ARRAY_W_M2 = 250;
+
+/** Solar array area that powers the device in constant sunlight, m². */
+export function solarArrayArea_m2(power_W: number): number {
+  return power_W / SOLAR_ARRAY_W_M2;
 }
 
 /** Heat moved per m² per kelvin of temperature difference by radiation to the dark sky near T, W/m²K. */
