@@ -202,6 +202,8 @@ function jumpTo(id: string): void {
 function highlightTarget(rescroll = false): void {
   const el = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
   if (!el) return;
+  // A link to an Assumptions row (e.g. from the sensitivity chart) also opens its explanation.
+  if (el.id.startsWith('note-')) setExplanationOpen(el.id.slice('note-'.length), true);
   // A target inside a collapsed control group (the default on phones) is invisible: open it first.
   for (let d = el.closest('details'); d; d = d.parentElement?.closest('details') ?? null) {
     if (!d.open) {
@@ -562,7 +564,7 @@ function renderTornado(): void {
     const p = params.find((q) => q.path === t.path);
     const k = p?.display ?? 1;
     const show = (v: number) => `${fmt(v * k, Math.abs(v * k) < 10 ? 2 : 0)} ${p?.unit ?? ''}`;
-    return { ...t, lowValue: show(t.lowValue), highValue: show(t.highValue) };
+    return { ...t, lowValue: show(t.lowValue), highValue: show(t.highValue), href: `#note-${t.path}` };
   });
   tornadoChart(byId('chart-tornado'), { rows: rows.slice(0, 12), metricLabel: 'Mass' });
 }

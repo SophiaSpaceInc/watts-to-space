@@ -322,6 +322,9 @@ svg .band-label { font: 600 11px/1 var(--sans); fill: var(--ink-2); }
 .param-value .celsius { margin-left: 6px; font-size: 12px; color: var(--ink-2); white-space: nowrap; }
 details.physics { margin-top: 6px; }
 details.physics summary { cursor: pointer; }
+svg .info-link circle { fill: var(--surface); stroke: var(--muted); stroke-width: 1; }
+svg .info-link text { font: 600 9.5px/1 var(--sans); fill: var(--ink-2); }
+svg .info-link:hover circle, svg .info-link:focus circle { stroke: var(--ink); }
 .chart-note { margin: 6px 0 0; font: italic 400 12px/1.4 var(--sans); color: var(--ink-2); }
 svg .infeasible { font-style: italic; }
 .chart-stamp { margin: 6px 0 0; font: 400 11.5px/1.4 var(--sans); color: var(--ink-2); font-variant-numeric: tabular-nums; }

@@ -423,7 +423,8 @@ function drawStackedBars(container: HTMLElement, o: StackedBarsOptions): void {
 }
 
 export interface TornadoOptions {
-  rows: { label: string; lowPct: number; highPct: number; lowValue: string; highValue: string }[];
+  /** `href`, if given, puts an "i" link beside the label (e.g. to the parameter's explanation). */
+  rows: { label: string; lowPct: number; highPct: number; lowValue: string; highValue: string; href?: string }[];
   metricLabel: string;
 }
 
@@ -452,7 +453,10 @@ function drawTornado(container: HTMLElement, o: TornadoOptions): void {
   const W = Math.max(300, container.clientWidth);
   const narrow = W < NARROW;
   const rowH = narrow ? 40 : 26;
-  const m = { top: 8, right: narrow ? 20 : 60, bottom: 30, left: narrow ? 4 : 240 };
+  // Label room from the longest label (~6.6 px per character at 12 px), plus the "i" link if any.
+  const longest = Math.max(0, ...o.rows.map((r) => r.label.length));
+  const linkRoom = o.rows.some((r) => r.href) ? 20 : 0;
+  const m = { top: 8, right: narrow ? 20 : 60, bottom: 30, left: narrow ? 4 : Math.min(340, Math.max(140, 20 + longest * 6.6 + linkRoom)) };
   const H = m.top + m.bottom + rowH * o.rows.length;
   const ext = Math.max(5, ...o.rows.flatMap((r) => [Math.abs(r.lowPct), Math.abs(r.highPct)]));
   const X = scale([-ext, ext], [m.left, W - m.right]);
@@ -463,8 +467,18 @@ function drawTornado(container: HTMLElement, o: TornadoOptions): void {
   }
   o.rows.forEach((r, i) => {
     const y = m.top + i * rowH + (narrow ? 18 : 4);
-    if (narrow) el('text', { x: m.left, y: y - 5, class: 'row-label' }, svg).textContent = r.label;
-    else el('text', { x: m.left - 10, y: y + 13, 'text-anchor': 'end', class: 'row-label' }, svg).textContent = r.label;
+    // With a link, the "i" sits between the label and the bars (wide) or before the label (narrow).
+    const ix = narrow ? m.left + 8 : m.left - 18;
+    const iy = narrow ? y - 9 : y + 9;
+    if (r.href) {
+      const a = el('a', { href: r.href, class: 'info-link', 'aria-label': `What does ${r.label} mean?` }, svg);
+      el('title', {}, a).textContent = `What does "${r.label}" mean? Opens its explanation in the Assumptions table.`;
+      el('circle', { cx: ix, cy: iy, r: 7.5 }, a);
+      el('text', { x: ix, y: iy + 3.5, 'text-anchor': 'middle' }, a).textContent = 'i';
+    }
+    const shift = r.href ? 20 : 0;
+    if (narrow) el('text', { x: m.left + shift, y: y - 5, class: 'row-label' }, svg).textContent = r.label;
+    else el('text', { x: m.left - 10 - shift, y: y + 13, 'text-anchor': 'end', class: 'row-label' }, svg).textContent = r.label;
     const bars: [number, string, string][] = [
       [r.lowPct, r.lowValue, 'low'],
       [r.highPct, r.highValue, 'high'],
