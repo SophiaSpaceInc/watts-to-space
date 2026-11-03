@@ -73,6 +73,19 @@ function render(): void {
     tile('Thermal rejection', `${fmt(wkg)} W/kg`, 'heat per m² ÷ mass per m²', true),
     tile('Ceiling set by the pumps', Number.isFinite(ceiling) ? `${fmt(ceiling)} W/kg` : 'none', 'no radiator, however light, beats this'),
   ].join('');
+  byId('ceiling-why').innerHTML =
+    state.loop > 0
+      ? `Every watt the radiator rejects has to be carried to it by the coolant loop, and the loop's mass grows with
+         the heat it carries, not with the radiator's area: pumps, accumulators, valves and rotary joints are sized in
+         kilograms per kilowatt. With <b>${fmt(state.loop, 1)} kg per kW</b>, each kilowatt arrives with
+         ${fmt(state.loop, 1)} kg of loop hardware before the radiator adds anything. So even a radiator that weighed
+         nothing would reach only 1,000 W ÷ ${fmt(state.loop, 1)} kg = <b>${fmt(ceiling)} W/kg</b>, and any real radiator
+         mass pulls it below that. In the formula, as <var>m</var><sub>A</sub> goes to zero,
+         <var>q</var> / (<var>m</var><sub>A</sub> + <var>q</var>·<var>m</var><sub>P</sub>) tends to
+         1 / <var>m</var><sub>P</sub>, whatever the temperature. Raising the ceiling takes lighter pumps and plumbing per
+         kilowatt: for example a two-phase loop, which carries more heat per kilogram of coolant, or heat pipes, which
+         move heat without pumps but have their own mass.`
+      : 'With no pump or loop mass there is no ceiling: the radiator alone sets the watts per kilogram, and a lighter or hotter radiator always does better.';
   byId('mass-note').textContent =
     wkg > 0.8 * ceiling
       ? `The pumps and loop now set the limit: a lighter radiator adds little until they get lighter too.`
