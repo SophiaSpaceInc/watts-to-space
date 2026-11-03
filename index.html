@@ -96,6 +96,7 @@
         <div id="scenario-status" class="scenario-status" aria-live="polite"></div>
         <div class="scenario-actions">
           <button type="button" id="reset" hidden>Reset to reference</button>
+          <button type="button" id="pin" aria-pressed="false">Pin as baseline</button>
           <button type="button" id="share">Copy share link</button>
           <button type="button" id="export">Export assumptions</button>
           <label class="button" for="import-file">Import assumptions</label>
@@ -291,6 +292,7 @@
                 units: ±10 K on temperatures, ±0.05 on emissivity, ±20 % on areal densities. Hover a bar for the value tried.
               </p>
               <div id="chart-tornado" class="chart-box"></div>
+              <p id="tornado-note" class="muted small"></p>
             </section>
       </div>
     </section>

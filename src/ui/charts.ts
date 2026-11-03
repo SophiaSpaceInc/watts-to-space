@@ -426,6 +426,10 @@ export interface TornadoOptions {
   /** `href`, if given, puts an "i" link beside the label (e.g. to the parameter's explanation). */
   rows: { label: string; lowPct: number; highPct: number; lowValue: string; highValue: string; href?: string }[];
   metricLabel: string;
+  /** Makes each bar a button: called with the row index and which side was picked. */
+  onPick?: (row: number, side: 'low' | 'high') => void;
+  /** The bar currently applied, drawn outlined. */
+  active?: { row: number; side: 'low' | 'high' } | null;
 }
 
 /** Tornado: % change of a metric when each parameter moves down/up one step. */
@@ -484,8 +488,25 @@ function drawTornado(container: HTMLElement, o: TornadoOptions): void {
       [r.highPct, r.highValue, 'high'],
     ];
     for (const [pct, value, side] of bars) {
-      const rect = el('rect', { x: X(Math.min(0, pct)), y, width: Math.max(1, Math.abs(X(pct) - X(0))), height: 18, rx: 2, fill: pct < 0 ? 'var(--div-neg)' : 'var(--div-pos)', stroke: 'var(--surface)', 'stroke-width': 1 }, svg);
-      rect.addEventListener('pointermove', (evt) => showTip(`${r.label} ${side} → <b>${value}</b>: ${pct > 0 ? '+' : ''}${pct.toFixed(1)} %`, evt));
+      const isActive = o.active?.row === i && o.active.side === side;
+      const rect = el('rect', { x: X(Math.min(0, pct)), y, width: Math.max(1, Math.abs(X(pct) - X(0))), height: 18, rx: 2, fill: pct < 0 ? 'var(--div-neg)' : 'var(--div-pos)', stroke: isActive ? 'var(--ink)' : 'var(--surface)', 'stroke-width': isActive ? 2.5 : 1 }, svg);
+      const pick = o.onPick;
+      if (pick) {
+        const what = `${r.label} ${side === 'low' ? 'down' : 'up'} to ${value}`;
+        rect.setAttribute('class', 'pickable');
+        rect.setAttribute('tabindex', '0');
+        rect.setAttribute('role', 'button');
+        rect.setAttribute('aria-pressed', String(isActive));
+        rect.setAttribute('aria-label', isActive ? `${what}, applied; activate to return to the baseline` : `Try ${what}`);
+        rect.addEventListener('click', () => pick(i, side as 'low' | 'high'));
+        rect.addEventListener('keydown', (evt) => {
+          if (evt.key === 'Enter' || evt.key === ' ') {
+            evt.preventDefault();
+            pick(i, side as 'low' | 'high');
+          }
+        });
+      }
+      rect.addEventListener('pointermove', (evt) => showTip(`${r.label} ${side} → <b>${value}</b>: ${pct > 0 ? '+' : ''}${pct.toFixed(1)} %${pick ? (isActive ? '<br><span class="muted">Applied. Click to go back to the baseline.</span>' : '<br><span class="muted">Click to try it.</span>') : ''}`, evt));
       rect.addEventListener('pointerleave', hideTip);
     }
   });

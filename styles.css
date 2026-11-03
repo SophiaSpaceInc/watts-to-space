@@ -327,6 +327,14 @@ details.physics summary { cursor: pointer; }
 svg .info-link circle { fill: var(--surface); stroke: var(--muted); stroke-width: 1; }
 svg .info-link text { font: 600 9.5px/1 var(--sans); fill: var(--ink-2); }
 svg .info-link:hover circle, svg .info-link:focus circle { stroke: var(--ink); }
+.kpi-delta { margin-top: 4px; font: 600 12.5px/1.3 var(--sans); color: var(--accent); font-variant-numeric: tabular-nums; }
+.kpi-delta.same { color: var(--ink-2); font-weight: 500; }
+.badge.pinned { border-style: dashed; }
+.pin-status { display: block; flex-basis: 100%; margin-top: 6px; font-size: 13.5px; color: var(--ink-2); }
+#pin[aria-pressed='true'] { border-style: dashed; }
+svg rect.pickable { cursor: pointer; }
+svg rect.pickable:hover { opacity: 0.85; }
+svg rect.pickable:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .chart-note { margin: 6px 0 0; font: italic 400 12px/1.4 var(--sans); color: var(--ink-2); }
 svg .infeasible { font-style: italic; }
 .chart-stamp { margin: 6px 0 0; font: 400 11.5px/1.4 var(--sans); color: var(--ink-2); font-variant-numeric: tabular-nums; }

@@ -137,6 +137,11 @@ Every log-scale chart has a **Log / Linear** switch, so a log axis can't hide ho
 difference is. Every parameter can be dragged or typed; typed values are clamped to
 the slider range.
 
+**Pin as baseline** freezes the current scenario: every chart then draws it as a dashed grey
+line behind the live one, and the readout tiles show the change from it. Clicking a bar in the
+sensitivity chart applies that one step to the baseline (pinning first if needed); clicking it
+again goes back. The pin is not part of share links.
+
 **Export assumptions** downloads the whole scenario as JSON (`watts-to-space/scenario`,
 version 1). **Import assumptions** loads one back. Imports are validated field by field
 (type and physical range), and every problem is listed if a file is rejected. Use it to

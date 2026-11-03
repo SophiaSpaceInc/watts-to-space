@@ -25,6 +25,27 @@ const YOURS = 'var(--ink)';
 
 let scenario: Scenario = buildScenario('starmind');
 
+/**
+ * Pinned baseline: a frozen scenario every chart draws behind the live one (dashed grey) and
+ * the readout tiles compare against, so one change can be judged without remembering the
+ * curves. Not part of share links.
+ */
+let pinned: Scenario | null = null;
+let pinnedResult: Result | null = null;
+/** The sensitivity step (chart 8) applied to the baseline, while the live scenario is exactly that step. */
+let activeStep: { path: string; value: number } | null = null;
+const GHOST = 'var(--ink-2)';
+// Ghost lines are named in the legend only; end labels would crowd the live lines' labels.
+const ghost = (name: string, points: Series['points']): Series => ({ name, label: '', color: GHOST, points, width: 1.75, dash: true });
+type Marker = { x: number; y: number; label: string; color?: string };
+/** Adds the pinned point under the live one, unless they coincide (then the labels would collide). */
+function withPinnedMarker(markers: Marker[], x: number, y: number): Marker[] {
+  const live = markers[0];
+  const near = (a: number, b: number) => Math.abs(a - b) <= 0.005 * Math.max(Math.abs(a), Math.abs(b), 1e-9);
+  return live && near(live.x, x) && near(live.y, y) ? markers : [{ x, y, label: 'pinned', color: GHOST }, ...markers];
+}
+const sameScenario = (a: Scenario, b: Scenario) => JSON.stringify(a) === JSON.stringify(b);
+
 // ------------------------------------------------------------------ helpers
 function byId<T extends HTMLElement = HTMLElement>(id: string): T {
   const node = document.getElementById(id);
@@ -232,6 +253,8 @@ interface Preset {
 }
 
 function render(): void {
+  pinnedResult = pinned ? evaluateScenario(pinned) : null;
+  if (activeStep && !(pinned && sameScenario(withPath(pinned, activeStep.path, activeStep.value), scenario))) activeStep = null;
   const r = evaluateScenario(scenario);
   const presets: Preset[] = MODE_IDS.map((id) => ({ id, r: evaluateScenario(buildScenario(id)) }));
   const changes = changesFromMode(scenario);
@@ -260,7 +283,7 @@ function scenarioContext(modified: boolean): string {
       : env.kind === 'deepSpace'
         ? `deep space, ${fmt(100 * env.sunlitFraction)} % sunlit`
         : `lunar surface, ground ${fmt(env.groundTemperature_K)} K, Sun ${fmt(env.sunElevation_deg)}° up`;
-  return `${MODES[scenario.mode].name}${modified ? ', modified' : ''} · ${where} · ${loadText()} · source limit ${fmt(scenario.heatSource.maxTemperature_K)} K · watts-to-space by Chris Lewicki, CC BY 4.0`;
+  return `${MODES[scenario.mode].name}${modified ? ', modified' : ''} · ${where} · ${loadText()} · source limit ${fmt(scenario.heatSource.maxTemperature_K)} K${pinned ? ' · dashed grey: pinned baseline' : ''} · watts-to-space by Chris Lewicki, CC BY 4.0`;
 }
 
 /** "150 kW peak / 120 kW average", or "150 kW heat load" when they are the same. */
@@ -286,32 +309,56 @@ function renderScenarioBar(changes: Change[]): void {
     ? `<span class="badge modified">Modified</span> <span>${name}, with ${lines.size} change${lines.size === 1 ? '' : 's'}</span>
        <details class="changes"><summary>Show changes</summary><ul>${[...lines].map(([path, what]) => `<li><span class="mono">${esc(path)}</span> ${esc(what)}</li>`).join('')}</ul></details>`
     : `<span class="badge reference">Reference case</span> <span>${name}, reference assumptions</span>`;
+  if (pinned) {
+    const pinMods = changesFromMode(pinned).length;
+    byId('scenario-status').insertAdjacentHTML(
+      'beforeend',
+      `<span class="pin-status"><span class="badge pinned">Pinned</span> baseline: ${esc(MODES[pinned.mode].name)}${pinMods ? `, ${pinMods} change${pinMods === 1 ? '' : 's'}` : ''}. Dashed grey on the charts; the tiles show the change from it.</span>`,
+    );
+  }
   byId('reset').hidden = changes.length === 0;
+  const pin = byId('pin');
+  pin.textContent = pinned ? 'Unpin baseline' : 'Pin as baseline';
+  pin.setAttribute('aria-pressed', String(!!pinned));
 }
 
 function renderKpis(r: Result): void {
   const c = r.chain;
+  const p = pinnedResult;
+  // Change from the pinned baseline, if one is pinned.
+  const same = 'same as pinned';
+  const pct = (now: number, was: number | undefined) => {
+    if (!p || was === undefined || !Number.isFinite(now) || !Number.isFinite(was) || was === 0) return '';
+    const d = 100 * (now / was - 1);
+    return Math.abs(d) < 0.5 ? same : `${d > 0 ? '+' : '−'}${fmt(Math.abs(d), Math.abs(d) < 10 ? 1 : 0)} % vs pinned`;
+  };
+  const diff = (now: number, was: number | undefined, unit: string) => {
+    if (!p || was === undefined || !Number.isFinite(now) || !Number.isFinite(was)) return '';
+    const d = now - was;
+    return Math.abs(d) < 0.5 ? same : `${d > 0 ? '+' : '−'}${fmt(Math.abs(d))} ${unit} vs pinned`;
+  };
   // Three headline readouts first; the rest are supporting detail.
-  const primary: [string, string, string][] = [
-    ['Radiator area', `${fmt(r.radiatorArea_m2)} m²`, `${fmt(r.netFlux_W_m2)} W/m² net, two-sided panel`],
-    ['Solar array area', `${fmt(r.solarArrayArea_m2)} m²`, `${fmt(r.solarArraySpecific_W_m2)} W/m² in sunlight; sized for ${fmt(r.payloadAverage_W / 1000)} kW average`],
-    ['Power + thermal mass', fmtT(r.totalMass_kg), `${fmt(r.specificMass_kg_per_kW, 1)} kg per kW of peak payload. Storage for brief power peaks is not included.`],
+  const primary: [string, string, string, string][] = [
+    ['Radiator area', `${fmt(r.radiatorArea_m2)} m²`, `${fmt(r.netFlux_W_m2)} W/m² net, two-sided panel`, pct(r.radiatorArea_m2, p?.radiatorArea_m2)],
+    ['Solar array area', `${fmt(r.solarArrayArea_m2)} m²`, `${fmt(r.solarArraySpecific_W_m2)} W/m² in sunlight; sized for ${fmt(r.payloadAverage_W / 1000)} kW average`, pct(r.solarArrayArea_m2, p?.solarArrayArea_m2)],
+    ['Power + thermal mass', fmtT(r.totalMass_kg), `${fmt(r.specificMass_kg_per_kW, 1)} kg per kW of peak payload. Storage for brief power peaks is not included.`, pct(r.totalMass_kg, p?.totalMass_kg)],
   ];
-  const secondary: [string, string, string][] = [
-    ['Heat to reject', `${fmt(r.heatToReject_W / 1000)} kW`, `${fmt(r.payload_W / 1000)} kW peak payload, plus conversion losses and overhead`],
-    ['Radiating fluid temperature', `${fmt(c.fluidEffective_K)} K`, `${fmt(c.fluidEffective_K - 273.15)} °C · ${fmt(scenario.heatSource.maxTemperature_K - c.fluidEffective_K)} K below the source limit, +${fmt(c.fluidEffective_K - c.radiatingEquivalent_K)} K fin-equivalent`],
+  const secondary: [string, string, string, string][] = [
+    ['Heat to reject', `${fmt(r.heatToReject_W / 1000)} kW`, `${fmt(r.payload_W / 1000)} kW peak payload, plus conversion losses and overhead`, pct(r.heatToReject_W, p?.heatToReject_W)],
+    ['Radiating fluid temperature', `${fmt(c.fluidEffective_K)} K`, `${fmt(c.fluidEffective_K - 273.15)} °C · ${fmt(scenario.heatSource.maxTemperature_K - c.fluidEffective_K)} K below the source limit, +${fmt(c.fluidEffective_K - c.radiatingEquivalent_K)} K fin-equivalent`, diff(c.fluidEffective_K, p?.chain.fluidEffective_K, 'K')],
     [
       'Solar array : radiator area',
       `${fmt(r.solarToRadiatorAreaRatio, 1)} : 1`,
       r.reportedCheck?.publishedAreaRatio
         ? `published areas: ${fmt(r.reportedCheck.publishedAreaRatio, 1)} : 1 (${fmt(scenario.reported?.solarArrayArea_m2 ?? 0)} / ${fmt(r.reportedCheck.radiatorArea_m2)} m²)${r.radiatorArea_m2 > r.reportedCheck.radiatorArea_m2 ? '; this heat path needs a larger radiator' : ''}`
         : 'compare the often-quoted "5:1"',
+      pct(r.solarToRadiatorAreaRatio, p?.solarToRadiatorAreaRatio),
     ],
-    ['Rejection effectiveness', `${fmt(100 * r.rejectionEffectiveness)} %`, 'vs a black panel at the source limit in deep space'],
+    ['Rejection effectiveness', `${fmt(100 * r.rejectionEffectiveness)} %`, 'vs a black panel at the source limit in deep space', diff(100 * r.rejectionEffectiveness, p ? 100 * p.rejectionEffectiveness : undefined, 'points')],
   ];
-  if (r.storage.mass_kg > 0) secondary.push(['Eclipse/night battery', fmtT(r.storage.mass_kg), `${fmt(r.storage.energy_Wh / 1000)} kWh nameplate, ${fmt(100 * (1 - r.sunlight.sunlitFraction))} % dark`]);
-  const tile = (cls: string) => ([k, v, sub]: [string, string, string]) =>
-    `<div class="kpi ${cls}"><div class="kpi-label">${k}</div><div class="kpi-value">${v}</div><div class="kpi-sub">${sub}</div></div>`;
+  if (r.storage.mass_kg > 0) secondary.push(['Eclipse/night battery', fmtT(r.storage.mass_kg), `${fmt(r.storage.energy_Wh / 1000)} kWh nameplate, ${fmt(100 * (1 - r.sunlight.sunlitFraction))} % dark`, pct(r.storage.mass_kg, p?.storage.mass_kg)]);
+  const tile = (cls: string) => ([k, v, sub, delta]: [string, string, string, string]) =>
+    `<div class="kpi ${cls}"><div class="kpi-label">${k}</div><div class="kpi-value">${v}</div>${delta ? `<div class="kpi-delta${delta === same ? ' same' : ''}">${delta}</div>` : ''}<div class="kpi-sub">${sub}</div></div>`;
   byId('kpis').innerHTML = `<div class="kpi-row primary">${primary.map(tile('primary')).join('')}</div><div class="kpi-row secondary">${secondary.map(tile('secondary')).join('')}</div>`;
 
   const rep = byId('reported');
@@ -379,6 +426,7 @@ function comparisonSeries(presets: Preset[], modified: boolean, current: Result,
     if (!modified) return { name: `${name} · selected`, label: name, color: MODE_COLORS[p.id], points: points(p.r), width: 3 };
     return { name: `${name}, reference`, label: 'reference', color: MODE_COLORS[p.id], points: points(p.r), width: 1.75, dash: true };
   });
+  if (pinnedResult) out.push(ghost('Pinned baseline', points(pinnedResult)));
   if (modified) out.push({ name: 'Your scenario', label: 'your scenario', color: YOURS, points: points(current), width: 3 });
   return out;
 }
@@ -412,12 +460,19 @@ function renderDesignCurves(r: Result): void {
       width: id === scenario.environmentId ? 3 : 1.75,
     };
   });
+  let markers: Marker[] = [{ x: r.chain.fluidEffective_K, y: r.netFlux_W_m2, label: 'your design point' }];
+  const pin = pinned;
+  if (pin && pinnedResult) {
+    const abs = absorbedFluxPerFace(pin.environment, pin.radiator.orientation, pin.radiator);
+    series.push(ghost(`Pinned (${ENVIRONMENTS[pin.environmentId]?.short ?? 'baseline'})`, temps.map((T) => ({ x: T, y: netRejectionPerPanelArea(T, pin.radiator, abs) }))));
+    markers = withPinnedMarker(markers, pinnedResult.chain.fluidEffective_K, pinnedResult.netFlux_W_m2);
+  }
   lineChart(byId('chart-design'), {
     series,
     x: { label: 'Effective radiating fluid temperature (K)', format: (v) => fmt(v), min: 200, max: 1000 },
     bands: [{ from: COOLANTS[scenario.loop.coolant].min_K, to: COOLANTS[scenario.loop.coolant].max_K, label: `${COOLANTS[scenario.loop.coolant].name} works here` }],
     y: { label: 'Net rejection, W per m² of panel', log: true, toggle: true, format: (v) => fmt(v), min: 10, max: 2e5 },
-    markers: [{ x: r.chain.fluidEffective_K, y: r.netFlux_W_m2, label: 'your design point' }],
+    markers,
     height: 340,
   });
 }
@@ -425,17 +480,26 @@ function renderDesignCurves(r: Result): void {
 function renderTemperatureSweep(r: Result): void {
   // Points where the model raises an error (e.g. the coolant leaves its working range) are
   // drawn dashed: a mathematical extrapolation, not a design this hardware can reach.
-  const runs = Array.from({ length: 71 }, (_, i) => 300 + i * 10).map((t) => ({ t, x: evaluateScenario(withPath(scenario, 'heatSource.maxTemperature_K', t)) }));
-  const curve = (metric: (x: Result) => number) => runs.map(({ t, x }) => ({ x: t, y: metric(x), outside: x.warnings.some((w) => w.level === 'error') }));
+  const sweepOf = (s: Scenario) => Array.from({ length: 71 }, (_, i) => 300 + i * 10).map((t) => ({ t, x: evaluateScenario(withPath(s, 'heatSource.maxTemperature_K', t)) }));
+  const curve = (runs: ReturnType<typeof sweepOf>, metric: (x: Result) => number) => runs.map(({ t, x }) => ({ x: t, y: metric(x), outside: x.warnings.some((w) => w.level === 'error') }));
+  const runs = sweepOf(scenario);
+  const series: Series[] = [
+    { name: 'Radiator area', color: 'var(--s1)', points: curve(runs, (x) => x.radiatorArea_m2) },
+    { name: 'Solar array area', color: 'var(--s2)', points: curve(runs, (x) => x.solarArrayArea_m2) },
+  ];
+  let markers: Marker[] = [{ x: scenario.heatSource.maxTemperature_K, y: r.radiatorArea_m2, label: 'you' }];
+  if (pinned && pinnedResult) {
+    const pinRuns = sweepOf(pinned);
+    series.push(ghost('Pinned radiator area', curve(pinRuns, (x) => x.radiatorArea_m2)));
+    series.push(ghost('Pinned solar array area', curve(pinRuns, (x) => x.solarArrayArea_m2)));
+    markers = withPinnedMarker(markers, pinned.heatSource.maxTemperature_K, pinnedResult.radiatorArea_m2);
+  }
   lineChart(byId('chart-temperature'), {
-    series: [
-      { name: 'Radiator area', color: 'var(--s1)', points: curve((x) => x.radiatorArea_m2) },
-      { name: 'Solar array area', color: 'var(--s2)', points: curve((x) => x.solarArrayArea_m2) },
-    ],
+    series,
     x: { label: 'Heat source temperature limit (K)', format: (v) => fmt(v), min: 300, max: 1000 },
     bands: [{ from: 350, to: 400, label: 'chip limits, ~350–400 K' }],
     y: { label: 'Area (m²)', log: false, toggle: true, format: (v) => fmt(v), min: 0 },
-    markers: [{ x: scenario.heatSource.maxTemperature_K, y: r.radiatorArea_m2, label: 'you' }],
+    markers,
     height: 300,
   });
 }
@@ -445,18 +509,28 @@ function renderAltitude(r: Result): void {
   const T = r.chain.fluidEffective_K;
   const deepPerFace = scenario.radiator.finEfficiency * emittedFlux(T, scenario.radiator.emissivity);
   const beta = scenario.environment.kind === 'orbit' ? scenario.environment.beta_deg : 0;
-  const curve = (body: BodyId, orientation: Orientation) =>
-    alts.map((h) => {
-      const abs = absorbedFluxPerFace({ kind: 'orbit', body, altitude_km: h, beta_deg: beta }, orientation, scenario.radiator);
-      return { x: h, y: (100 * netRejectionPerPanelArea(T, scenario.radiator, abs)) / (deepPerFace * abs.length) };
+  const curveFor = (s: Scenario, temp: number, b: number, body: BodyId, orientation: Orientation) => {
+    const deep = s.radiator.finEfficiency * emittedFlux(temp, s.radiator.emissivity);
+    return alts.map((h) => {
+      const abs = absorbedFluxPerFace({ kind: 'orbit', body, altitude_km: h, beta_deg: b }, orientation, s.radiator);
+      return { x: h, y: (100 * netRejectionPerPanelArea(temp, s.radiator, abs)) / (deep * abs.length) };
     });
+  };
+  const curve = (body: BodyId, orientation: Orientation) => curveFor(scenario, T, beta, body, orientation);
+  const series: Series[] = [
+    { name: 'Earth, edge-on', color: 'var(--s1)', points: curve('earth', 'edgeOn') },
+    { name: 'Earth, face at Earth', color: 'var(--s2)', points: curve('earth', 'nadirZenith') },
+    { name: 'Moon, edge-on', color: 'var(--s3)', points: curve('moon', 'edgeOn') },
+    { name: 'Moon, face at Moon', color: 'var(--s4)', points: curve('moon', 'nadirZenith') },
+  ];
+  if (pinned && pinnedResult) {
+    const env = pinned.environment;
+    const body: BodyId = env.kind === 'orbit' ? env.body : 'earth';
+    const o: Orientation = pinned.radiator.orientation === 'edgeOn' ? 'edgeOn' : 'nadirZenith';
+    series.push(ghost(`Pinned (${body === 'earth' ? 'Earth' : 'Moon'}, ${o === 'edgeOn' ? 'edge-on' : 'face at body'})`, curveFor(pinned, pinnedResult.chain.fluidEffective_K, env.kind === 'orbit' ? env.beta_deg : 0, body, o)));
+  }
   lineChart(byId('chart-altitude'), {
-    series: [
-      { name: 'Earth, edge-on', color: 'var(--s1)', points: curve('earth', 'edgeOn') },
-      { name: 'Earth, face at Earth', color: 'var(--s2)', points: curve('earth', 'nadirZenith') },
-      { name: 'Moon, edge-on', color: 'var(--s3)', points: curve('moon', 'edgeOn') },
-      { name: 'Moon, face at Moon', color: 'var(--s4)', points: curve('moon', 'nadirZenith') },
-    ],
+    series,
     x: { label: 'Altitude above the body (km)', log: true, toggle: true, format: (v) => fmt(v), min: 100, max: 100000 },
     // Earth only: SpaceX's FCC letter [spacex-fcc-2026-09]; the inner belt as in the altitude glossary entry.
     bands: [
@@ -485,17 +559,23 @@ function renderPowerSupply(r: Result): void {
     const betaStar = eclipseFreeBeta_deg(BODIES[env.body], env.altitude_km);
     byId('power-heading').textContent = '5. Why terminator orbits: eclipses and the β angle';
     byId('power-lede').hidden = false;
+    const series: Series[] = [
+      { name: 'Solar array', color: 'var(--s3)', points: metric('solarArray') },
+      { name: 'Eclipse/night battery', color: 'var(--s4)', points: metric('battery') },
+      { name: 'Radiator', color: 'var(--s1)', points: metric('radiator') },
+      { name: 'Power + thermal total', color: 'var(--ink)', width: 2.5, points: total },
+    ];
+    let markers: Marker[] = [{ x: env.beta_deg, y: t(r.totalMass_kg), label: 'you' }];
+    if (pinned && pinnedResult && pinned.environment.kind === 'orbit') {
+      series.push(ghost('Pinned total', sweep(pinned, 'environment.beta_deg', betas, (x) => t(x.totalMass_kg))));
+      markers = withPinnedMarker(markers, pinned.environment.beta_deg, t(pinnedResult.totalMass_kg));
+    }
     lineChart(byId('chart-power'), {
-      series: [
-        { name: 'Solar array', color: 'var(--s3)', points: metric('solarArray') },
-        { name: 'Eclipse/night battery', color: 'var(--s4)', points: metric('battery') },
-        { name: 'Radiator', color: 'var(--s1)', points: metric('radiator') },
-        { name: 'Power + thermal total', color: 'var(--ink)', width: 2.5, points: total },
-      ],
+      series,
       x: { label: 'β angle: orbit plane to Sun (°)', format: (v) => `${fmt(v)}°`, min: 0, max: 90 },
       y: { label: 'Mass (t)', format: (v) => fmt(v, v < 10 ? 1 : 0), min: 0 },
       vrules: [{ x: betaStar, label: `no eclipse above ${fmt(betaStar)}° (circular orbit, ${fmt(env.altitude_km)} km${env.body === 'moon' ? ' above the Moon' : ''})` }],
-      markers: [{ x: env.beta_deg, y: t(r.totalMass_kg), label: 'you' }],
+      markers,
       height: 300,
     });
     const dark = 1 - r.sunlight.sunlitFraction;
@@ -510,12 +590,19 @@ function renderPowerSupply(r: Result): void {
   const sized = fractions.map((f) => ({ f, s: sizePowerSupply(r.busLoadAverage_W, scenario.power, { sunlitFraction: f, cyclePeriod_h: cycle_h }, r.busLoad_W) }));
   byId('power-heading').textContent = '5. Darkness is a mass problem: power supply versus sunlight';
   byId('power-lede').hidden = true;
+  const surfaceSeries: Series[] = [
+    { name: 'Solar array', color: 'var(--s3)', points: sized.map(({ f, s }) => ({ x: f, y: t(s.solarArrayMass_kg) })) },
+    { name: 'Eclipse/night battery', color: 'var(--s4)', points: sized.map(({ f, s }) => ({ x: f, y: t(s.storage.mass_kg) })) },
+    { name: 'Power supply total', color: 'var(--ink)', width: 2.5, points: sized.map(({ f, s }) => ({ x: f, y: t(s.solarArrayMass_kg + s.storage.mass_kg + s.harness.mass_kg) })) },
+  ];
+  if (pinned && pinnedResult && pinned.environment.kind !== 'orbit') {
+    const pr = pinnedResult;
+    const pin = pinned;
+    const pinSized = fractions.map((f) => sizePowerSupply(pr.busLoadAverage_W, pin.power, { sunlitFraction: f, cyclePeriod_h: pr.sunlight.cyclePeriod_h }, pr.busLoad_W));
+    surfaceSeries.push(ghost('Pinned total', fractions.map((f, i) => ({ x: f, y: t((pinSized[i]?.solarArrayMass_kg ?? NaN) + (pinSized[i]?.storage.mass_kg ?? NaN) + (pinSized[i]?.harness.mass_kg ?? NaN)) }))));
+  }
   lineChart(byId('chart-power'), {
-    series: [
-      { name: 'Solar array', color: 'var(--s3)', points: sized.map(({ f, s }) => ({ x: f, y: t(s.solarArrayMass_kg) })) },
-      { name: 'Eclipse/night battery', color: 'var(--s4)', points: sized.map(({ f, s }) => ({ x: f, y: t(s.storage.mass_kg) })) },
-      { name: 'Power supply total', color: 'var(--ink)', width: 2.5, points: sized.map(({ f, s }) => ({ x: f, y: t(s.solarArrayMass_kg + s.storage.mass_kg + s.harness.mass_kg) })) },
-    ],
+    series: surfaceSeries,
     x: { label: 'Sunlit fraction of each light/dark cycle', format: (v) => `${fmt(100 * v)}%`, min: 0.2, max: 1 },
     y: { label: 'Mass (t)', log: true, toggle: true, format: (v) => fmt(v, v < 1 ? 2 : 0) },
     markers: [{ x: r.sunlight.sunlitFraction, y: t(r.mass_kg.solarArray + r.mass_kg.battery + r.mass_kg.harness), label: 'you' }],
@@ -538,6 +625,7 @@ function renderMass(r: Result, presets: Preset[], modified: boolean): void {
   // The bound's masses are placeholders: it marks the physical floor, not a design.
   const caseName = (id: ModeId) => `${MODES[id].name}${id === 'physics' ? ' (placeholder masses)' : ''}`;
   const rows = presets.map((p) => ({ name: p.id === scenario.mode ? `${caseName(p.id)}${modified ? ', reference' : ' · selected'}` : caseName(p.id), r: p.r }));
+  if (pinnedResult) rows.push({ name: 'Pinned baseline', r: pinnedResult });
   if (modified) rows.push({ name: 'Your scenario', r });
   const selectedIdx = MODE_IDS.indexOf(scenario.mode);
   stackedBars(byId('chart-mass'), {
@@ -557,38 +645,72 @@ function renderMass(r: Result, presets: Preset[], modified: boolean): void {
   });
 }
 
+/**
+ * Chart 8. With a baseline pinned, the sensitivity is computed around the baseline, so the
+ * bars stay put while you click through them. Clicking a bar applies that one step to the
+ * baseline (pinning the current scenario first if nothing is pinned); clicking it again
+ * returns to the baseline.
+ */
 function renderTornado(): void {
-  const params = PARAMETERS.filter((p) => p.tornadoStep !== undefined && (!p.when || p.when(scenario)));
+  const base = pinned ?? scenario;
+  const params = PARAMETERS.filter((p) => p.tornadoStep !== undefined && (!p.when || p.when(base)));
   const specs = params.map((p) => ({ path: p.path, label: p.label, step: p.tornadoStep ?? 0, relative: p.relative, min: p.min, max: p.max }));
-  const rows = tornado(scenario, specs, (x) => x.totalMass_kg).map((t) => {
-    const p = params.find((q) => q.path === t.path);
-    const k = p?.display ?? 1;
-    const show = (v: number) => `${fmt(v * k, Math.abs(v * k) < 10 ? 2 : 0)} ${p?.unit ?? ''}`;
-    return { ...t, lowValue: show(t.lowValue), highValue: show(t.highValue), href: `#note-${t.path}` };
+  const rows = tornado(base, specs, (x) => x.totalMass_kg)
+    .map((t) => {
+      const p = params.find((q) => q.path === t.path);
+      const k = p?.display ?? 1;
+      const show = (v: number) => `${fmt(v * k, Math.abs(v * k) < 10 ? 2 : 0)} ${p?.unit ?? ''}`;
+      return { ...t, lowRaw: t.lowValue, highRaw: t.highValue, lowValue: show(t.lowValue), highValue: show(t.highValue), href: `#note-${t.path}` };
+    })
+    .slice(0, 12);
+  const activeRow = activeStep ? rows.findIndex((x) => x.path === activeStep?.path) : -1;
+  const activeRowData = rows[activeRow];
+  tornadoChart(byId('chart-tornado'), {
+    rows,
+    metricLabel: 'Mass',
+    active: activeRowData && activeStep ? { row: activeRow, side: activeStep.value === activeRowData.lowRaw ? 'low' : 'high' } : null,
+    onPick: (i, side) => {
+      const row = rows[i];
+      if (!row) return;
+      const value = side === 'low' ? row.lowRaw : row.highRaw;
+      if (!pinned) pinned = structuredClone(scenario);
+      const pin = pinned;
+      const again = activeStep?.path === row.path && activeStep.value === value;
+      scenario = again ? structuredClone(pin) : withPath(pin, row.path, value);
+      activeStep = again ? null : { path: row.path, value };
+      buildControls();
+      render();
+    },
   });
-  tornadoChart(byId('chart-tornado'), { rows: rows.slice(0, 12), metricLabel: 'Mass' });
+  byId('tornado-note').textContent = pinned
+    ? 'Sensitivity around the pinned baseline. Click a bar to apply that step to the baseline and watch every chart; click it again to go back.'
+    : 'Click a bar to try that step: the current scenario is pinned as the baseline, so every chart shows before (dashed grey) and after.';
 }
 
 function renderTransport(r: Result): void {
   const c = r.chain;
   const src = scenario.heatSource.maxTemperature_K;
-  const curves = transportCurves({
-    distances_m: Array.from({ length: 81 }, (_, i) => 0.01 * 10 ** (i / 20)),
-    busVoltage_V: scenario.power.busVoltage_V,
-    conversionEfficiency: scenario.power.conversionEfficiency,
-    loopEffectiveness: (c.radiatingEquivalent_K / src) ** 4,
-    sourceMax_K: src,
-    stackDrop_K: c.stackDrop_K,
-    loopFixedDrop_K: c.coolantHot_K - c.fluidEffective_K,
-    finEfficiency: scenario.radiator.finEfficiency,
-  });
+  const curvesFor = (s: Scenario, res: Result) =>
+    transportCurves({
+      distances_m: Array.from({ length: 81 }, (_, i) => 0.01 * 10 ** (i / 20)),
+      busVoltage_V: s.power.busVoltage_V,
+      conversionEfficiency: s.power.conversionEfficiency,
+      loopEffectiveness: (res.chain.radiatingEquivalent_K / s.heatSource.maxTemperature_K) ** 4,
+      sourceMax_K: s.heatSource.maxTemperature_K,
+      stackDrop_K: res.chain.stackDrop_K,
+      loopFixedDrop_K: res.chain.coolantHot_K - res.chain.fluidEffective_K,
+      finEfficiency: s.radiator.finEfficiency,
+    });
+  const curves = curvesFor(scenario, r);
+  const series: Series[] = [
+    { name: `Electricity: ${fmt(scenario.power.busVoltage_V)} V wire`, color: 'var(--s1)', points: curves.wire, label: 'wire' },
+    { name: 'Electricity + conversion', color: 'var(--s2)', points: curves.converted, label: '+ conversion' },
+    { name: 'Heat: pumped loop (your chain)', color: 'var(--s3)', points: curves.loop, label: 'pumped loop' },
+    { name: 'Heat: solid copper bar 10×10 cm', color: 'var(--s4)', points: curves.bar, label: 'copper bar' },
+  ];
+  if (pinned && pinnedResult) series.push(ghost('Pinned pumped loop', curvesFor(pinned, pinnedResult).loop));
   lineChart(byId('chart-transport'), {
-    series: [
-      { name: `Electricity: ${fmt(scenario.power.busVoltage_V)} V wire`, color: 'var(--s1)', points: curves.wire, label: 'wire' },
-      { name: 'Electricity + conversion', color: 'var(--s2)', points: curves.converted, label: '+ conversion' },
-      { name: 'Heat: pumped loop (your chain)', color: 'var(--s3)', points: curves.loop, label: 'pumped loop' },
-      { name: 'Heat: solid copper bar 10×10 cm', color: 'var(--s4)', points: curves.bar, label: 'copper bar' },
-    ],
+    series,
     x: { label: 'Distance from source to panel', log: true, toggle: true, format: fmtLen, min: 0.01, max: 100 },
     bands: [{ from: 0.01, to: scenario.power.harnessOneWayLength_m, label: `within one spacecraft (up to the ${fmt(scenario.power.harnessOneWayLength_m)} m harness run)` }],
     y: { label: '% of ideal panel area doing useful work', format: (v) => `${fmt(v)}%`, min: 0, max: 100 },
@@ -692,6 +814,12 @@ function renderReferences(): void {
     .map(([id, s]) => `<li id="ref-${id}" tabindex="-1"><span class="mono">[${id}]</span> <a href="${s.url}" rel="noopener">${esc(s.title)}</a></li>`)
     .join('');
 }
+
+byId('pin').addEventListener('click', () => {
+  pinned = pinned ? null : structuredClone(scenario);
+  activeStep = null;
+  render();
+});
 
 byId('reset').addEventListener('click', () => {
   scenario = buildScenario(scenario.mode);
