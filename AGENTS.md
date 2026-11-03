@@ -6,7 +6,7 @@ Entry point for AI agents: Grok, Claude Code, Codex, Cursor and others.
 
 ## What this repo is
 
-`watts-to-space` is an open-source, auditable explorer of the power and heat-rejection hardware for energy-hungry work in space: orbital data centers, cislunar industry, the lunar surface. Pure TypeScript on Bun, zero runtime dependencies. The model (`src/model/`) is three nearly independent parts joined by three quantities: heat path (coolant temperature), radiator times location (net heat per m², so radiator area), power supply times location (solar array area, battery mass). The same model runs in the web page and in the command line.
+`watts-to-space` is an open-source, auditable explorer of the power and heat-rejection hardware for energy-hungry work in space: orbital data centers, cislunar industry, the lunar surface. Pure TypeScript on Bun, zero runtime dependencies. The model (`src/model/`) is three parts joined by three quantities: heat path (coolant temperature), radiator times location (net heat per m², so radiator area), power supply times location (solar array area, battery mass). The same model runs in the web page and in the command line.
 
 Repo: https://github.com/interplanetarychris/watts-to-space
 

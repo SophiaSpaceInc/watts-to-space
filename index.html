@@ -28,14 +28,14 @@
       <p class="subtitle">Every watt becomes heat. In space, the only way out is radiation.</p>
     </header>
 
-    <!-- DRAFT intro in Chris's voice: edit freely. -->
     <section class="intro" aria-label="Introduction">
       <p>
-        Every serious conversation about industry in space (computing, refining, manufacturing) eventually becomes a
+        Every conversation about industry in space (computing, refining, manufacturing) eventually becomes a
         conversation about heat. Electricity is the easy part. A wire carries it across a spacecraft almost for free,
-        and when distance gets expensive you raise the voltage. Heat has no such trick. It only flows downhill in
-        temperature, every interface it crosses takes a toll, and in vacuum the only exit is radiation, which scales
-        with the fourth power of temperature.
+        and when distance gets expensive you raise the voltage. Heat has no cheap equivalent. Left to itself it flows
+        downhill in temperature, every interface it crosses takes a toll, and in vacuum the only exit is radiation,
+        which scales with the fourth power of temperature. A heat pump can lift it to a hotter, smaller radiator, but
+        only by spending more electrical power; this model doesn't include one yet.
       </p>
       <figure class="equation" aria-labelledby="sb-caption">
         <div class="formula" role="math" aria-label="P equals epsilon sigma A T to the fourth">
@@ -111,7 +111,7 @@
     <figure class="system-diagram" aria-labelledby="system-caption">
       <picture>
         <source media="(max-width: 640px)" srcset="./assets/system-diagram-narrow.svg" />
-        <img src="./assets/system-diagram.svg" alt="How the model fits together: the heat path, the radiator and the power supply are independent parts. Only the coolant temperature, the heat load and the location pass between them, and the results combine all three." />
+        <img src="./assets/system-diagram.svg" alt="How the model fits together: the heat path, the radiator and the power supply are separate parts. The coolant temperature, the heat load and the location carry each part's outputs to the others, and the results combine all three." />
       </picture>
       <figcaption id="system-caption">
         <b>How the model fits together.</b> Each part has its own inputs; three quantities carry its outputs to the
@@ -150,7 +150,7 @@
               <h3 class="fig-heading">1. The first centimeter: the temperature staircase</h3>
               <p>
                 Heat flows downhill in temperature: ΔT = Q × R, thermal Ohm's law. Every interface spends part of a small,
-                fixed budget: the source limit minus the radiator temperature. Most of it is spent within a centimeter of
+                fixed budget, the source limit minus the radiator temperature. Most of it is spent within a centimeter of
                 the heat source: silicon, interface materials, lid, cold plate. Distance itself costs little once heat is in
                 a pumped loop.
               </p>
@@ -164,8 +164,8 @@
               <h3 class="fig-heading">2. Why heat is harder to move than electricity</h3>
               <p>
                 Each line is a 1 kW path from source to panel, scored as the share of ideal panel area doing useful work. A
-                wire loses almost nothing over distance, because voltage can be stepped up. Heat has no transformer: a
-                10 × 10 cm solid copper bar cannot carry 1 kW much past a metre, and a pumped loop makes distance cheap but
+                wire loses almost nothing over distance, because voltage can be stepped up. Heat has no cheap transformer (a heat
+                pump costs power): a 10 × 10 cm solid copper bar cannot carry 1 kW much past a metre, and a pumped loop makes distance cheap but
                 still pays the fixed interface staircase.
               </p>
               <div id="chart-transport" class="chart-box"></div>
@@ -193,9 +193,9 @@
             <section>
               <h3 class="fig-heading">3. Radiator design curves: what a square metre buys</h3>
               <p>
-                Net heat rejected per m² of two-sided panel, versus the radiating fluid temperature, in each environment. Two
-                facts dominate. First, flux grows as T⁴: hot waste heat is cheap to reject. Second, a warm view (Earth, the
-                lunar dayside, sunlit regolith) cancels the low-temperature end of the curve. On the lunar equator at noon, a
+                Net heat rejected per m² of two-sided panel, versus the radiating fluid temperature, in each environment. Flux
+                grows as T⁴, so hot waste heat is cheap to reject. A warm view (Earth, the lunar dayside, sunlit regolith)
+                cancels the low-temperature end of the curve. On the lunar equator at noon, a
                 vertical fin with the Starmind-mode surface properties absorbs more than it emits below about 335 K (curves
                 that drop off the log scale have gone net-negative).
               </p>
@@ -234,8 +234,8 @@
               <p id="power-lede">
                 The β angle between the orbit plane and the Sun sets how long each eclipse lasts. Above a critical β the
                 spacecraft never enters the planet's shadow: no battery, and no oversized solar array to recharge one. A
-                dawn–dusk sun-synchronous orbit flies along the terminator to stay there. The radiator barely notices: the
-                case for terminator orbits is about power. Not modelled here: eclipse thermal cycling of chips and radiators,
+                dawn–dusk sun-synchronous orbit flies along the terminator to stay there. The radiator barely notices, so the
+                case for terminator orbits rests on power. Not modelled here: eclipse thermal cycling of chips and radiators,
                 and losing compute in the dark.
               </p>
               <div id="chart-power" class="chart-box"></div>
@@ -268,7 +268,7 @@
                 Payload mass is excluded on purpose. Per m², radiators weigh several times more than solar arrays, so a 5:1
                 area ratio is not a 5:1 mass ratio. In darkness-heavy environments, energy storage can outweigh both.
               </p>
-              <h3 class="chart-title">Each mode as published, plus your scenario</h3>
+              <h3 class="chart-title">Each reference case, plus your scenario. Each case uses its own hardware and location.</h3>
               <div id="chart-mass" class="chart-box"></div>
               <h3 class="chart-title">Your scenario moved to every environment (composition; totals at right)</h3>
               <div id="chart-mass-env" class="chart-box"></div>

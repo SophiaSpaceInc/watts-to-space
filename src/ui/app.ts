@@ -304,7 +304,7 @@ function renderKpis(r: Result): void {
     <p>Rejecting ${fmt(r.heatToReject_W / 1000)} kW (the ${fmt(r.payload_W / 1000)} kW peak payload plus conversion losses and overhead) on ${fmt(check.radiatorArea_m2)} m² means ${fmt(check.target_W_m2)} W/m² of panel, with no sizing margin.
     In this environment that needs radiating fluid at <b>${fmtK(check.requiredFluid_K)}</b>. That leaves <b>${fmt(check.budgetLeft_K)} K</b> between the ${fmt(scenario.heatSource.maxTemperature_K)} K source limit and the radiator.
     The modelled chain spends <b>${fmt(check.modelChainDrop_K)} K</b> and delivers ${fmtK(check.modelFluid_K)}.
-    ${gap > 0 ? `To close the gap, remove ${fmt(gap)} K from the chain, run the source hotter, or the reported area is not two-sided planform.` : 'The modelled chain fits.'}</p>
+    ${gap > 0 ? `To close the gap, remove ${fmt(gap)} K from the chain or run the source hotter. Otherwise the reported area is not two-sided planform.` : 'The modelled chain fits.'}</p>
     ${r.payloadAverage_W < r.payload_W ? `<p>At the ${fmt(r.payloadAverage_W / 1000)} kW average instead of the ${fmt(r.payload_W / 1000)} kW peak, the same area needs ${fmt(check.targetAverage_W_m2)} W/m², so fluid at <b>${fmtK(check.requiredFluidAverage_K)}</b>. Sized nearer the average, the radiator works only if thermal mass or throttling carries the peaks; this steady-state model does not simulate that.</p>` : ''}
     ${check.vehicleMass_kg && check.powerThermalShareOfVehicle !== null ? `<p>Mass, with this model's assumed areal densities: the published ${fmt(scenario.reported?.vehicleSpecificPower_kW_per_t ?? 0)} kW per ton implies about <b>${fmtT(check.vehicleMass_kg)}</b> for the whole satellite at ${fmt(r.payload_W / 1000)} kW. This model's power and thermal hardware alone is <b>${fmtT(r.totalMass_kg)}</b>, ${fmt(100 * check.powerThermalShareOfVehicle)} % of that${check.powerThermalShareOfVehicle >= 0.8 ? ', which leaves too little for the compute, structure and avionics. Either the model\'s mass assumptions (radiator, solar array and loop per m² and per kW) are heavier than SpaceX\'s design, or the published figures are optimistic' : ''}.</p>` : ''}`;
 }
@@ -374,11 +374,14 @@ function renderDesignCurves(r: Result): void {
 }
 
 function renderTemperatureSweep(r: Result): void {
-  const temps = Array.from({ length: 71 }, (_, i) => 300 + i * 10);
+  // Points where the model raises an error (e.g. the coolant leaves its working range) are
+  // drawn dashed: a mathematical extrapolation, not a design this hardware can reach.
+  const runs = Array.from({ length: 71 }, (_, i) => 300 + i * 10).map((t) => ({ t, x: evaluateScenario(withPath(scenario, 'heatSource.maxTemperature_K', t)) }));
+  const curve = (metric: (x: Result) => number) => runs.map(({ t, x }) => ({ x: t, y: metric(x), outside: x.warnings.some((w) => w.level === 'error') }));
   lineChart(byId('chart-temperature'), {
     series: [
-      { name: 'Radiator area', color: 'var(--s1)', points: sweep(scenario, 'heatSource.maxTemperature_K', temps, (x) => x.radiatorArea_m2) },
-      { name: 'Solar array area', color: 'var(--s2)', points: sweep(scenario, 'heatSource.maxTemperature_K', temps, (x) => x.solarArrayArea_m2) },
+      { name: 'Radiator area', color: 'var(--s1)', points: curve((x) => x.radiatorArea_m2) },
+      { name: 'Solar array area', color: 'var(--s2)', points: curve((x) => x.solarArrayArea_m2) },
     ],
     x: { label: 'Heat source temperature limit (K)', format: (v) => fmt(v), min: 300, max: 1000 },
     y: { label: 'Area (m²)', log: true, toggle: true, format: (v) => fmt(v) },
@@ -464,7 +467,7 @@ function renderPowerSupply(r: Result): void {
     height: 300,
   });
   const cycle = cycle_h > 48 ? `${fmt(cycle_h / 24, 1)} days` : `${fmt(cycle_h * 60)} minutes`;
-  byId('power-note').textContent = `Away from orbit there is no β angle; what matters is how long the dark lasts. Here each light/dark cycle lasts ${cycle}, and you are ${fmt(100 * r.sunlight.sunlitFraction)} % sunlit: the longer the dark, the more each lost percent of sunlight costs in battery.`;
+  byId('power-note').textContent = `Away from orbit there is no β angle, only the length of the dark. Here each light/dark cycle lasts ${cycle}, and you are ${fmt(100 * r.sunlight.sunlitFraction)} % sunlit: the longer the dark, the more each lost percent of sunlight costs in battery.`;
 }
 
 const MASS_SEGMENTS: [MassKey, string, string][] = [
@@ -477,7 +480,9 @@ const MASS_SEGMENTS: [MassKey, string, string][] = [
 
 function renderMass(r: Result, presets: Preset[], modified: boolean): void {
   const segments = (rows: { r: Result }[]) => MASS_SEGMENTS.map(([k, name, color]) => ({ name, color, values: rows.map((x) => x.r.mass_kg[k]) }));
-  const rows = presets.map((p) => ({ name: p.id === scenario.mode ? `${MODES[p.id].name}${modified ? ', reference' : ' · selected'}` : MODES[p.id].name, r: p.r }));
+  // The bound's masses are placeholders: it marks the physical floor, not a design.
+  const caseName = (id: ModeId) => `${MODES[id].name}${id === 'physics' ? ' (placeholder masses)' : ''}`;
+  const rows = presets.map((p) => ({ name: p.id === scenario.mode ? `${caseName(p.id)}${modified ? ', reference' : ' · selected'}` : caseName(p.id), r: p.r }));
   if (modified) rows.push({ name: 'Your scenario', r });
   const selectedIdx = MODE_IDS.indexOf(scenario.mode);
   stackedBars(byId('chart-mass'), {

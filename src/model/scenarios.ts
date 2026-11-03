@@ -203,7 +203,7 @@ export const HEAT_SOURCES: Record<string, HeatSourcePreset> = {
       stages: [{ id: 'processHx', label: 'Process to coolant heat exchanger', kind: 'deltaT', deltaT_K: 20, lengthScale_m: 0.05 }],
     },
     notes: {
-      'heatSource.maxTemperature_K': 'Generic mid-temperature process. The point: radiator flux grows as T⁴, so hot waste heat is cheap to reject. ASSUMPTION.',
+      'heatSource.maxTemperature_K': 'Generic mid-temperature process. Radiator flux grows as T⁴, so hot waste heat is cheap to reject. ASSUMPTION.',
       'heatSource.stages': '20 K approach in the process heat exchanger. ASSUMPTION.',
       'heatSource.totalPower_W': 'Same 250 kW as the compute cases, for comparison. ASSUMPTION.',
       'heatSource.averageFraction': 'A continuous process runs at its peak: average = peak. ASSUMPTION.',
@@ -387,9 +387,9 @@ export const MODES: Record<ModeId, ModePreset> = {
     },
   },
   ideal: {
-    name: 'Ideal engineering',
+    name: 'Aggressive engineering',
     summary:
-      'Best plausible near-term engineering: direct-die two-phase cooling, a single isothermal loop, optical-solar-reflector coatings, multi-junction cells, light heat-pipe radiators.',
+      'Aggressive near-term engineering: direct-die two-phase cooling, a single isothermal loop, optical-solar-reflector coatings, multi-junction cells, light heat-pipe radiators.',
     heatSource: 'gpu-direct-die',
     environment: 'leo-600',
     loop: { coolant: 'twoPhaseAmmonia', transportDrop_K: 0.5, transportLength_m: 20, hxApproach_K: 0, rise_K: 0, coolantCap_K: null },
@@ -416,9 +416,9 @@ export const MODES: Record<ModeId, ModePreset> = {
     },
   },
   physics: {
-    name: 'Limited by physics',
+    name: 'Idealized thermal bound',
     summary:
-      'Only physics binds: radiator at the source temperature, black surfaces, perfect fins, detailed-balance solar cells. Areal densities have no physical floor; the values here are placeholders.',
+      'An idealized bound where only physics binds: radiator at the source temperature, black surfaces, perfect fins, detailed-balance solar cells. Areal densities have no physical floor; the values here are placeholders.',
     heatSource: 'isothermal-limit',
     environment: 'leo-600',
     loop: { coolant: 'twoPhaseAmmonia', transportDrop_K: 0, transportLength_m: 20, hxApproach_K: 0, rise_K: 0, coolantCap_K: null },

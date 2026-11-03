@@ -2,14 +2,15 @@
 
 **Heat rejection in vacuum.** Live at **https://watts-to-space.chrislewicki.com** · by [Chris Lewicki](https://chrislewicki.com)
 
-An interactive explorer of the **power and heat-rejection hardware** for energy-hungry work in
+An interactive explorer of the power and heat-rejection hardware for energy-hungry work in
 vacuum: orbital compute, cislunar industry, and (first-order) the lunar surface.
 
 In space every watt you use becomes heat, and the only way out is radiation. This project
 follows that energy from the solar array, through the payload, down the temperature
-"staircase" of interfaces, to the radiator. It is built to teach the design realities:
+"staircase" of interfaces, to the radiator. It is built to teach:
 
-- why moving heat is so much harder than moving electricity (no transformer for heat);
+- why moving heat is so much harder than moving electricity (heat has no cheap transformer;
+  a heat pump costs power);
 - why the first centimetre of the thermal path (die, interface materials, cold plate)
   matters more than the next ten metres;
 - how radiator flux scales as T⁴, so hot waste heat is cheap and warm chips are expensive;
@@ -66,13 +67,13 @@ The command line the agent uses is also yours: `bun run analyze --help`. See
 ## Relation to McCalip's model
 
 Andrew McCalip's [Space Datacenters](https://andrewmccalip.com/space-datacenters)
-([source](https://github.com/andrewmccalip/thoughts)) asks an **economic** question: can
+([source](https://github.com/andrewmccalip/thoughts)) asks an economic question: can
 orbital compute match the cost per watt of gas-fired terrestrial compute? Thermal is one
 pass/fail check inside it (an integrated PV/radiator panel, a fixed 10 K die-to-radiator
 drop).
 
-This project asks the **hardware** question underneath: what must the heat and power
-system look like, and which assumptions move it? The two are complementary. Our outputs
+This project asks the hardware question underneath: what must the heat and power
+system look like, and which assumptions move it? Our outputs
 (radiator and solar array area, power-and-thermal mass per kW) are natural inputs to a cost model
 like his. One concrete difference: his model floors an edge-on panel's Earth view factor at
 5 % of nadir (≈0.04 at 550 km); the exact value is ≈0.26 (see
@@ -103,12 +104,11 @@ The **mode switch** installs a whole assumption set; the selectors then swap par
 | Mode | What it represents |
 |---|---|
 | ISS heritage | Flight-proven ISS architecture: water loop at crew-friendly temperatures, intermediate heat exchanger, single-phase ammonia radiators, silicon solar arrays, 124 V bus. Radiator sizing is **calibrated** to the ISS EATCS rating (70 kW on 475 m²). |
-| SpaceX Starmind (reported) | Reported AI1 figures (250 kW peak / 175 kW average, 160 m² radiators, 75 kW per ton, ~600 km) with an Earth-style lidded Rubin-class package. A "reality check" panel backs out what the reported radiator area implies. |
-| Ideal engineering | Best plausible near-term choices: direct-die two-phase cooling, a single isothermal loop, optical-solar-reflector coatings, multi-junction cells, light radiators. |
-| Limited by physics | Only physics binds: radiator at the source temperature, black surfaces, perfect fins, detailed-balance solar cells. Areal densities are placeholders (no physical floor exists). |
+| SpaceX Starmind (reported) | Reported AI1 figures (250 kW peak / 175 kW average, 160 m² radiators, 75 kW per ton, ~600 km) with an Earth-style lidded Rubin-class package. A callout backs out what the reported radiator area would require; it combines reported figures with assumed hardware, so it is not a reconstruction of SpaceX's design. |
+| Aggressive engineering | Aggressive near-term choices: direct-die two-phase cooling, a single isothermal loop, optical-solar-reflector coatings, multi-junction cells, light radiators. |
+| Idealized thermal bound | A bound where only physics binds: radiator at the source temperature, black surfaces, perfect fins, detailed-balance solar cells. Areal densities are placeholders (no physical floor exists). |
 
-**Page structure.** The model splits into three nearly independent parts, joined by only
-three quantities (`assets/system-diagram.svg`):
+**Page structure.** The model splits into three parts, joined by three quantities (`assets/system-diagram.svg`):
 
 | Part | Inputs | Output |
 |---|---|---|
@@ -122,13 +122,13 @@ its inputs beside its charts, then results that combine everything. In code,
 `evaluateScenario` composes `evaluateChain` (heat path), `netRejectionPerPanelArea`
 (radiator) and `sizePowerSupply` (power supply).
 
-Pick a reference case and it is shown as published, with the other three drawn faint for
+Pick a reference case and it is shown with its reference assumptions, with the other three drawn faint for
 context. Change anything and the page says so ("Modified", with the list of changes). The
-comparison charts then show your scenario as the strong line, with the reference case's
-published version dashed beside it. **Reset to reference** undoes everything.
+comparison charts then show your scenario as the strong line, with the reference case
+dashed beside it. **Reset to reference** undoes everything.
 
-Every log-scale chart has a **Log / Linear** switch, so a log axis never hides how big a
-difference really is. Every parameter can be dragged or typed; typed values are clamped to
+Every log-scale chart has a **Log / Linear** switch, so a log axis can't hide how big a
+difference is. Every parameter can be dragged or typed; typed values are clamped to
 the slider range.
 
 **Export assumptions** downloads the whole scenario as JSON (`watts-to-space/scenario`,

@@ -36,7 +36,7 @@ export const EXPLANATIONS: Record<string, string> = {
   'heatSource.stages':
     'The layers heat crosses in the first centimetre: silicon, interface materials, lid and cold plate, or a heat exchanger for a process. Each is a thermal resistance, so its temperature drop is heat flow × resistance. The stage table under chart 1 lists them.',
   'loop.coolant':
-    'The fluid that carries heat from the source to the radiator. Its working window matters: below its freezing point it freezes in a cold radiator, and above its limit it boils or passes its critical point.',
+    'The fluid that carries heat from the source to the radiator. It has a working window: below its freezing point it freezes in a cold radiator, and above its limit it boils or passes its critical point.',
   'loop.coolantCap_K':
     'An upper limit on coolant temperature set by heritage design, not physics. The ISS keeps its water loop at crew-friendly temperatures, which leaves electronics cooler than they need to be and forces a cold, large radiator.',
   'loop.transportDrop_K':
@@ -56,13 +56,13 @@ export const EXPLANATIONS: Record<string, string> = {
   'radiator.finEfficiency':
     'How much of the panel radiates at the fluid temperature. Heat must conduct from the tubes across the fin, so the fin runs cooler than the fluid; an efficiency below 1 acts like a lower radiating temperature.',
   'radiator.sizingMargin':
-    'Extra radiator area beyond the nominal calculation, for hot-case environments, coating degradation, uneven flow and reserve. The ISS calibration needs 1.80, which shows how optimistic a nominal model is.',
+    'Extra radiator area beyond the nominal calculation, for hot-case environments, coating degradation, uneven flow and reserve. The ISS calibration needs 1.80: matching the ISS’s 70 kW on 475 m² takes 80 % more area than the nominal calculation.',
   'radiator.arealDensity_kg_m2':
     'Mass per m² of radiator panel, including fluid, tubes, face sheets, micrometeoroid protection and deployment. Radiator mass is its area times this.',
   'radiator.loopSpecificMass_kg_per_kW':
     'Mass of pumps, accumulators, valves and rotary joints per kW of heat moved. The radiator panels are counted separately.',
   'reported.vehicleSpecificPower_kW_per_t':
-    'Payload power per ton of the whole vehicle, as published. The model turns it into a whole-satellite mass at peak load and compares its own power and thermal hardware against it. If that hardware alone approaches the whole vehicle, the model\'s mass assumptions are heavier than the real design.',
+    'Payload power per ton of the whole vehicle, as published. The model turns it into a whole-satellite mass at peak load and compares its own power and thermal hardware against it. If that hardware alone approaches the whole vehicle, either the model\'s mass assumptions are heavier than the real design or the published figure is optimistic.',
   'reported.radiatorArea_m2':
     'A radiator area published for a real system. The model works backwards from it: what radiating temperature would that area need for this heat load, and does the modelled temperature staircase leave that much room?',
 
@@ -76,7 +76,7 @@ export const EXPLANATIONS: Record<string, string> = {
   'power.solarArrayArealDensity_kg_m2':
     'Mass per m² of solar array, including blanket, cells and deployment structure. Solar array mass is its area times this.',
   'power.busVoltage_V':
-    'Voltage of the power bus from the solar array to the payload. For a given loss, the copper needed scales as 1/V²: doubling the voltage quarters the harness mass. That is the "transformer" advantage electricity has and heat does not. In low orbit, high voltages also risk arcing to the surrounding plasma.',
+    'Voltage of the power bus from the solar array to the payload. For a given loss, the copper needed scales as 1/V²: doubling the voltage quarters the harness mass. That is the "transformer" advantage electricity has; heat\'s nearest equivalent, a heat pump, costs power. In low orbit, high voltages also risk arcing to the surrounding plasma.',
   'power.harnessLossFraction':
     'The resistive loss the copper harness is sized for, as a share of the power it carries. Designers pick the loss and size the copper to meet it; a lower target needs proportionally more copper. The lost power heats the wires, not the payload.',
   'power.battery.specificEnergy_Wh_kg':

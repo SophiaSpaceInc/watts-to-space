@@ -14,8 +14,8 @@ average payload     P_avg     = P_peak × average fraction
 ```
 
 Two loads, because the hardware answers to different ones. The radiator and pumped loop
-are sized for the **peak** heat: the model holds no thermal storage, so it cannot ride
-through a peak. The solar array and battery are sized for the **average** over each
+are sized for the peak heat: the model holds no thermal storage, so it cannot ride
+through a peak. The solar array and battery are sized for the average over each
 light/dark cycle; peaks above it come from the battery. The harness is sized for the
 peak current. SpaceX quotes AI1 the same way (peak and average compute).
 
@@ -79,11 +79,11 @@ Pumped loops avoid this by carrying heat in moving mass. Distance then costs pum
 
 | Anchor | Result |
 |---|---|
-| ISS EATCS: 70 kW on 6 radiators of 23.3 × 3.4 m (475 m²), radiator outlet −40 °F | ISS mode reproduces this within 3 % with a **calibrated** sizing margin of 1.80. That margin is itself a finding: a nominal radiator model is ~1.8× optimistic against flight hardware, because it ignores hot-case environment, coating degradation, flow distribution and reserve. |
+| ISS EATCS: 70 kW on 6 radiators of 23.3 × 3.4 m (475 m²), radiator outlet −40 °F | ISS mode reproduces this within 3 % with a calibrated sizing margin of 1.80. A nominal radiator model is therefore ~1.8× optimistic against flight hardware, because it ignores hot-case environment, coating degradation, flow distribution and reserve. |
 | View factors | Closed forms match brute-force hemisphere integration (Earth 400–2000 km, Moon 100 km) within 0.002. |
 | ISS orbit | Period ≈ 92.8 min, eclipse ≈ 39 % at β = 0 for 420 km. |
 | GPU stack | With a 45 °C inlet and a 10 K coolant rise, the lidded stack gives a junction of ~86 °C at 1.8 kW and ~94 °C at 2.3 kW, consistent with reported Rubin operating points. |
-| Starmind check | Rejecting 150 kW (164 kW of bus heat) on 110 m² needs radiating fluid at ~363 K at 600 km. A 373 K junction then leaves ~10 K for the whole chain; an Earth-style lidded stack spends ~37 K. |
+| Starmind check (the page's callout, not a test) | Rejecting the 250 kW peak (273 kW of heat) on 160 m² needs radiating fluid at ~375 K at 600 km, above the 373 K junction limit before the chain spends anything; an Earth-style lidded stack spends ~37 K. |
 
 ## 7. Limitations
 
@@ -102,8 +102,8 @@ Pumped loops avoid this by carrying heat in moving mass. Distance then costs pum
    and is the only "transformer" heat has. This is the most important missing lever.
 6. **Radiator areal density is a single number.** Micrometeoroid armour, redundancy and
    deployment drive it in practice.
-7. **Solar is the only power source.** Fission (with its own hot radiator) is the obvious
-   lunar-night answer.
+7. **Solar is the only power source.** Fission (with its own hot radiator) is the usual
+   proposal for the lunar night.
 8. **One calibration point.** The ISS margin is fitted to a single published rating.
 9. Payload mass and cost are out of scope by design (see McCalip's model for cost).
 
@@ -115,7 +115,7 @@ Pumped loops avoid this by carrying heat in moving mass. Distance then costs pum
 4. Lunar-surface radiator geometries (shaded, parabolic, view-limited), with terrain and
    latitude.
 5. Time-stepped orbit and lunar-day thermal simulation.
-6. Shareable URL state, and a CSV/JSON export that feeds a cost model.
+6. A CSV export that feeds a cost model (share links and JSON export already exist).
 7. More calibration anchors (other flight radiators and solar arrays with published masses).
 
 ## Visual design
@@ -123,6 +123,5 @@ Pumped loops avoid this by carrying heat in moving mass. Distance then costs pum
 Charts use the dataviz reference categorical palette, six slots in fixed order. The
 validator passes every adjacent-pair check in light and dark mode. In light mode, three
 slots (aqua, yellow, pink) fall below 3:1 contrast on the surface. Line charts compensate
-with direct labels; the stacked mass bars rely on the legend, totals and hover values. A
-table view for the mass charts would fully satisfy the relief rule (open item). All charts
+with direct labels; the mass and sensitivity charts have a "Values as a table" view. All charts
 are dependency-free SVG (`src/ui/charts.ts`), with hover tooltips and crosshairs.

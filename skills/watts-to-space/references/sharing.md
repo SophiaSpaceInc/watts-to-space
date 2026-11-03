@@ -60,7 +60,7 @@ You can read a payload yourself: split on `.`, base64url-decode the middle part.
 `--share-out --format table` produces items 1 and 2. Real example:
 
 ```text
-Ideal engineering (ideal), Moon polar ridge, 106 kW rejected: radiator 86.056 m², solar array 267.69 m², total 40144 kg. Changes: environment leo-600 -> moon-polar; heatSource.totalPower_W 250000 -> 100000; radiator.emissivity 0.92 -> 0.85
+Aggressive engineering (ideal), Moon polar ridge, 106 kW rejected: radiator 86.056 m², solar array 267.69 m², total 40144 kg. Changes: environment leo-600 -> moon-polar; heatSource.totalPower_W 250000 -> 100000; radiator.emissivity 0.92 -> 0.85
 ```
 
 Tidy it for the audience before posting; do not alter the numbers.

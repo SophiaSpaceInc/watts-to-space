@@ -27,6 +27,8 @@ export function withPath<T extends object>(obj: T, path: string, value: unknown)
 export interface Point {
   x: number;
   y: number;
+  /** Outside the hardware's working range: drawn dashed as an extrapolation. */
+  outside?: boolean;
 }
 
 /** Evaluate `metric(result)` across `values` of one parameter. */

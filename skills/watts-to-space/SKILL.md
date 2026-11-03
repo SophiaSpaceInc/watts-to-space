@@ -43,7 +43,7 @@ All commands run from the repo root. Output is JSON by default (for you); add `-
 
 ### The model in one paragraph
 
-Three nearly independent parts joined by three quantities. **Heat path** (heat source + coolant loop) produces the coolant temperature T. **Radiator** (surface properties, orientation, sizing margin) at a location converts T into net heat rejected per m² and so into radiator area. **Power supply** (cells, bus, battery) at a location produces solar array area and battery mass. The heat load Q and the location are shared by the radiator and the power supply.
+Three parts joined by three quantities. **Heat path** (heat source + coolant loop) produces the coolant temperature T. **Radiator** (surface properties, orientation, sizing margin) at a location converts T into net heat rejected per m² and so into radiator area. **Power supply** (cells, bus, battery) at a location produces solar array area and battery mass. The heat load Q and the location are shared by the radiator and the power supply.
 
 ### Discover what exists
 

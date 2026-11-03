@@ -45,7 +45,7 @@ bun run analyze --mode starmind --set power.conversionEfficiency=1 --set power.o
 
 ---
 
-## Lesson 1: the heat path, the first centimetre, and why heat has no transformer
+## Lesson 1: the heat path, the first centimetre, and why heat has no cheap transformer
 
 **Goal.** The learner sees the temperature staircase from die to radiator and why the first centimetre matters more than the next ten metres.
 
@@ -61,7 +61,7 @@ bun run analyze --mode starmind --sweep heatSource.unitPower_W=1000:2500:500 --m
 
 Optional, ISS heritage: `bun run analyze --mode iss --sweep loop.hxApproach_K=0:30:10 --metric radiatorArea_m2` gives 1605.79, 2002.2, 2566.86, 3423.21 m² as the intermediate heat exchanger approach grows 0, 10, 20, 30 K.
 
-**Why no transformer.** Electricity is moved at high voltage and stepped up or down with a transformer, so distance costs little. Heat has no equivalent: conduction with a temperature budget behaves like a bus at only about 20 mV for 50 K of copper (Wiedemann–Franz, APPROACH section 5; `test/system.test.ts`). Pumped loops carry heat in moving mass instead, and distance then costs pump power. The one device that does "transform" heat is a heat pump, and the model does not have one (section 7, item 5; roadmap item 1).
+**Why no cheap transformer.** Electricity is moved at high voltage and stepped up or down with a transformer, so distance costs little. Heat has no cheap equivalent: conduction with a temperature budget behaves like a bus at only about 20 mV for 50 K of copper (Wiedemann–Franz, APPROACH section 5; `test/system.test.ts`). Pumped loops carry heat in moving mass instead, and distance then costs pump power. The one device that does "transform" heat is a heat pump, which spends electrical power to do it, and the model does not have one (section 7, item 5; roadmap item 1).
 
 **Ask.**
 1. Where in the staircase is the biggest single drop, and which stage causes it?

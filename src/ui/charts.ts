@@ -254,19 +254,38 @@ function drawLineChart(container: HTMLElement, options: LineChartOptions): void 
   }
 
   const ends: { y: number; text: string; color: string; muted: boolean }[] = [];
+  let extrapolated = false;
   for (const s of o.series) {
+    // d: the drawn line. dOut: runs of points outside the working range, joined to their in-range neighbours.
     let d = '';
+    let dOut = '';
     let pen = false;
+    let penOut = false;
+    let prev: string | null = null;
     for (const p of s.points) {
       if (!ok(p) || p.x < xd[0] || p.x > xd[1]) {
-        pen = false;
+        pen = penOut = false;
+        prev = null;
         continue;
       }
-      const yy = Math.min(H - m.bottom, Math.max(m.top, Y(p.y)));
-      d += `${pen ? 'L' : 'M'}${X(p.x).toFixed(1)},${yy.toFixed(1)}`;
-      pen = true;
+      const xy = `${X(p.x).toFixed(1)},${Math.min(H - m.bottom, Math.max(m.top, Y(p.y))).toFixed(1)}`;
+      if (p.outside) {
+        dOut += penOut ? `L${xy}` : prev ? `M${prev}L${xy}` : `M${xy}`;
+        penOut = true;
+        pen = false;
+      } else {
+        if (penOut) dOut += `L${xy}`;
+        d += `${pen ? 'L' : 'M'}${xy}`;
+        pen = true;
+        penOut = false;
+      }
+      prev = xy;
     }
     el('path', { d, fill: 'none', stroke: s.color, 'stroke-width': s.width ?? 2, 'stroke-dasharray': s.dash ? '6 4' : 'none', 'stroke-linejoin': 'round', 'stroke-linecap': 'round', opacity: s.muted ? 0.35 : 1, class: s.muted ? 'series muted' : 'series' }, svg);
+    if (dOut) {
+      extrapolated = true;
+      el('path', { d: dOut, fill: 'none', stroke: s.color, 'stroke-width': s.width ?? 2, 'stroke-dasharray': '2 5', 'stroke-linecap': 'round', opacity: 0.5, class: 'series extrapolated' }, svg);
+    }
     const last = [...s.points].reverse().find((p) => ok(p) && p.x <= xd[1] && p.y >= yd[0] && p.y <= yd[1]);
     if (!narrow && last && s.label !== '') ends.push({ y: Y(last.y), text: s.label ?? s.name, color: s.color, muted: !!s.muted });
   }
@@ -311,6 +330,7 @@ function drawLineChart(container: HTMLElement, options: LineChartOptions): void 
   // letting a gap in a line pass for a smooth curve.
   const gaps = o.series.some((s) => s.points.some((p) => Number.isFinite(p.x) && p.x >= xd[0] && p.x <= xd[1] && !Number.isFinite(p.y)));
   if (gaps) container.insertAdjacentHTML('beforeend', '<p class="chart-note">Gaps in a line: no feasible design at those values under these assumptions.</p>');
+  if (extrapolated) container.insertAdjacentHTML('beforeend', '<p class="chart-note">Dotted: outside the selected hardware\'s working range, a mathematical extrapolation.</p>');
 }
 
 export interface StackedBarsOptions {

@@ -62,7 +62,7 @@ test/                 physics, system, IO, share and CLI tests, including valida
 docs/APPROACH.md      equations, assumptions, validation, limitations, roadmap
 ```
 
-The model is three nearly independent parts joined by three quantities: heat path (produces coolant temperature), radiator times location (net heat per m², so radiator area), power supply times location (solar array area and battery mass). The heat load and the location are shared. `evaluateScenario` composes `evaluateChain`, `netRejectionPerPanelArea` and `sizePowerSupply`. [skills/watts-to-space/references/model-map.md](skills/watts-to-space/references/model-map.md) lists where each equation lives.
+The model is three parts joined by three quantities: heat path (produces coolant temperature), radiator times location (net heat per m², so radiator area), power supply times location (solar array area and battery mass). The heat load and the location are shared. `evaluateScenario` composes `evaluateChain`, `netRejectionPerPanelArea` and `sizePowerSupply`. [skills/watts-to-space/references/model-map.md](skills/watts-to-space/references/model-map.md) lists where each equation lives.
 
 ## Provenance rules
 
@@ -106,7 +106,7 @@ Add an entry to `ENVIRONMENTS` or `HEAT_SOURCES` in `src/model/scenarios.ts`; th
 ## Changing the export or share formats
 
 - **Scenario file** (`watts-to-space/scenario`): bump `SCENARIO_VERSION` in `scenarioIO.ts` when the meaning or required shape of the file changes. `importScenario` currently accepts only the current version, so a bump needs a migration from every older version you want to keep reading, plus a test with a pinned old file.
-- **Share string** (`w2s1.<payload>.<check>`): bump the prefix (to `w2s2`) only when the meaning of an encoded field changes. Adding a new optional field that older builds would reject as unknown does not change meaning but does break old builds; say so. When you bump, keep a decoder for every earlier prefix so links already posted still open, and add a test that decodes a pinned old link (for example `w2s1.eyJtIjoiaXNzIn0.0d9e1f64`, the ISS reference case). Remember that share strings hold preset ids and differences only, so correcting a preset value changes what an old link evaluates to; mention that in the pull request.
+- **Share string** (`w2s1.<payload>.<check>`): bump the prefix (to `w2s2`) only when the meaning of an encoded field changes. Adding a new optional field that older builds would reject as unknown does not change meaning but does break old builds; say so. When you bump, keep a decoder for every earlier prefix so links already posted still open, and add a test that decodes a pinned old link (for example `w2s1.eyJtIjoiaXNzIn0.0d9e1f64`, the ISS reference case). Share strings hold preset ids and differences only, so correcting a preset value changes what an old link evaluates to; mention that in the pull request.
 - The checksum is for accidental damage only. Do not describe it as a signature.
 - Share strings must stay parameters-only: no personal data.
 
