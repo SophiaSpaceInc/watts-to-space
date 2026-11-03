@@ -117,6 +117,8 @@ export interface LineChartOptions {
   rules?: { y: number; label: string }[];
   /** Vertical reference lines, e.g. a threshold on the x axis. */
   vrules?: { x: number; label: string }[];
+  /** Shaded x ranges where real hardware works, so the full axis does not read as a design space. */
+  bands?: { from: number; to: number; label: string }[];
   height?: number;
 }
 
@@ -245,6 +247,14 @@ function drawLineChart(container: HTMLElement, options: LineChartOptions): void 
     if (r.y < yd[0] || r.y > yd[1]) continue;
     el('line', { x1: m.left, x2: W - m.right, y1: Y(r.y), y2: Y(r.y), class: 'rule' }, svg);
     el('text', { x: m.left + 6, y: Y(r.y) - 5, class: 'rule-label' }, svg).textContent = r.label;
+  }
+
+  for (const b of o.bands ?? []) {
+    const x0 = X(Math.max(b.from, xd[0]));
+    const x1 = X(Math.min(b.to, xd[1]));
+    if (!(x1 > x0)) continue;
+    el('rect', { x: x0, y: m.top, width: x1 - x0, height: H - m.top - m.bottom, class: 'band' }, svg);
+    el('text', { x: x0 + 6, y: H - m.bottom - 8, class: 'band-label' }, svg).textContent = b.label;
   }
 
   for (const r of o.vrules ?? []) {

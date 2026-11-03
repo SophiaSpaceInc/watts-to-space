@@ -314,6 +314,8 @@ a.challenge { font-size: 12px; white-space: nowrap; color: var(--ink-2); }
 .chart-table { margin-top: 8px; font-size: 13px; }
 .chart-table summary { cursor: pointer; color: var(--ink-2); }
 .chart-table table { margin-top: 6px; }
+svg .band { fill: var(--ink); opacity: 0.06; }
+svg .band-label { font: 600 11px/1 var(--sans); fill: var(--ink-2); }
 .chart-note { margin: 6px 0 0; font: italic 400 12px/1.4 var(--sans); color: var(--ink-2); }
 svg .infeasible { font-style: italic; }
 .chart-stamp { margin: 6px 0 0; font: 400 11.5px/1.4 var(--sans); color: var(--ink-2); font-variant-numeric: tabular-nums; }
@@ -330,6 +332,7 @@ table.data tr.explain-row[hidden] { display: none; }
 table.data tr:target + tr.explain-row td { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); box-shadow: inset 4px 0 0 var(--accent); }
 
 /* ---------------------------------------------------------------- agent callout and share field */
+.try-link { margin: 10px 0 0; font: 600 15px/1.4 var(--sans); }
 .jump { max-width: var(--measure); margin: 0 auto 28px; font: 500 14px/1.6 var(--sans); color: var(--ink-2); }
 .try-first { margin: 0 0 16px; padding: 10px 14px; border-left: 4px solid var(--accent); background: var(--surface); font: 400 15px/1.5 var(--sans); }
 .agent-callout { max-width: var(--measure); margin: 0 auto 40px; padding: 14px 18px; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 8px; background: var(--surface); }

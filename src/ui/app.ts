@@ -197,6 +197,13 @@ function jumpTo(id: string): void {
 function highlightTarget(rescroll = false): void {
   const el = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
   if (!el) return;
+  // A target inside a collapsed control group (the default on phones) is invisible: open it first.
+  for (let d = el.closest('details'); d; d = d.parentElement?.closest('details') ?? null) {
+    if (!d.open) {
+      d.open = true;
+      rescroll = true;
+    }
+  }
   if (rescroll) el.scrollIntoView({ behavior: REDUCED_MOTION.matches ? 'auto' : 'smooth', block: 'center' });
   el.classList.remove('flash');
   void el.offsetWidth; // restart the animation
@@ -281,7 +288,7 @@ function renderKpis(r: Result): void {
   const primary: [string, string, string][] = [
     ['Radiator area', `${fmt(r.radiatorArea_m2)} m²`, `${fmt(r.netFlux_W_m2)} W/m² net, two-sided panel`],
     ['Solar array area', `${fmt(r.solarArrayArea_m2)} m²`, `${fmt(r.solarArraySpecific_W_m2)} W/m² in sunlight; sized for ${fmt(r.payloadAverage_W / 1000)} kW average`],
-    ['Power + thermal mass', fmtT(r.totalMass_kg), `${fmt(r.specificMass_kg_per_kW, 1)} kg per kW of peak payload`],
+    ['Power + thermal mass', fmtT(r.totalMass_kg), `${fmt(r.specificMass_kg_per_kW, 1)} kg per kW of peak payload. Storage for brief power peaks is not included.`],
   ];
   const secondary: [string, string, string][] = [
     ['Heat to reject', `${fmt(r.heatToReject_W / 1000)} kW`, `${fmt(r.payload_W / 1000)} kW peak payload, plus conversion losses and overhead`],
@@ -289,7 +296,7 @@ function renderKpis(r: Result): void {
     ['Solar array : radiator area', `${fmt(r.solarToRadiatorAreaRatio, 1)} : 1`, 'the "5:1" rule of thumb, recomputed'],
     ['Rejection effectiveness', `${fmt(100 * r.rejectionEffectiveness)} %`, 'vs a black panel at the source limit in deep space'],
   ];
-  if (r.storage.mass_kg > 0) secondary.push(['Energy storage', fmtT(r.storage.mass_kg), `${fmt(r.storage.energy_Wh / 1000)} kWh nameplate, ${fmt(100 * (1 - r.sunlight.sunlitFraction))} % dark`]);
+  if (r.storage.mass_kg > 0) secondary.push(['Eclipse/night battery', fmtT(r.storage.mass_kg), `${fmt(r.storage.energy_Wh / 1000)} kWh nameplate, ${fmt(100 * (1 - r.sunlight.sunlitFraction))} % dark`]);
   const tile = (cls: string) => ([k, v, sub]: [string, string, string]) =>
     `<div class="kpi ${cls}"><div class="kpi-label">${k}</div><div class="kpi-value">${v}</div><div class="kpi-sub">${sub}</div></div>`;
   byId('kpis').innerHTML = `<div class="kpi-row primary">${primary.map(tile('primary')).join('')}</div><div class="kpi-row secondary">${secondary.map(tile('secondary')).join('')}</div>`;
@@ -302,11 +309,29 @@ function renderKpis(r: Result): void {
   rep.innerHTML = `<h3>What the reported ${fmt(check.radiatorArea_m2)} m² radiator would require</h3>
     <p class="callout-caveat">Reported figures + assumed hardware: this is not a reconstruction of SpaceX's design. The assumed values are marked in the Assumptions table.</p>
     <p>Rejecting ${fmt(r.heatToReject_W / 1000)} kW (the ${fmt(r.payload_W / 1000)} kW peak payload plus conversion losses and overhead) on ${fmt(check.radiatorArea_m2)} m² means ${fmt(check.target_W_m2)} W/m² of panel, with no sizing margin.
-    In this environment that needs radiating fluid at <b>${fmtK(check.requiredFluid_K)}</b>. That leaves <b>${fmt(check.budgetLeft_K)} K</b> between the ${fmt(scenario.heatSource.maxTemperature_K)} K source limit and the radiator.
+    In this environment that needs radiating fluid at <b>${fmtK(check.requiredFluid_K)}</b>. ${
+      check.budgetLeft_K < 0
+        ? `That is <b>${fmt(-check.budgetLeft_K)} K above</b> the ${fmt(scenario.heatSource.maxTemperature_K)} K source limit before the heat path spends anything.`
+        : `That leaves <b>${fmt(check.budgetLeft_K)} K</b> between the ${fmt(scenario.heatSource.maxTemperature_K)} K source limit and the radiator.`
+    }
     The modelled chain spends <b>${fmt(check.modelChainDrop_K)} K</b> and delivers ${fmtK(check.modelFluid_K)}.
-    ${gap > 0 ? `To close the gap, remove ${fmt(gap)} K from the chain or run the source hotter. Otherwise the reported area is not two-sided planform.` : 'The modelled chain fits.'}</p>
+    ${
+      check.budgetLeft_K < 0
+        ? 'At this source limit, eliminating every interface drop would still be insufficient under the selected radiator assumptions. Reconciling the figures requires different operating or radiator assumptions.'
+        : gap > 0
+          ? `To close the gap, remove ${fmt(gap)} K from the chain or run the source hotter. Otherwise, reconciling the figures requires different operating or radiator assumptions.`
+          : 'The modelled chain fits.'
+    }</p>
     ${r.payloadAverage_W < r.payload_W ? `<p>At the ${fmt(r.payloadAverage_W / 1000)} kW average instead of the ${fmt(r.payload_W / 1000)} kW peak, the same area needs ${fmt(check.targetAverage_W_m2)} W/m², so fluid at <b>${fmtK(check.requiredFluidAverage_K)}</b>. Sized nearer the average, the radiator works only if thermal mass or throttling carries the peaks; this steady-state model does not simulate that.</p>` : ''}
-    ${check.vehicleMass_kg && check.powerThermalShareOfVehicle !== null ? `<p>Mass, with this model's assumed areal densities: the published ${fmt(scenario.reported?.vehicleSpecificPower_kW_per_t ?? 0)} kW per ton implies about <b>${fmtT(check.vehicleMass_kg)}</b> for the whole satellite at ${fmt(r.payload_W / 1000)} kW. This model's power and thermal hardware alone is <b>${fmtT(r.totalMass_kg)}</b>, ${fmt(100 * check.powerThermalShareOfVehicle)} % of that${check.powerThermalShareOfVehicle >= 0.8 ? ', which leaves too little for the compute, structure and avionics. Either the model\'s mass assumptions (radiator, solar array and loop per m² and per kW) are heavier than SpaceX\'s design, or the published figures are optimistic' : ''}.</p>` : ''}`;
+    ${
+      check.vehicleMass_kg && check.powerThermalShareOfVehicle !== null
+        ? `<p>Mass: reading the published ${fmt(scenario.reported?.vehicleSpecificPower_kW_per_t ?? 0)} kW per ton as peak compute per ton of the whole satellite gives about <b>${fmtT(check.vehicleMass_kg)}</b> at ${fmt(r.payload_W / 1000)} kW. This model's power and thermal hardware, with its assumed areal densities, comes to <b>${fmtT(r.totalMass_kg)}</b> (${fmt(100 * check.powerThermalShareOfVehicle)} % of that). ${
+            check.powerThermalShareOfVehicle > 1
+              ? 'These selected assumptions exceed the inferred vehicle mass.'
+              : `That leaves ${fmtT(check.vehicleMass_kg - r.totalMass_kg)} for the compute, structure and everything else; this model does not estimate those.`
+          }</p>`
+        : ''
+    }`;
 }
 
 function renderWarnings(r: Result): void {
@@ -367,6 +392,7 @@ function renderDesignCurves(r: Result): void {
   lineChart(byId('chart-design'), {
     series,
     x: { label: 'Effective radiating fluid temperature (K)', format: (v) => fmt(v), min: 200, max: 1000 },
+    bands: [{ from: COOLANTS[scenario.loop.coolant].min_K, to: COOLANTS[scenario.loop.coolant].max_K, label: `${COOLANTS[scenario.loop.coolant].name} works here` }],
     y: { label: 'Net rejection, W per m² of panel', log: true, toggle: true, format: (v) => fmt(v), min: 10, max: 2e5 },
     markers: [{ x: r.chain.fluidEffective_K, y: r.netFlux_W_m2, label: 'your design point' }],
     height: 340,
@@ -384,6 +410,7 @@ function renderTemperatureSweep(r: Result): void {
       { name: 'Solar array area', color: 'var(--s2)', points: curve((x) => x.solarArrayArea_m2) },
     ],
     x: { label: 'Heat source temperature limit (K)', format: (v) => fmt(v), min: 300, max: 1000 },
+    bands: [{ from: 350, to: 400, label: 'chip limits, ~350–400 K' }],
     y: { label: 'Area (m²)', log: true, toggle: true, format: (v) => fmt(v) },
     markers: [{ x: scenario.heatSource.maxTemperature_K, y: r.radiatorArea_m2, label: 'you' }],
     height: 300,
@@ -433,7 +460,7 @@ function renderPowerSupply(r: Result): void {
     lineChart(byId('chart-power'), {
       series: [
         { name: 'Solar array', color: 'var(--s3)', points: metric('solarArray') },
-        { name: 'Battery', color: 'var(--s4)', points: metric('battery') },
+        { name: 'Eclipse/night battery', color: 'var(--s4)', points: metric('battery') },
         { name: 'Radiator', color: 'var(--s1)', points: metric('radiator') },
         { name: 'Power + thermal total', color: 'var(--ink)', width: 2.5, points: total },
       ],
@@ -458,7 +485,7 @@ function renderPowerSupply(r: Result): void {
   lineChart(byId('chart-power'), {
     series: [
       { name: 'Solar array', color: 'var(--s3)', points: sized.map(({ f, s }) => ({ x: f, y: t(s.solarArrayMass_kg) })) },
-      { name: 'Battery', color: 'var(--s4)', points: sized.map(({ f, s }) => ({ x: f, y: t(s.storage.mass_kg) })) },
+      { name: 'Eclipse/night battery', color: 'var(--s4)', points: sized.map(({ f, s }) => ({ x: f, y: t(s.storage.mass_kg) })) },
       { name: 'Power supply total', color: 'var(--ink)', width: 2.5, points: sized.map(({ f, s }) => ({ x: f, y: t(s.solarArrayMass_kg + s.storage.mass_kg + s.harness.mass_kg) })) },
     ],
     x: { label: 'Sunlit fraction of each light/dark cycle', format: (v) => `${fmt(100 * v)}%`, min: 0.2, max: 1 },
@@ -474,7 +501,7 @@ const MASS_SEGMENTS: [MassKey, string, string][] = [
   ['radiator', 'Radiator', 'var(--s1)'],
   ['thermalLoop', 'Pumps & loop', 'var(--s2)'],
   ['solarArray', 'Solar array', 'var(--s3)'],
-  ['battery', 'Battery', 'var(--s4)'],
+  ['battery', 'Eclipse/night battery', 'var(--s4)'],
   ['harness', 'Harness', 'var(--s5)'],
 ];
 

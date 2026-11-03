@@ -26,6 +26,7 @@
       </p>
       <h1>Heat rejection in vacuum</h1>
       <p class="subtitle">Every watt becomes heat. In space, the only way out is to radiate it.</p>
+      <p class="try-link"><a href="#explorer">Try the explorer ↓</a></p>
     </header>
 
     <section class="intro" aria-label="Introduction">
@@ -72,9 +73,9 @@
     </nav>
 
 
-    <section class="console" aria-label="Case and readouts">
-      <p class="try-first"><b>Try this first.</b> Lower the <a href="#p-heatSource-maxTemperature_K">source temperature
-        limit</a> and watch the radiator area grow. Then open the <a href="#chart-staircase">temperature staircase</a> to
+    <section class="console" id="explorer" aria-label="Case and readouts">
+      <p class="try-first"><b>Try this first.</b> In the Starmind case, lower the <a href="#p-heatSource-maxTemperature_K">source
+        temperature limit</a> and watch the radiator area grow. Then open the <a href="#chart-staircase">temperature staircase</a> to
         see where the temperature budget goes.</p>
       <div class="case-switch">
         <p class="eyebrow" id="modes-label">Reference case</p>
@@ -233,7 +234,7 @@
               <h3 class="fig-heading" id="power-heading">5. Why terminator orbits: eclipses and the β angle</h3>
               <p id="power-lede">
                 The β angle between the orbit plane and the Sun sets how long each eclipse lasts. Above a critical β the
-                spacecraft never enters the planet's shadow: no battery, and no oversized solar array to recharge one. A
+                spacecraft never enters the planet's shadow: no eclipse-storage requirement, and no oversized solar array to recharge a battery. A
                 dawn–dusk sun-synchronous orbit flies along the terminator to stay there. The radiator barely notices, so the
                 case for terminator orbits rests on power. Not modelled here: eclipse thermal cycling of chips and radiators,
                 and losing compute in the dark.
@@ -266,7 +267,7 @@
               <h3 class="fig-heading">7. Mass budget: power and thermal hardware only</h3>
               <p>
                 Payload mass is excluded on purpose. Per m², radiators weigh several times more than solar arrays, so a 5:1
-                area ratio is not a 5:1 mass ratio. In darkness-heavy environments, energy storage can outweigh both.
+                area ratio is not a 5:1 mass ratio. In darkness-heavy environments, energy storage can outweigh both. Storage for brief power peaks is not included.
               </p>
               <h3 class="chart-title">Each reference case, plus your scenario. Each case uses its own hardware and location.</h3>
               <div id="chart-mass" class="chart-box"></div>
