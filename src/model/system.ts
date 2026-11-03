@@ -35,6 +35,10 @@ export interface ReportedCheck {
   /** Source limit minus the required fluid temperature: the chain budget the report allows. */
   budgetLeft_K: number;
   modelChainDrop_K: number;
+  /** Whole-vehicle mass implied by a published kW-per-ton figure at peak payload, if given. */
+  vehicleMass_kg: number | null;
+  /** This model's power-and-thermal mass as a share of that vehicle mass. */
+  powerThermalShareOfVehicle: number | null;
 }
 
 export interface Result {
@@ -133,13 +137,15 @@ export function evaluateScenario(s: Scenario): Result {
     totalMass_kg,
     specificMass_kg_per_kW: totalMass_kg / (payload_W / 1000),
     rejectionEffectiveness: netFlux_W_m2 / idealRejectionPerPanelArea(s.heatSource.maxTemperature_K, 2),
-    reportedCheck: s.reported ? reportedCheck(s, s.reported.radiatorArea_m2, heatToReject_W, bus(payloadAverage_W), absorbed, chain) : null,
+    reportedCheck: s.reported ? reportedCheck(s, s.reported.radiatorArea_m2, heatToReject_W, bus(payloadAverage_W), absorbed, chain, totalMass_kg) : null,
     warnings: warnings(s, chain, feasible, mass_kg, totalMass_kg),
   };
 }
 
 /** What a reported radiator area implies: the fluid temperature it would need. */
-function reportedCheck(s: Scenario, area_m2: number, heatToReject_W: number, averageHeat_W: number, absorbed: number[], chain: ChainResult): ReportedCheck {
+function reportedCheck(s: Scenario, area_m2: number, heatToReject_W: number, averageHeat_W: number, absorbed: number[], chain: ChainResult, totalMass_kg: number): ReportedCheck {
+  const kWt = s.reported?.vehicleSpecificPower_kW_per_t;
+  const vehicleMass_kg = kWt ? (s.heatSource.totalPower_W / 1000 / kWt) * 1000 : null;
   const target_W_m2 = heatToReject_W / area_m2;
   const requiredFluid_K = fluidTemperatureForRejection(target_W_m2, s.radiator, absorbed);
   const targetAverage_W_m2 = averageHeat_W / area_m2;
@@ -152,6 +158,8 @@ function reportedCheck(s: Scenario, area_m2: number, heatToReject_W: number, ave
     modelFluid_K: chain.fluidEffective_K,
     budgetLeft_K: s.heatSource.maxTemperature_K - requiredFluid_K,
     modelChainDrop_K: s.heatSource.maxTemperature_K - chain.fluidEffective_K,
+    vehicleMass_kg,
+    powerThermalShareOfVehicle: vehicleMass_kg ? totalMass_kg / vehicleMass_kg : null,
   };
 }
 

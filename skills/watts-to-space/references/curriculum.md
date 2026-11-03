@@ -32,10 +32,10 @@ bun run analyze --mode starmind --format table
 bun run analyze --mode starmind --set power.conversionEfficiency=1 --set power.overheadFraction=0 --set power.pumpFraction=0 --format table
 ```
 
-**Notice.** The payload (`heatSource.totalPower_W`) is 150,000 W, but `heatToReject_W` is 163,895 W: conversion losses, avionics overhead and pumps all end as heat too. With those set to a perfect bus (efficiency 1, overhead 0, pumps 0), heat to reject is exactly 150,000 W and the radiator shrinks from 192.88 m² to 176.529 m². Nothing is "consumed": electrical energy ends as heat, and in vacuum the only way out is thermal emission (APPROACH section 1).
+**Notice.** The payload (`heatSource.totalPower_W`) is 250,000 W at peak (175,000 W average), but `heatToReject_W` is 273,158 W at peak: conversion losses, avionics overhead and pumps all end as heat too. With those set to a perfect bus (efficiency 1, overhead 0, pumps 0), heat to reject is exactly 250,000 W and the radiator shrinks from 321.47 m² to 294.21 m². Nothing is "consumed": electrical energy ends as heat, and in vacuum the only way out is thermal emission (APPROACH section 1).
 
 **Ask** (one at a time):
-1. A 150 kW compute payload runs flat out. How much heat must leave the spacecraft, and where does the energy go if it cannot leave?
+1. A 250 kW compute payload runs flat out. How much heat must leave the spacecraft, and where does the energy go if it cannot leave?
 2. On the ground you throw heat into air or water. What is different about vacuum?
 3. The solar array also gets hot in sunlight. Does its waste heat go through the payload radiator? (No: the solar array radiates its own unconverted sunlight; APPROACH section 1.)
 
@@ -57,9 +57,9 @@ bun run analyze --mode starmind --heat-source gpu-direct-die --format table
 bun run analyze --mode starmind --sweep heatSource.unitPower_W=1000:2500:500 --metric chain.stackDrop_K --metric chain.coolantHot_K --metric radiatorArea_m2 --format table
 ```
 
-**Notice.** In the first run read the "Temperature staircase": the source limit is 373 K, the silicon die, interface materials, copper lid and cold plate use up about 30.8 K (`sourceStackDrop_K` 30.795), so the coolant leaves at 342.2 K and the radiator radiates at an effective 336.2 K. Swapping to direct-die two-phase cooling cuts the stack drop to 11.7 K, raises coolant to 361.3 K and shrinks the radiator from 192.88 to 151.52 m². Sweeping power per package from 1000 to 2500 W grows the stack drop from 17.1 K to 42.8 K, and the radiator from 161.9 to 226.7 m². Every kelvin spent in a thin interface is a kelvin not available to the radiator, where flux goes as T⁴.
+**Notice.** In the first run read the "Temperature staircase": the source limit is 373 K, the silicon die, interface materials, copper lid and cold plate use up about 30.8 K (`sourceStackDrop_K` 30.795), so the coolant leaves at 342.2 K and the radiator radiates at an effective 336.2 K. Swapping to direct-die two-phase cooling cuts the stack drop to 11.7 K, raises coolant to 361.3 K and shrinks the radiator from 321.47 to 252.53 m². Sweeping power per package from 1000 to 2500 W grows the stack drop from 17.1 K to 42.8 K, and the radiator from 269.86 to 377.87 m². Every kelvin spent in a thin interface is a kelvin not available to the radiator, where flux goes as T⁴.
 
-Optional, ISS heritage: `bun run analyze --mode iss --sweep loop.hxApproach_K=0:30:10 --metric radiatorArea_m2` gives 963.5, 1201.3, 1540.1, 2053.9 m² as the intermediate heat exchanger approach grows 0, 10, 20, 30 K.
+Optional, ISS heritage: `bun run analyze --mode iss --sweep loop.hxApproach_K=0:30:10 --metric radiatorArea_m2` gives 1605.79, 2002.2, 2566.86, 3423.21 m² as the intermediate heat exchanger approach grows 0, 10, 20, 30 K.
 
 **Why no transformer.** Electricity is moved at high voltage and stepped up or down with a transformer, so distance costs little. Heat has no equivalent: conduction with a temperature budget behaves like a bus at only about 20 mV for 50 K of copper (Wiedemann–Franz, APPROACH section 5; `test/system.test.ts`). Pumped loops carry heat in moving mass instead, and distance then costs pump power. The one device that does "transform" heat is a heat pump, and the model does not have one (section 7, item 5; roadmap item 1).
 
@@ -88,15 +88,15 @@ bun run analyze --mode starmind --explain radiator.emissivity
 ```
 
 **Notice.**
-- *T⁴ (physics).* In physics mode (black, perfect fins, radiator at source temperature) net flux per m² of panel is 799.13 W/m² at 300 K and 14,578 W/m² at 600 K; area falls from 189.6 to 10.393 m². Doubling the temperature gives 18.2 times the net flux, a little more than 2⁴ = 16, because the radiator also absorbs a roughly fixed amount of thermal emission from Earth (two faces at 300 K emit 918.6 W/m²; the model nets 799.1, so about 119.5 W/m² is absorbed). Hot waste heat is cheap to reject; warm chips are expensive.
-- *Emissivity (model, assumption).* Radiator area is 348.37, 231.65, 173.52 m² at emissivity 0.5, 0.75, 1.0. The Starmind preset has no provenance note for emissivity: `--explain` returns `documented: false`. Compare `--mode iss --explain radiator.emissivity`, which cites Z-93 paint with sources. Say which is which.
+- *T⁴ (physics).* In physics mode (black, perfect fins, radiator at source temperature) net flux per m² of panel is 799.13 W/m² at 300 K and 14,578 W/m² at 600 K; area falls from 316 to 17.322 m². Doubling the temperature gives 18.2 times the net flux, a little more than 2⁴ = 16, because the radiator also absorbs a roughly fixed amount of thermal emission from Earth (two faces at 300 K emit 918.6 W/m²; the model nets 799.1, so about 119.5 W/m² is absorbed). Hot waste heat is cheap to reject; warm chips are expensive.
+- *Emissivity (model, assumption).* Radiator area is 580.62, 386.09, 289.2 m² at emissivity 0.5, 0.75, 1.0. The Starmind preset has no provenance note for emissivity: `--explain` returns `documented: false`. Compare `--mode iss --explain radiator.emissivity`, which cites Z-93 paint with sources. Say which is which.
 - *What the radiator sees (physics plus model).* Net flux per m² of panel, Starmind chain (336 K radiating), by orientation:
 
 | Location | `edgeOn` (both faces) | `nadirZenith` | `zenithOnly` |
 |---|---|---|---|
-| LEO 600 km (`leo-600`) | 1062.2 W/m² (192.9 m²) | 986.2 W/m² (207.7 m²) | 587.1 W/m² (349.0 m²) |
-| Cislunar deep space (`cislunar-deep`) | 1174.2 W/m² (174.5 m²) | 1174.2 W/m² (174.5 m²) | 587.1 W/m² (349.0 m²) |
-| Lunar equator noon (`moon-equator`) | 22.6 W/m² (9045.5 m²) | -249.6 W/m² (infeasible) | 314.9 W/m² (650.6 m²) |
+| LEO 600 km (`leo-600`) | 1062.2 W/m² (321.5 m²) | 986.2 W/m² (346.2 m²) | 587.1 W/m² (581.6 m²) |
+| Cislunar deep space (`cislunar-deep`) | 1174.2 W/m² (290.8 m²) | 1174.2 W/m² (290.8 m²) | 587.1 W/m² (581.6 m²) |
+| Lunar equator noon (`moon-equator`) | 22.6 W/m² (15,076 m²) | -249.6 W/m² (infeasible) | 314.9 W/m² (1084.3 m²) |
 
 Run the same commands with `--set radiator.orientation=<o> --environment <e>` to reproduce a cell. In orbit a two-sided panel edge-on to a planet sees little of it (the exact edge-on view factor at 550 km is about 0.26; `test/physics.test.ts`). In deep space it sees 2.725 K sky on both faces. On the Moon at noon, a vertical fin sees half its view as 390 K ground, and a horizontal panel with a Sun-facing face heats up faster than it radiates (negative flux: the CLI warns "the environment heats this radiator faster than it radiates"). Of the three orientations tried here, a single sky-facing face is best there.
 
@@ -125,8 +125,8 @@ bun run analyze --mode starmind --environment moon-polar --format table
 ```
 
 **Notice.**
-- In LEO at 420 km (`iss-leo`, beta 0) the sunlit fraction is 0.61253 over a 1.547 h cycle; battery 1746.6 kg (31 % of total) and a solar array of 921.54 m² (versus 546.08 m² in `leo-600`, because it must also charge the battery). In `leo-600` (beta 70, no eclipse) the battery is 0 kg and the solar array is 546.08 m².
-- At the lunar equator (`moon-equator`) the sunlit fraction is 0.5 over a 708.72 h cycle: about 354 h of darkness (`--explain environment.sunlitFraction`). Battery mass is 1,032,490 kg, 95 % of the total (the CLI warns "darkness, not heat, dominates this design"). Raising sunlit fraction to 0.7 cuts battery to 619,500 kg. The polar ridge (`moon-polar`, 0.85 sunlit, an `ASSUMPTION`) needs 309,748 kg.
+- In LEO at 420 km (`iss-leo`, beta 0) the sunlit fraction is 0.61253 over a 1.547 h cycle; battery 2547.1 kg (30 % of total) and a solar array of 1303.4 m² (versus 772.33 m² in `leo-600`, because it must also charge the battery). In `leo-600` (beta 70, no eclipse) the battery is 0 kg and the solar array is 772.33 m².
+- At the lunar equator (`moon-equator`) the sunlit fraction is 0.5 over a 708.72 h cycle: about 354 h of darkness (`--explain environment.sunlitFraction`). Battery mass is 1,505,720 kg, 94 % of the power-and-thermal mass (the CLI warns "darkness, not heat, dominates this design"). Raising sunlit fraction to 0.7 cuts battery to 903,431 kg. The polar ridge (`moon-polar`, 0.85 sunlit, an `ASSUMPTION`) needs 451,716 kg.
 - Battery mass is energy over specific energy: doubling specific energy halves it (`--sweep power.battery.specificEnergy_Wh_kg`).
 
 Storage oversize is 1 + (1-f)/(f eta_rt) (APPROACH section 4): darkness inflates the solar array as well as the battery.
@@ -155,9 +155,9 @@ bun run analyze --mode starmind --format table
 ```
 
 **Notice.**
-- `--compare`: radiator area 1201.3 (`iss`, at LEO 420 km), 192.88 (`starmind`), 118.91 (`ideal`), 72.993 m² (`physics`); total mass 30,993, 3,087.8, 1,237.2, 205.50 kg; solar array : radiator area ratio 1.73, 2.83, 3.25, 1.79.
-- Starmind mass budget (kg): radiator 1157.3, thermal loop 819.47, solar array 1092.2, battery 0, harness 18.889, total 3087.8, which is 20.585 kg/kW. The solar array is 2.8x the radiator in area; by mass, radiator plus thermal loop is about 1977 kg and the solar array about 1092 kg.
-- Tornado, total mass, top rows: radiator areal density +/-7.5 %, solar array areal density +/-7.1 %, source temperature limit +5.4 % (10 K colder) and -4.5 % (10 K hotter), average-load fraction +/-4.4 %, cell efficiency +3.9 % / -3.2 %. Some "levers" are material properties (areal density) rather than design choices. In this model they are partly `ASSUMPTION` (`--explain power.solarArrayArealDensity_kg_m2`).
+- `--compare`: radiator area 2002.2 (`iss`, at LEO 420 km), 321.47 (`starmind`), 198.19 (`ideal`), 121.66 m² (`physics`); total mass 49,633, 4,870.7, 1,981.3, 334.31 kg; solar array : radiator area ratio 1.51, 2.40, 2.85, 1.57.
+- Starmind mass budget (kg): radiator 1928.8, thermal loop 1365.8, solar array 1544.7, battery 0, harness 31.481, total 4870.7, which is 19.483 kg/kW. The solar array is 2.4x the radiator in area; by mass, radiator plus thermal loop is about 3295 kg and the solar array about 1545 kg.
+- Tornado, total mass, top rows: radiator areal density +/-7.9 %, solar array areal density +/-6.3 %, source temperature limit +5.7 % (10 K colder) and -4.8 % (10 K hotter), average-load fraction +/-4.5 %, cell efficiency +3.5 % / -2.9 %. Some "levers" are material properties (areal density) rather than design choices. In this model they are partly `ASSUMPTION` (`--explain power.solarArrayArealDensity_kg_m2`).
 
 **Ask.**
 1. Which is the larger piece of hardware here, the radiator or the solar array? By how much, and does it match your intuition?
@@ -190,7 +190,7 @@ bun run analyze --mode iss --explain radiator.sizingMargin
 bun run analyze --mode starmind
 ```
 
-Look at `reportedCheck`: 110 m² of radiator must reject 1489.95 W/m² of panel at peak load (1191.96 W/m² at average load), which needs radiating fluid at 363.4 K (345.2 K at average load); the Earth-style lidded stack gives 336.2 K. The report leaves a chain budget of 9.6 K between the source limit and the fluid; the lidded stack spends 36.8 K. So either the heat path is far better than the lidded Earth-style assumption (try `--heat-source gpu-direct-die`), the junction runs hotter than 373 K, or the figures describe different things. It is a consistency check, not proof anything is wrong. Ask the learner which of the three they would check first, and what source would settle it. Be careful: the sources are reporting, tagged `SECONDARY` where applicable (`--explain heatSource.totalPower_W`).
+Look at `reportedCheck` (LEO 600 km, β 70, 250 kW peak / 175 kW average): 160 m² of radiator must reject 1707.24 W/m² of panel at peak load (1195.07 W/m² at average load), which needs radiating fluid at 375.1 K (345.4 K at average load); the Earth-style lidded stack gives 336.2 K. The 373 K source limit leaves a chain budget of -2.1 K between the source limit and the fluid, so at peak load the reported area needs a fluid hotter than the junction limit; the lidded stack spends 36.8 K. The vehicle line: the published 75 kW per ton implies a 3333.33 kg vehicle (`vehicleMass_kg`), and the model's power and thermal hardware alone (4870.75 kg) is 146 % of it (`powerThermalShareOfVehicle` 1.46122). So either the junction runs hotter than 373 K, the radiator performs better than this model assumes (a better heat path alone cannot close a negative budget), or the figures describe different things. It is a consistency check, not proof anything is wrong. Ask the learner which of the three they would check first, and what source would settle it. Be careful: the sources are reporting, tagged `SECONDARY` where applicable (`--explain heatSource.totalPower_W`).
 
 ### 5c. The physics limit
 
@@ -199,10 +199,10 @@ bun run analyze --mode physics --environment cislunar-deep
 bun run analyze --mode physics
 ```
 
-In cislunar deep space the physics mode has rejection effectiveness exactly 1 and a radiator area of 69.0206 m²; it radiates at the source temperature (373 K) with black surfaces and perfect fins. In LEO 600 km it is 72.993 m² (effectiveness 0.94558) because Earth is in view. This is the floor for this payload and temperature, not a design: areal densities are placeholders (`--explain radiator.arealDensity_kg_m2`).
+In cislunar deep space the physics mode has rejection effectiveness exactly 1 and a radiator area of 115.034 m²; it radiates at the source temperature (373 K) with black surfaces and perfect fins. In LEO 600 km it is 121.655 m² (effectiveness 0.945578) because Earth is in view. This is the floor for this payload and temperature, not a design: areal densities are placeholders (`--explain radiator.arealDensity_kg_m2`).
 
 **Ask.**
-1. Why does the limit mode, with no engineering at all, still need about 70 m²?
+1. Why does the limit mode, with no engineering at all, still need about 120 m²?
 2. Which reference case would you quote in a paper, and what would you say about its assumptions?
 
 **Takeaway.** A model earns trust with anchors it can reproduce (ISS), checks it can run against claims (Starmind), and a limit it cannot beat (physics). Where it has only one anchor, say so.

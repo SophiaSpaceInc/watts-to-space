@@ -63,7 +63,7 @@ Environment ids: `iss-leo`, `leo-600`, `llo-100`, `cislunar-deep`, `moon-equator
 bun run analyze --mode starmind --set heatSource.totalPower_W=500000
 ```
 
-Real output (trimmed): `heatToReject_W` 546316, `radiatorArea_m2` 642.936, `solarArrayArea_m2` 1820.26, `solarArrayToRadiatorAreaRatio` 2.83116, total mass 10292.7 kg, 20.5853 kg/kW. Starmind mode is LEO 600 km with an Earth-style lidded GPU stack.
+Real output (trimmed): `heatToReject_W` 546316, `radiatorArea_m2` 642.936, `solarArrayArea_m2` 1544.67, `solarArrayToRadiatorAreaRatio` 2.40252, total mass 9741.49 kg, 19.483 kg/kW. Starmind mode is LEO 600 km with an Earth-style lidded GPU stack.
 
 **What if the chips run hotter?** Sweep the source temperature limit.
 
@@ -71,7 +71,7 @@ Real output (trimmed): `heatToReject_W` 546316, `radiatorArea_m2` 642.936, `sola
 bun run analyze --mode starmind --sweep heatSource.maxTemperature_K=340:400:20 --metric radiatorArea_m2 --format table
 ```
 
-Real output: 308.18 m² at 340 K, 229.97 at 360 K, 176.15 at 380 K, 137.76 at 400 K. Radiator area never increases with a higher limit: hotter coolant radiates more per m² (T⁴). The model assumes the chips tolerate it; the limit is an ASSUMPTION (check with `--explain heatSource.maxTemperature_K`).
+Real output: 513.64 m² at 340 K, 383.29 at 360 K, 293.59 at 380 K, 229.6 at 400 K. Radiator area never increases with a higher limit: hotter coolant radiates more per m² (T⁴). The model assumes the chips tolerate it; the limit is an ASSUMPTION (check with `--explain heatSource.maxTemperature_K`).
 
 **Which input matters most?**
 
@@ -79,7 +79,7 @@ Real output: 308.18 m² at 340 K, 229.97 at 360 K, 176.15 at 380 K, 137.76 at 40
 bun run analyze --mode starmind --tornado --format table
 ```
 
-Real output, top rows for total mass: radiator areal density ±7.5 % (for a ±20 % step), solar array areal density ±7.1 %, source temperature limit ±10 K gives +5.4 % (colder) and −4.5 % (hotter), average-load fraction ±0.1 gives ±4.4 %, cell efficiency ±10 % gives +3.9 % (lower) and −3.2 % (higher). Each row perturbs one input by its own step (listed in `--list` as the tornado step) and holds the rest. Use `--metric radiatorArea_m2` to rank for radiator area instead.
+Real output, top rows for total mass: radiator areal density ±7.9 % (for a ±20 % step), solar array areal density ±6.3 %, source temperature limit ±10 K gives +5.7 % (colder) and −4.8 % (hotter), average-load fraction ±0.1 gives ±4.5 %, cell efficiency ±10 % gives +3.5 % (lower) and −2.9 % (higher). Each row perturbs one input by its own step (listed in `--list` as the tornado step) and holds the rest. Use `--metric radiatorArea_m2` to rank for radiator area instead.
 
 **LEO vs cislunar vs the lunar surface.** Same hardware, different location:
 
@@ -88,7 +88,7 @@ bun run analyze --mode starmind --environment moon-equator --format table
 bun run analyze --mode starmind --environment cislunar-deep --format table
 ```
 
-Real results for the Starmind hardware (radiator m² / solar array m² / battery kg): `iss-leo` 197.7 / 921.5 / 1747; `leo-600` 192.9 / 546.1 / 0; `llo-100` 203.5 / 932.8 / 2257; `cislunar-deep` 174.5 / 546.1 / 0; `moon-equator` 9045.5 / 1139.6 / 1,032,490; `moon-polar` 193.4 / 650.8 / 309,748. The lunar equator at noon rejects only 22.6 W/m² per panel with a vertical fin, and the 14-day night makes the battery 95 % of mass (the CLI's warning says so). See `references/curriculum.md` lesson 3.
+Real results for the Starmind hardware (radiator m² / solar array m² / battery kg): `iss-leo` 329.5 / 1303.4 / 2547; `leo-600` 321.5 / 772.3 / 0; `llo-100` 339.1 / 1319.3 / 3291; `cislunar-deep` 290.8 / 772.3 / 0; `moon-equator` 15,076 / 1611.8 / 1,505,720; `moon-polar` 322.3 / 920.5 / 451,716. The lunar equator at noon rejects only 22.6 W/m² per panel with a vertical fin, and the 14-day night makes the battery 94 % of mass (the CLI's warning says so). See `references/curriculum.md` lesson 3.
 
 **Compare the four reference modes** (add `--environment` or `--heat-source` to apply to all four):
 
@@ -96,15 +96,15 @@ Real results for the Starmind hardware (radiator m² / solar array m² / battery
 bun run analyze --compare --format table
 ```
 
-Real output rows (radiator m²): `iss` 1201.3, `starmind` 192.88, `ideal` 118.91, `physics` 72.993. Note `iss` defaults to LEO 420 km, the others to LEO 600 km, unless you pass `--environment`.
+Real output rows (radiator m²): `iss` 2002.2, `starmind` 321.47, `ideal` 198.19, `physics` 121.66. Note `iss` defaults to LEO 420 km, the others to LEO 600 km, unless you pass `--environment`.
 
-**Check a reported radiator area.** Modes with a published figure carry a `reportedCheck`. Starmind reported 110 m²:
+**Check a reported radiator area.** Modes with a published figure carry a `reportedCheck`. Starmind reported 160 m² (250 kW peak / 175 kW average, 75 kW per ton, LEO 600 km):
 
 ```text
 bun run analyze --mode starmind
 ```
 
-`reportedCheck` (real): 110 m² must reject 1489.95 W/m² at peak load (1191.96 W/m² at average load, `targetAverage_W_m2`), so the radiating fluid must be 363.398 K (345.174 K at average load, `requiredFluidAverage_K`); the model's coolant is 336.242 K; `budgetLeft_K` 9.6015 K is what the report leaves for the whole heat path, versus `modelChainDrop_K` 36.7575 K for the lidded stack. Reading: the reported area is only consistent with a source stack far better than an Earth-style lidded package, or a hotter junction. It is a consistency check, not proof the report is wrong.
+`reportedCheck` (real, `leo-600`, β 70): 160 m² must reject 1707.24 W/m² at the 250 kW peak load (1195.07 W/m² at the 175 kW average load, `targetAverage_W_m2`), so the radiating fluid must be 375.139 K (345.379 K at average load, `requiredFluidAverage_K`); the model's coolant is 336.242 K; `budgetLeft_K` is -2.13947 K: at peak load the reported area needs a radiating fluid hotter than the 373 K source limit, so no heat path could meet it at that limit, and the lidded stack alone drops `modelChainDrop_K` 36.7575 K. The vehicle line: the published 75 kW per ton implies `vehicleMass_kg` 3333.33 kg, and the model's power and thermal hardware (total 4870.75 kg) is `powerThermalShareOfVehicle` 1.46122, about 146 % of it. Reading: the reported figures are not consistent with an Earth-style lidded package at a 373 K limit, or the figures describe different things (peak versus average load, area counted differently). It is a consistency check, not proof the report is wrong.
 
 **Any scenario from a file or link.**
 
@@ -141,7 +141,7 @@ Produce a link to post in a thread, paper or issue:
 bun run analyze --mode ideal --environment moon-polar --set heatSource.totalPower_W=100000 --set radiator.emissivity=0.85 --share-out --format table
 ```
 
-Real output: a share string `w2s1.eyJtIjoiaWRlYWwi...e63a9a1d`, the link `https://watts-to-space.chrislewicki.com/?s=<share string>`, a suggested one-line post, and the list of changes. (That is the public page. The string also works with the CLI, and the page can be opened offline from `dist-standalone/index.html` after `bun run build:standalone`.) Use `--base-url` for a different host.
+Real output: a share string `w2s1.eyJtIjoiaWRlYWwi...e8363f42`, the link `https://watts-to-space.chrislewicki.com/?s=<share string>`, a suggested one-line post, and the list of changes. (That is the public page. The string also works with the CLI, and the page can be opened offline from `dist-standalone/index.html` after `bun run build:standalone`.) Use `--base-url` for a different host.
 
 **Open a link someone posted:** `bun run analyze --share '<w2s1 string or the whole URL>'`. Quote it; the string can contain characters the shell dislikes. The user can also paste the URL into a browser.
 
@@ -156,7 +156,7 @@ Real output: a share string `w2s1.eyJtIjoiaWRlYWwi...e63a9a1d`, the link `https:
 **Posting convention.** Post the link plus one line saying what changed and what it shows. `--share-out --format table` prints that line ("Suggested post") and the changes. Example shape:
 
 ```text
-Moon polar ridge, 100 kW payload, emissivity 0.85 instead of 0.92: radiator 86 m², solar array 306 m², 46 t.
+Moon polar ridge, 100 kW payload, emissivity 0.85 instead of 0.92: radiator 86 m², solar array 268 m², 40 t.
 https://watts-to-space.chrislewicki.com/?s=w2s1....
 ```
 

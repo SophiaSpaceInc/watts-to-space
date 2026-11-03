@@ -36,6 +36,34 @@ export const SOURCES: Record<string, Source> = {
     title: 'Notebookcheck (2026), "SpaceX details AI1 satellite specs and cooling for Starmind"',
     url: 'https://www.notebookcheck.net/SpaceX-details-AI1-satellite-specs-and-cooling-for-Starmind-data-center-in-space.1340218.0.html',
   },
+  'spacex-starmind': {
+    title: 'SpaceX, Starmind (AI1) page: "Up to 250 kW peak / 175 kW average", Solar Array 210 kW at 250 W/m², 160 m² deployable liquid radiator, 75 kW / ton (values since 2026-08-04)',
+    url: 'https://www.spacex.com/spacexsi/starmind',
+  },
+  'spacex-starmind-2026-08-03': {
+    title: 'SpaceX Starmind page as archived 2026-08-03 (earlier sheet: 150 kW peak / 120 kW average, 150 kW array, 110 m² radiator, 70 kW / ton)',
+    url: 'https://web.archive.org/web/20260803190611/https://www.spacex.com/spacexai/starmind',
+  },
+  'spacex-fcc-2026-09': {
+    title: 'SpaceX ex parte letter to the FCC, 2026-09-16 (SAT-LOA-20260108-00016): Starmind enveloping dimensions and orbits',
+    url: 'https://api-prod.fcc.gov/icfs-attachment/exp/api/v1/a81df57a93db4f10ac9c39bfa8373c08',
+  },
+  'spacex-s1': {
+    title: 'SpaceX Form S-1, 2026-05-20 ("approximately 100 kW of compute power per ton"; dawn-dusk sun-synchronous constellation)',
+    url: 'https://www.sec.gov/Archives/edgar/data/1181412/000162828026036936/spaceexplorationtechnologi.htm',
+  },
+  'spacex-0608': {
+    title: 'SpaceX AI-satellite technical update on X, 2026-06-08 (250 W/m² solar array; about 1,400 W/m² double-sided radiators, knife-edge to the Sun; speaker not confirmed)',
+    url: 'https://x.com/SpaceX/status/2064099405758906727',
+  },
+  'musk-1102': {
+    title: 'Elon Musk on X, 2026-11-03: "~1300 W/m^2 is easily achievable for an aluminum radiator pointed away from the Sun"',
+    url: 'https://x.com/elonmusk/status/2117462581371719779',
+  },
+  'musk-1001': {
+    title: 'Elon Musk on X, 2026-10-01: each Starmind spacecraft "will have over 250kW of solar power" (the Starmind page says 210 kW)',
+    url: 'https://x.com/elonmusk/status/2105718806769512812',
+  },
   'starmind-fcc': {
     title: "Let's Data Science (2026), \"SpaceX confirms Starmind, targets one million satellites\" (FCC filing, 500–2,000 km)",
     url: 'https://letsdatascience.com/news/spacex-confirms-starmind-targets-one-million-satellites-4cc7bcc9',
@@ -119,8 +147,8 @@ const GPU_DIRECT_DIE_STAGES: Stage[] = [
 
 const GPU_NOTES: Record<string, string> = {
   'heatSource.unitPower_W': 'Rubin "Max Q" GPU ≈ 1.8 kW; "Max P" ≈ 2.3 kW [rubin-ctee]. SECONDARY (pre-launch reporting).',
-  'heatSource.totalPower_W': 'Starmind AI1 reported 150 kW peak, 120 kW average compute [starmind-nbc]. Used for every mode so modes compare technology, not payload. SECONDARY. A later version of the Starmind page reports 250 kW peak / 175 kW average; pending verification.',
-  'heatSource.averageFraction': '120 kW average / 150 kW peak = 0.8 for AI1 [starmind-nbc]. SECONDARY. The later 175 / 250 kW figures give 0.7; pending verification.',
+  'heatSource.totalPower_W': 'AI1 compute payload "Up to 250 kW peak / 175 kW average" [spacex-starmind], up from 150 / 120 kW before 2026-08-04 [spacex-starmind-2026-08-03]. Used for every mode so modes compare technology, not payload.',
+  'heatSource.averageFraction': '175 kW average / 250 kW peak = 0.7 [spacex-starmind]; the earlier sheet gave 120 / 150 = 0.8 [spacex-starmind-2026-08-03].',
   'heatSource.maxTemperature_K': '373 K (100 °C) junction: the premise that the chips run reliably this hot. HBM DRAM may set a lower limit. ASSUMPTION.',
   'heatSource.stages': 'Die 0.5 mm Si (k ≈ 120 W/m·K near 360 K [glassbrenner1964]) over ~16 cm² (two reticle-sized dies), ×1.5 hot-spot peaking; TIM1 0.05 K·cm²/W; 3 mm Cu lid; TIM2 0.08 K·cm²/W over 40 cm²; microchannel h_eff 50 kW/m²K. ASSUMPTION, sanity-checked: with a 45 °C inlet [rubin-2crsi] and a 10 K coolant rise, this stack puts the junction at ~86 °C (1.8 kW) to ~94 °C (2.3 kW).',
 };
@@ -137,13 +165,13 @@ export const HEAT_SOURCES: Record<string, HeatSourcePreset> = {
   'gpu-lidded': {
     label: 'AI accelerator, lidded (Rubin-class, Earth-style cold plate)',
     loopCoolant: 'water',
-    heatSource: { name: 'Rubin-class GPU (lidded)', maxTemperature_K: 373, unitPower_W: 1800, totalPower_W: 150e3, averageFraction: 0.8, stages: GPU_LIDDED_STAGES },
+    heatSource: { name: 'Rubin-class GPU (lidded)', maxTemperature_K: 373, unitPower_W: 1800, totalPower_W: 250e3, averageFraction: 0.7, stages: GPU_LIDDED_STAGES },
     notes: GPU_NOTES,
   },
   'gpu-direct-die': {
     label: 'AI accelerator, direct-die two-phase',
     loopCoolant: 'twoPhaseAmmonia',
-    heatSource: { name: 'Rubin-class GPU (direct-die)', maxTemperature_K: 373, unitPower_W: 1800, totalPower_W: 150e3, averageFraction: 0.8, stages: GPU_DIRECT_DIE_STAGES },
+    heatSource: { name: 'Rubin-class GPU (direct-die)', maxTemperature_K: 373, unitPower_W: 1800, totalPower_W: 250e3, averageFraction: 0.7, stages: GPU_DIRECT_DIE_STAGES },
     notes: {
       ...GPU_NOTES,
       'heatSource.stages': 'Die thinned to 0.3 mm with ×1.5 peaking; no lid, no TIMs; flow boiling h_eff 150 kW/m²K on the die footprint. ASSUMPTION (aggressive, not flight-proven at this power).',
@@ -152,7 +180,7 @@ export const HEAT_SOURCES: Record<string, HeatSourcePreset> = {
   'isothermal-limit': {
     label: 'Physics limit: no interface drops (radiator at source temperature)',
     loopCoolant: 'twoPhaseAmmonia',
-    heatSource: { name: 'Isothermal source', maxTemperature_K: 373, unitPower_W: 1800, totalPower_W: 150e3, averageFraction: 0.8, stages: [] },
+    heatSource: { name: 'Isothermal source', maxTemperature_K: 373, unitPower_W: 1800, totalPower_W: 250e3, averageFraction: 0.7, stages: [] },
     notes: { ...GPU_NOTES, 'heatSource.stages': 'No stages: the radiator runs at the source temperature. A bound, not a design.' },
   },
   'process-600K': {
@@ -162,14 +190,14 @@ export const HEAT_SOURCES: Record<string, HeatSourcePreset> = {
       name: 'Process heat, 600 K',
       maxTemperature_K: 600,
       unitPower_W: 150e3,
-      totalPower_W: 150e3,
+      totalPower_W: 250e3,
       averageFraction: 1,
       stages: [{ id: 'processHx', label: 'Process to coolant heat exchanger', kind: 'deltaT', deltaT_K: 20, lengthScale_m: 0.05 }],
     },
     notes: {
       'heatSource.maxTemperature_K': 'Generic mid-temperature process. The point: radiator flux grows as T⁴, so hot waste heat is cheap to reject. ASSUMPTION.',
       'heatSource.stages': '20 K approach in the process heat exchanger. ASSUMPTION.',
-      'heatSource.totalPower_W': 'Same 150 kW as the compute cases, for comparison. ASSUMPTION.',
+      'heatSource.totalPower_W': 'Same 250 kW as the compute cases, for comparison. ASSUMPTION.',
       'heatSource.averageFraction': 'A continuous process runs at its peak: average = peak. ASSUMPTION.',
     },
   },
@@ -198,8 +226,8 @@ export const ENVIRONMENTS: Record<string, EnvironmentPreset> = {
     label: 'LEO 600 km, terminator-like (β = 70°)',
     environment: { kind: 'orbit', body: 'earth', altitude_km: 600, beta_deg: 70 },
     notes: {
-      'environment.altitude_km': 'AI1 reported at ~600 km; FCC filing spans 500–2,000 km [starmind-nbc][starmind-fcc]. SECONDARY.',
-      'environment.beta_deg': 'Orbit plane not published. β = 70° (eclipse-free at 600 km, little albedo) is an ASSUMPTION.',
+      'environment.altitude_km': 'AI1 reported at ~600 km [starmind-nbc] (SECONDARY). SpaceX\'s FCC letter describes sun-synchronous dawn-dusk or dusk-dawn shells within 500–1,002 km, plus 30° shells at 550–568 km [spacex-fcc-2026-09].',
+      'environment.beta_deg': 'SpaceX describes a dawn-dusk sun-synchronous constellation "that delivers near-constant solar exposure" [spacex-s1]. β = 70° (eclipse-free at 600 km, little albedo) stands in for that orbit; the seasonal drift of β is not modelled. ASSUMPTION.',
     },
   },
   'llo-100': {
@@ -266,7 +294,7 @@ export interface ModePreset {
   loop: Loop;
   radiator: Radiator;
   power: Power;
-  reported?: { radiatorArea_m2: number };
+  reported?: NonNullable<Scenario["reported"]>;
   notes: Record<string, string>;
 }
 
@@ -317,7 +345,7 @@ export const MODES: Record<ModeId, ModePreset> = {
   starmind: {
     name: 'SpaceX Starmind (reported)',
     summary:
-      'Reported AI1 numbers (150 kW peak, 110 m² liquid radiators, ~600 km) with an Earth-style lidded Rubin package and a single-phase pumped loop. Unpublished values are labelled ASSUMPTION.',
+      'SpaceX\'s published AI1 figures (250 kW peak / 175 kW average compute, 160 m² liquid radiator, 250 W/m² solar array, 75 kW per ton) in a dawn-dusk orbit at ~600 km, with an Earth-style lidded Rubin package and a single-phase pumped loop. Values SpaceX has not published are labelled ASSUMPTION.',
     heatSource: 'gpu-lidded',
     environment: 'leo-600',
     loop: { coolant: 'water', transportDrop_K: 1, transportLength_m: 20, hxApproach_K: 0, rise_K: 10, coolantCap_K: null },
@@ -325,7 +353,7 @@ export const MODES: Record<ModeId, ModePreset> = {
     power: {
       cellEfficiency: 0.22,
       packingFactor: 0.9,
-      operatingFactor: 0.9,
+      operatingFactor: 0.928,
       solarArrayArealDensity_kg_m2: 2.0,
       conversionEfficiency: 0.95,
       overheadFraction: 0.03,
@@ -335,13 +363,15 @@ export const MODES: Record<ModeId, ModePreset> = {
       harnessLossFraction: 0.01,
       battery: { roundTripEfficiency: 0.92, depthOfDischarge: 0.3, specificEnergy_Wh_kg: 150 },
     },
-    reported: { radiatorArea_m2: 110 },
+    reported: { radiatorArea_m2: 160, vehicleSpecificPower_kW_per_t: 75 },
     notes: {
-      'reported.radiatorArea_m2': '"Liquid radiators of 110 m²" for 120 kW average / 150 kW peak [starmind-nbc]. Taken as two-sided panel planform area. SECONDARY.',
-      'loop.hxApproach_K': '"Redundant pumped loops" reported [starmind-nbc]. Modelled as one loop with no intermediate heat exchanger: ASSUMPTION.',
+      'reported.radiatorArea_m2': 'Deployable liquid radiator, 160 m² [spacex-starmind] (110 m² before 2026-08-04 [spacex-starmind-2026-08-03]); FCC envelope under 200 m² [spacex-fcc-2026-09]. Taken as two-sided panel planform: SpaceX\'s June 8 update assumed about 1,400 W/m² from double-sided radiators oriented knife-edge to the Sun [spacex-0608], and Musk later cited ~1,300 W/m² for an aluminum radiator [musk-1102]. 160 m² × 1,400 W/m² = 224 kW, below the 250 kW peak. The raw ratio is 250 kW / 160 m² = 1,562 W/m²; the model also counts conversion losses and overhead.',
+      'reported.vehicleSpecificPower_kW_per_t': '"75 kW / ton" vehicle efficiency [spacex-starmind] (70 before 2026-08-04 [spacex-starmind-2026-08-03]). Read on peak compute: 150 / 70 = 2.14 t matches outside estimates of about 2.1 t for the earlier sheet, so 250 / 75 ≈ 3.3 t. The S-1 targets about 100 kW of compute per ton [spacex-s1]. The FCC letter\'s 4,000 kg is a ceiling used in the debris analysis, not a design mass [spacex-fcc-2026-09].',
+      'loop.hxApproach_K': '"Redundant pumping loops" [spacex-starmind]. Modelled as one loop with no intermediate heat exchanger: ASSUMPTION.',
       'loop.rise_K': '10 K coolant rise. ASSUMPTION.',
-      'radiator.arealDensity_kg_m2': 'ASSUMPTION: modern deployable radiator, lighter than ISS.',
+      'radiator.arealDensity_kg_m2': 'ASSUMPTION: modern deployable radiator, lighter than ISS. Musk describes the radiator as aluminum [musk-1102]; SpaceX has not published its mass.',
       'radiator.sizingMargin': 'ASSUMPTION.',
+      'power.operatingFactor': 'CALIBRATED (0.928): with the assumed 22 % cells and 0.9 packing, reproduces SpaceX\'s stated solar power density of 250 W/m² [spacex-starmind][spacex-0608]. SpaceX gives "Solar Array 210 kW", which is 840 m² at 250 W/m² [spacex-starmind]; Musk has said "over 250kW of solar power" [musk-1001]; the FCC envelope is under 1,500 m² [spacex-fcc-2026-09].',
       'power.cellEfficiency': 'Silicon-class cells, as in McCalip\'s model (22 %) [mccalip]. ASSUMPTION: SpaceX has not published Starlink cell type, efficiency or power. Cross-check (model arithmetic): at these settings the 104.96 m² of solar array SpaceX filed for its F9-2 design, the Falcon 9 "V2 Mini" [spacex-fcc-2022], would deliver about 25 kW in sunlight. SpaceX says V3 arrays generate about twice the power of V2 [starlink-v3].',
       'power.solarArrayArealDensity_kg_m2': 'ASSUMPTION. SpaceX filed 800 kg and 2 × 12.8 m × 4.1 m of solar array for F9-2, and 2,000 kg with 256.94 m² for its Starship-launched design, as debris-model inputs [spacex-fcc-2022]; how that mass splits between solar array and the rest is not public.',
       'power.busVoltage_V': 'ASSUMPTION borrowed from terrestrial practice: AI data centers are moving to 800 V DC distribution [nvidia-800vdc]. Not space heritage: the ISS runs 160 V primary / 124 V secondary, and high-voltage solar arrays in low orbit risk arcing to the surrounding plasma unless designed for it [nasa-hdbk-4006a]. Starlink and Starmind bus voltages are not public. Here it sets the copper mass needed for the harness loss target, not the radiator.',

@@ -181,7 +181,10 @@ export function validateScenario(data: unknown): Scenario {
 
   if (s.reported !== null && s.reported !== undefined) {
     if (!isObj(s.reported)) c.problems.push('scenario.reported must be null or an object');
-    else c.num(s.reported, 'radiatorArea_m2', 'reported', POSITIVE);
+    else {
+      c.num(s.reported, 'radiatorArea_m2', 'reported', POSITIVE);
+      if (s.reported.vehicleSpecificPower_kW_per_t !== undefined) c.num(s.reported, 'vehicleSpecificPower_kW_per_t', 'reported', POSITIVE);
+    }
   }
   const notes = s.notes ?? {};
   if (!isObj(notes) || Object.values(notes).some((v) => typeof v !== 'string')) c.problems.push('scenario.notes must map paths to strings');

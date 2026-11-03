@@ -310,11 +310,12 @@ function renderKpis(r: Result): void {
   if (!check) return;
   const gap = check.modelChainDrop_K - check.budgetLeft_K;
   rep.innerHTML = `<h3>Reality check: the reported ${fmt(check.radiatorArea_m2)} m² radiator</h3>
-    <p>Rejecting ${fmt(r.heatToReject_W / 1000)} kW on ${fmt(check.radiatorArea_m2)} m² means ${fmt(check.target_W_m2)} W/m² of panel, with no sizing margin.
+    <p>Rejecting ${fmt(r.heatToReject_W / 1000)} kW (the ${fmt(r.payload_W / 1000)} kW peak payload plus conversion losses and overhead) on ${fmt(check.radiatorArea_m2)} m² means ${fmt(check.target_W_m2)} W/m² of panel, with no sizing margin.
     In this environment that needs radiating fluid at <b>${fmtK(check.requiredFluid_K)}</b>. That leaves <b>${fmt(check.budgetLeft_K)} K</b> between the ${fmt(scenario.heatSource.maxTemperature_K)} K source limit and the radiator.
     The modelled chain spends <b>${fmt(check.modelChainDrop_K)} K</b> and delivers ${fmtK(check.modelFluid_K)}.
     ${gap > 0 ? `To close the gap, remove ${fmt(gap)} K from the chain, run the source hotter, or the reported area is not two-sided planform.` : 'The modelled chain fits.'}</p>
-    ${r.payloadAverage_W < r.payload_W ? `<p>At the ${fmt(r.payloadAverage_W / 1000)} kW average instead of the ${fmt(r.payload_W / 1000)} kW peak, the same area needs ${fmt(check.targetAverage_W_m2)} W/m², so fluid at <b>${fmtK(check.requiredFluidAverage_K)}</b>. Sized nearer the average, the radiator works only if thermal mass or throttling carries the peaks; this steady-state model does not simulate that.</p>` : ''}`;
+    ${r.payloadAverage_W < r.payload_W ? `<p>At the ${fmt(r.payloadAverage_W / 1000)} kW average instead of the ${fmt(r.payload_W / 1000)} kW peak, the same area needs ${fmt(check.targetAverage_W_m2)} W/m², so fluid at <b>${fmtK(check.requiredFluidAverage_K)}</b>. Sized nearer the average, the radiator works only if thermal mass or throttling carries the peaks; this steady-state model does not simulate that.</p>` : ''}
+    ${check.vehicleMass_kg && check.powerThermalShareOfVehicle !== null ? `<p>Mass: the published ${fmt(scenario.reported?.vehicleSpecificPower_kW_per_t ?? 0)} kW per ton implies about <b>${fmtT(check.vehicleMass_kg)}</b> for the whole satellite at ${fmt(r.payload_W / 1000)} kW. This model's power and thermal hardware alone is <b>${fmtT(r.totalMass_kg)}</b>, ${fmt(100 * check.powerThermalShareOfVehicle)} % of that${check.powerThermalShareOfVehicle >= 0.8 ? ', which leaves too little for the compute, structure and avionics. Either the model\'s mass assumptions (radiator, solar array and loop per m² and per kW) are heavier than SpaceX\'s design, or the published figures are optimistic' : ''}.</p>` : ''}`;
 }
 
 function renderWarnings(r: Result): void {
@@ -558,6 +559,7 @@ function copperComparison(r: Result): string {
 const EXTRA_LABELS: Record<string, string> = {
   'heatSource.stages': 'Source stack (first centimetre)',
   'reported.radiatorArea_m2': 'Reported radiator area (m²)',
+  'reported.vehicleSpecificPower_kW_per_t': 'Reported payload power per ton of vehicle (kW/t)',
   'loop.coolant': 'Radiator coolant',
   'loop.coolantCap_K': 'Heritage coolant setpoint (K)',
   'radiator.orientation': 'Radiator orientation',

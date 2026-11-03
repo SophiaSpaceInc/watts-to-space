@@ -149,8 +149,12 @@ export interface Scenario {
   loop: Loop;
   radiator: Radiator;
   power: Power;
-  /** A published radiator area to check against, if any. */
-  reported: { radiatorArea_m2: number } | null;
+  /** Published figures to check the model against, if any. */
+  reported: {
+    radiatorArea_m2: number;
+    /** Published payload power per ton of whole vehicle; implies a whole-vehicle mass at peak load. */
+    vehicleSpecificPower_kW_per_t?: number;
+  } | null;
   /** Provenance note per dot-path (see scenarios.ts for the tags). */
   notes: Record<string, string>;
 }

@@ -61,6 +61,8 @@ export const EXPLANATIONS: Record<string, string> = {
     'Mass per m² of radiator panel, including fluid, tubes, face sheets, micrometeoroid protection and deployment. Radiator mass is its area times this.',
   'radiator.loopSpecificMass_kg_per_kW':
     'Mass of pumps, accumulators, valves and rotary joints per kW of heat moved. The radiator panels are counted separately.',
+  'reported.vehicleSpecificPower_kW_per_t':
+    'Payload power per ton of the whole vehicle, as published. The model turns it into a whole-satellite mass at peak load and compares its own power and thermal hardware against it. If that hardware alone approaches the whole vehicle, the model\'s mass assumptions are heavier than the real design.',
   'reported.radiatorArea_m2':
     'A radiator area published for a real system. The model works backwards from it: what radiating temperature would that area need for this heat load, and does the modelled temperature staircase leave that much room?',
 

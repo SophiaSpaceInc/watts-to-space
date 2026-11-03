@@ -340,7 +340,7 @@ function summaryTable(sum: Bag, s: Scenario, r: Result): string {
   if (r.reportedCheck) {
     const c = r.reportedCheck;
     parts.push(
-      `\nReported-area check: ${fmt(c.radiatorArea_m2)} m2 needs ${fmt(c.target_W_m2)} W/m2, i.e. radiating fluid at ${fmt(c.requiredFluid_K)} K (model ${fmt(c.modelFluid_K)} K); chain budget left ${fmt(c.budgetLeft_K)} K vs model chain drop ${fmt(c.modelChainDrop_K)} K; at the average load it needs ${fmt(c.targetAverage_W_m2)} W/m2, fluid ${fmt(c.requiredFluidAverage_K)} K`,
+      `\nReported-area check: ${fmt(c.radiatorArea_m2)} m2 needs ${fmt(c.target_W_m2)} W/m2, i.e. radiating fluid at ${fmt(c.requiredFluid_K)} K (model ${fmt(c.modelFluid_K)} K); chain budget left ${fmt(c.budgetLeft_K)} K vs model chain drop ${fmt(c.modelChainDrop_K)} K; at the average load it needs ${fmt(c.targetAverage_W_m2)} W/m2, fluid ${fmt(c.requiredFluidAverage_K)} K${c.vehicleMass_kg ? `; published kW/ton implies a ${fmt(c.vehicleMass_kg)} kg vehicle, of which this model's power and thermal hardware is ${fmt(100 * (c.powerThermalShareOfVehicle ?? 0))} %` : ''}`,
     );
   }
   for (const w of r.warnings) parts.push(`${w.level.toUpperCase()}: ${w.text}`);
