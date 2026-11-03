@@ -497,3 +497,9 @@ figure.hero figcaption { margin-top: 6px; font-size: 12px; color: var(--ink-2); 
 .rail-reset:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .rail-reset:disabled { opacity: 0.45; cursor: default; }
 .slider-row .param-head .rail-reset { margin-left: 10px; }
+
+/* ---------------------------------------------------------------- FAQ */
+.faq { max-width: var(--measure); margin: 56px auto 0; }
+.faq h3 { margin: 26px 0 6px; font: 600 17px/1.35 var(--sans); }
+.faq h3:target { color: var(--accent); }
+.faq p { margin: 0; font: 400 16px/1.6 var(--sans); }

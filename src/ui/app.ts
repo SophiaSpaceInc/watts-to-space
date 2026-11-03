@@ -353,7 +353,7 @@ function renderKpis(r: Result): void {
       'Solar array : radiator area',
       `${fmt(r.solarToRadiatorAreaRatio, 1)} : 1`,
       r.reportedCheck?.publishedAreaRatio
-        ? `published areas: ${fmt(r.reportedCheck.publishedAreaRatio, 1)} : 1 (${fmt(scenario.reported?.solarArrayArea_m2 ?? 0)} / ${fmt(r.reportedCheck.radiatorArea_m2)} m²)${r.radiatorArea_m2 > r.reportedCheck.radiatorArea_m2 ? '; this heat path needs a larger radiator' : ''}`
+        ? `published areas: ${fmt(r.reportedCheck.publishedAreaRatio, 1)} : 1 (${fmt(scenario.reported?.solarArrayArea_m2 ?? 0)} / ${fmt(r.reportedCheck.radiatorArea_m2)} m²)${r.radiatorArea_m2 > r.reportedCheck.radiatorArea_m2 ? '; this model sizes a larger radiator' : ''}`
         : 'compare the often-quoted "5:1"',
       pct(r.solarToRadiatorAreaRatio, p?.solarToRadiatorAreaRatio),
     ],

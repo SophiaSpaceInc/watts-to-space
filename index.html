@@ -11,7 +11,12 @@
     <meta property="og:url" content="https://watts-to-space.chrislewicki.com/" />
     <meta property="og:title" content="Heat rejection in vacuum" />
     <meta property="og:description" content="An open model of the power and heat-rejection hardware behind data centers and industry in space. Change any assumption and see what moves." />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content="https://watts-to-space.chrislewicki.com/assets/hero/home-hero-v3.jpg" />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="720" />
+    <meta property="og:image:alt" content="Engineering line drawing of a space data center above Earth: two solar array wings and a radiator at right angles to them, edge-on to Earth, radiating heat." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://watts-to-space.chrislewicki.com/assets/hero/home-hero-v3.jpg" />
     <meta name="twitter:creator" content="@interplanetary" />
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -87,7 +92,7 @@
     <nav class="jump" aria-label="On this page">
       <a href="#part-heat-path">Heat path</a> · <a href="#part-radiator">Radiator</a> ·
       <a href="#part-power">Power supply</a> · <a href="#part-results">Results</a> ·
-      <a href="#assumptions-section">Assumptions</a> · <a href="#see-also">See also</a> · <a href="#agent">Ask your AI agent</a>
+      <a href="#faq">FAQ</a> · <a href="#assumptions-section">Assumptions</a> · <a href="#see-also">See also</a> · <a href="#agent">Ask your AI agent</a>
     </nav>
 
 
@@ -307,6 +312,30 @@
               <p id="tornado-note" class="muted small"></p>
             </section>
       </div>
+    </section>
+
+    <section class="faq" id="faq" aria-labelledby="faq-title">
+      <h2 id="faq-title">Questions people ask</h2>
+      <p class="muted small">Short answers, each with the conditions it holds under. The numbers come from this model's reference
+        cases; follow the links to change them.</p>
+      <h3 id="faq-cold">Space is cold. Why is cooling hard there?</h3>
+      <p>Space is cold, but it is a vacuum: there is no air or water to carry heat away. The only way out is to radiate it, and at 60 °C that moves about 7.5 W per m² for each degree of temperature difference, about the same as still air around a laptop with its fan off. A 132 kW GPU rack would need about 105 m² of radiator at 60 °C; its footprint is 0.64 m². <a href="./everyday/index.html">Your laptop in space</a> walks through it.</p>
+      <h3 id="faq-first-centimeter">Where does the temperature go before the heat reaches the radiator?</h3>
+      <p>Mostly in the first centimeter. In this model's Starmind case, starting from a chip limited to 100 °C, the silicon, thermal interface, lid and cold plate spend about 31 K before the heat reaches the coolant, and the whole path to the radiator about 37 K. Near 60 °C, every kelvin spent there costs about 1.2 % more radiator area, because radiated power goes as T⁴. <a href="#chart-staircase">Chart 1</a> shows the staircase.</p>
+      <h3 id="faq-spacex-flux">Is SpaceX's 1,400 W/m² realistic?</h3>
+      <p>The physics agrees with it: this model's radiator rejects SpaceX's stated ~1,400 W/m² with its fluid at about 85 °C. The open question is the heat path. An Earth-style lidded chip package at a 100 °C junction delivers about 63 °C to the radiator here. Closing that gap takes a heat path that spends less temperature, chips that run hotter, or peaks carried by the battery and thermal mass. <a href="#reported">The Starmind check</a> shows the numbers.</p>
+      <h3 id="faq-sun">Does it matter if the radiator sees the Sun?</h3>
+      <p>The Sun covers about 0.001 % of what a radiator face sees, so it barely blocks the cold sky. But it delivers 1,361 W/m². A white-painted panel at 60 °C, turned face-on to the Sun, loses about 22 % of what it could reject in the dark. Knife-edge to the Sun it loses nothing, which is why designs fly their radiators that way. <a href="./sun/index.html">Pointing a radiator at the Sun</a> lets you turn it.</p>
+      <h3 id="faq-earth">How much does Earth below cost a radiator?</h3>
+      <p>Less than you might think, if the panel is edge-on. At 600 km and 60 °C, Earth's infrared and reflected sunlight cost about 9 % of a two-sided panel's rejection. Turn one face to Earth and that face absorbs about 3.4 times as much. <a href="#chart-altitude">Chart 4</a> shows how the cost fades with altitude.</p>
+      <h3 id="faq-copper">Why not conduct the heat out through copper?</h3>
+      <p>Because heat has no cheap transformer. Conducting heat through copper with a 50 K budget behaves like distributing electricity at about 21 millivolts, and a solid 10 × 10 cm copper bar cannot carry 1 kW much past a meter. A pumped loop carries the heat in moving fluid instead, so distance costs pump power, not temperature. <a href="#chart-transport">Chart 2</a> compares them.</p>
+      <h3 id="faq-five-to-one">Is the "5:1" solar array to radiator rule right?</h3>
+      <p>It depends on what you count. At 60 °C, a two-sided radiator facing the dark sky rejects about five times what a solar array at 250 W/m² collects per m², which is where 5:1 comes from, and SpaceX's published areas are 5.3 : 1. This model's Starmind case comes out at 2.4 : 1, mostly because it sizes the radiator for the 250 kW peak but the solar array for the 175 kW average, and adds a 25 % sizing margin; fin losses and Earth's warmth do the rest.</p>
+      <h3 id="faq-figure-of-merit">What is the right figure of merit for a space radiator?</h3>
+      <p>Watts of heat rejected per kilogram of radiator and pumped loop. This model's ISS-heritage case reaches about 8 W/kg, its Starmind case about 83 and its aggressive case about 190. Physics caps the heat per square meter, at about 1,000 W/m² at 50 °C in low orbit, so watts per kilogram mostly comes down to mass per square meter, and the pumps set a ceiling of their own. <a href="./mass/index.html">Watts per kilogram</a> maps it.</p>
+      <h3 id="faq-levers">What would change the answer most?</h3>
+      <p>Lighter radiators and pumps: ranked by W/kg, <a href="#chart-tornado">chart 8</a> puts radiator mass per square meter first. Hotter chips, because every kelvin of radiator temperature is worth about 1.2 % of area. And heat pumps, which lift heat to a hotter, smaller radiator by spending electrical power; this model does not include them yet.</p>
     </section>
 
     <section class="see-also" id="see-also" aria-labelledby="see-also-title">

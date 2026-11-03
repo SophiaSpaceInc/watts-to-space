@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun ./index.html ./everyday/index.html ./sun/index.html ./mass/index.html",
-    "build": "bun build ./index.html ./everyday/index.html ./sun/index.html ./mass/index.html --outdir dist",
+    "build": "bun build ./index.html ./everyday/index.html ./sun/index.html ./mass/index.html --outdir dist && mkdir -p dist/assets/hero && cp assets/hero/home-hero-v3.jpg assets/hero/everyday-hero-v2.jpg dist/assets/hero/",
     "build:standalone": "bun build --compile --target=browser ./index.html ./everyday/index.html ./sun/index.html ./mass/index.html --outdir=dist-standalone",
     "test": "bun test",
     "analyze": "bun scripts/analyze.ts",

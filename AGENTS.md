@@ -51,6 +51,10 @@ bun run analyze --explain all     # every provenance note, and inputs with none
 8. **Licensing.** Code is MIT (`LICENSE`); written content and figures are CC BY 4.0 (`LICENSE-CONTENT.md`). Keep the credit line on charts and diagrams when you reproduce them.
 9. Do not commit or open a pull request unless the user asks.
 
+## Answering common questions
+
+The main page ends with a FAQ (`index.html`, section `#faq`, one anchor per question such as `#faq-spacex-flux`). Its answers state their conditions and come from the reference cases. Quote them with those conditions, and run the CLI when the user changes the scenario.
+
 ## Where things are
 
 `src/model/` physics (`docs/APPROACH.md` explains it; `skills/watts-to-space/references/model-map.md` maps equations to functions) · `scripts/analyze.ts` the CLI · `test/` tests and validation anchors · `src/ui/`, `index.html`, `styles.css` the page · `CONTRIBUTING.md` the contribution rules.
