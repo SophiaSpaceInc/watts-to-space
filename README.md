@@ -5,7 +5,7 @@
 An interactive explorer of the power and heat-rejection hardware for energy-hungry work in
 vacuum: orbital compute, cislunar industry, and (first-order) the lunar surface.
 
-In space every watt you use becomes heat, and the only way out is radiation. This project
+In space every watt you use becomes heat, and the only way out is to radiate it. This project
 follows that energy from the solar array, through the payload, down the temperature
 "staircase" of interfaces, to the radiator. It is built to teach:
 
