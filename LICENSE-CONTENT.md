@@ -23,4 +23,6 @@ Every chart and diagram already carries a credit line. Keep it in screenshots an
 
 Sources the model cites (NASA documents, FCC filings, papers and articles) keep their own terms. Short quotations appear for citation only.
 
+The IBM Plex fonts in `assets/fonts/` are © IBM Corp. under the SIL Open Font License 1.1 (`assets/fonts/OFL.txt`).
+
 Full legal code: https://creativecommons.org/licenses/by/4.0/legalcode

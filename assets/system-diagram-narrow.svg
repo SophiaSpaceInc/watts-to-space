@@ -5,25 +5,25 @@
   <!-- Theme: light tokens by default, dark via prefers-color-scheme. Chart series colours are deliberately absent. -->
   <style>
     svg {
-      --surface: #fffffe;
-      --surface-2: #f0efea;
-      --ink: #15140f;
-      --ink-2: #514f49;
-      --muted: #86847c;
-      --border: rgba(21, 20, 15, 0.14);
-      --accent: #3b4d8e;
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --surface: #ffffff;
+      --surface-2: #eceef2;
+      --ink: #16181d;
+      --ink-2: #3e4654;
+      --muted: #7b8392;
+      --border: rgba(22, 24, 29, 0.14);
+      --accent: #7c2d22;
+      font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       font-size: 11px;
     }
     @media (prefers-color-scheme: dark) {
       svg {
-        --surface: #171716;
-        --surface-2: #202020;
-        --ink: #f0efea;
-        --ink-2: #bfbdb4;
-        --muted: #8a887f;
+        --surface: #1a1e24;
+        --surface-2: #222731;
+        --ink: #e9ecf1;
+        --ink-2: #aab2bf;
+        --muted: #7d8594;
         --border: rgba(255, 255, 255, 0.13);
-        --accent: #a4b3ee;
+        --accent: #e7a08c;
       }
     }
     /* boxes */
@@ -31,7 +31,7 @@
     .results { fill: var(--surface-2); stroke: var(--ink-2);  stroke-width: 1; stroke-opacity: 0.7; }
     .pill    { fill: var(--surface);   stroke: var(--accent); stroke-width: 1.25; }
     /* text */
-    .serif   { font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Charter, Georgia, serif; }
+    .serif   { font-weight: 600; } /* the page's one sans; the class name is historical */
     .h0      { font-size: 19px; fill: var(--ink); }
     .h1      { font-size: 16px; fill: var(--ink); }
     .lede    { font-size: 11.5px; fill: var(--ink-2); }

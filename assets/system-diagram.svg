@@ -1,29 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 716" width="1100" height="716" role="img" aria-labelledby="sd-title sd-desc">
   <title id="sd-title">Three parts, three handoffs: how the heat-rejection model splits</title>
-  <desc id="sd-desc">The model has three nearly independent parts. The heat path takes the heat source, its temperature limit, the power per package and the coolant loop, and computes the coolant temperature reaching the radiator. The radiator takes emissivity, solar absorptance, fin efficiency, orientation, sizing margin and areal density, applies Stefan–Boltzmann net of what it sees, and computes heat rejected per square metre and so the radiator area. The power supply takes cell efficiency, operating factor, solar array areal density, bus voltage, battery specific energy and depth of discharge, and computes the solar array area and battery mass. Only three quantities cross between parts: the coolant temperature T from the heat path into the radiator; the heat load Q (total heat load divided by conversion efficiency) into both the radiator and the power supply; and the location (orbit or surface, altitude, beta angle, ground temperature, sun elevation, sunlit fraction) into both the radiator and the power supply. The radiator area, solar array area and battery feed a results block: mass budget, solar array to radiator area ratio, and sensitivity.</desc>
+  <desc id="sd-desc">The model has three parts. The heat path takes the heat source, its temperature limit, the power per package and the coolant loop, and computes the coolant temperature reaching the radiator. The radiator takes emissivity, solar absorptance, fin efficiency, orientation, sizing margin and areal density, applies Stefan–Boltzmann net of what it sees, and computes heat rejected per square metre and so the radiator area. The power supply takes cell efficiency, operating factor, solar array areal density, bus voltage, battery specific energy and depth of discharge, and computes the solar array area and battery mass. Only three quantities cross between parts: the coolant temperature T from the heat path into the radiator; the heat load Q (total heat load divided by conversion efficiency) into both the radiator and the power supply; and the location (orbit or surface, altitude, beta angle, ground temperature, sun elevation, sunlit fraction) into both the radiator and the power supply. The radiator area, solar array area and battery feed a results block: mass budget, solar array to radiator area ratio, and sensitivity.</desc>
 
   <!-- Theme: light tokens by default, dark via prefers-color-scheme. Chart series colours are deliberately absent. -->
   <style>
     svg {
-      --surface: #fffffe;
-      --surface-2: #f0efea;
-      --ink: #15140f;
-      --ink-2: #514f49;
-      --muted: #86847c;
-      --border: rgba(21, 20, 15, 0.14);
-      --accent: #3b4d8e;
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --surface: #ffffff;
+      --surface-2: #eceef2;
+      --ink: #16181d;
+      --ink-2: #3e4654;
+      --muted: #7b8392;
+      --border: rgba(22, 24, 29, 0.14);
+      --accent: #7c2d22;
+      font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       font-size: 15px;
     }
     @media (prefers-color-scheme: dark) {
       svg {
-        --surface: #171716;
-        --surface-2: #202020;
-        --ink: #f0efea;
-        --ink-2: #bfbdb4;
-        --muted: #8a887f;
+        --surface: #1a1e24;
+        --surface-2: #222731;
+        --ink: #e9ecf1;
+        --ink-2: #aab2bf;
+        --muted: #7d8594;
         --border: rgba(255, 255, 255, 0.13);
-        --accent: #a4b3ee;
+        --accent: #e7a08c;
       }
     }
     /* boxes */
@@ -31,7 +31,7 @@
     .results { fill: var(--surface-2); stroke: var(--ink-2);  stroke-width: 1; stroke-opacity: 0.7; }
     .pill    { fill: var(--surface);   stroke: var(--accent); stroke-width: 1.5; }
     /* text */
-    .serif   { font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Charter, Georgia, serif; }
+    .serif   { font-weight: 600; } /* the page's one sans; the class name is historical */
     .h0      { font-size: 30px; fill: var(--ink); }
     .h1      { font-size: 22px; fill: var(--ink); }
     .lede    { font-size: 17px; fill: var(--ink-2); }
