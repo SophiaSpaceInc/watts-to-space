@@ -159,7 +159,7 @@ function renderAir(): void {
       ...CONVECTION.map((c, i) => ({ name: c.name, low: c.low, high: c.high, color: `var(--s${[1, 3, 2, 5][i] ?? 1})` })),
       { name: `Radiating to space at ${fmt(radiator_C)} °C`, low: h, high: h, color: 'var(--accent)', strong: true },
     ],
-    axisLabel: 'Heat moved, W per m² per °C of temperature difference (log scale)',
+    axisLabel: 'Heat moved, W per m² per °C of temperature difference',
     format: (v) => (v >= 1000 ? `${fmt(v / 1000)}k` : fmt(v, v < 10 ? 1 : 0)),
   });
 }

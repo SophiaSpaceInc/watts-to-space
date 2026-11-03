@@ -134,14 +134,14 @@ function resolveAxis(container: HTMLElement, which: 'x' | 'y', axis: Axis): Axis
   return { ...axis, log: false, min: undefined, max: undefined };
 }
 
-function scaleToggles(container: HTMLElement, o: LineChartOptions): void {
-  const axes = (['x', 'y'] as const).filter((a) => o[a].toggle);
+/** Log/Linear switches for the given axes; the choice lives on the container, and `redraw` re-renders. */
+function scaleToggles(container: HTMLElement, axes: { axis: 'x' | 'y'; log: boolean }[], redraw: () => void): void {
   if (!axes.length) return;
   const bar = document.createElement('div');
   bar.className = 'scale-toggles';
-  for (const a of axes) {
+  for (const { axis: a, log } of axes) {
     const key = a === 'x' ? 'scaleX' : 'scaleY';
-    const current = container.dataset[key] ?? (o[a].log ? 'log' : 'linear');
+    const current = container.dataset[key] ?? (log ? 'log' : 'linear');
     const group = document.createElement('div');
     group.className = 'segmented';
     group.setAttribute('role', 'group');
@@ -154,7 +154,7 @@ function scaleToggles(container: HTMLElement, o: LineChartOptions): void {
       b.setAttribute('aria-pressed', String(current === mode));
       b.addEventListener('click', () => {
         container.dataset[key] = mode;
-        lineChart(container, o);
+        redraw();
       });
       group.appendChild(b);
     }
@@ -197,7 +197,11 @@ export function lineChart(container: HTMLElement, options: LineChartOptions): vo
 
 function drawLineChart(container: HTMLElement, options: LineChartOptions): void {
   container.replaceChildren();
-  scaleToggles(container, options);
+  scaleToggles(
+    container,
+    (['x', 'y'] as const).filter((a) => options[a].toggle).map((a) => ({ axis: a, log: !!options[a].log })),
+    () => lineChart(container, options),
+  );
   const o: LineChartOptions = { ...options, x: resolveAxis(container, 'x', options.x), y: resolveAxis(container, 'y', options.y) };
   legend(container, o.series);
   const W = Math.max(300, container.clientWidth);
@@ -522,21 +526,23 @@ export interface RangeBarsOptions {
 /** Floating bars on a log axis: each row spans its low–high range (a point if they are equal). */
 export function rangeBars(container: HTMLElement, o: RangeBarsOptions): void {
   container.replaceChildren();
+  scaleToggles(container, [{ axis: 'x', log: true }], () => rangeBars(container, o));
+  const log = (container.dataset.scaleX ?? 'log') === 'log';
   const W = Math.max(300, container.clientWidth);
   const narrow = W < NARROW;
   const rowH = narrow ? 44 : 30;
   const longest = Math.max(0, ...o.rows.map((r) => r.name.length));
   const m = { top: 6, right: 24, bottom: 40, left: narrow ? 8 : Math.min(300, 24 + longest * 6.6) };
   const H = m.top + m.bottom + rowH * o.rows.length;
-  const lo = Math.min(...o.rows.map((r) => r.low)) / 1.6;
-  const hi = Math.max(...o.rows.map((r) => r.high)) * 1.6;
-  const X = scale([lo, hi], [m.left, W - m.right], true);
+  const lo = log ? Math.min(...o.rows.map((r) => r.low)) / 1.6 : 0;
+  const hi = Math.max(...o.rows.map((r) => r.high)) * (log ? 1.6 : 1.04);
+  const X = scale([lo, hi], [m.left, W - m.right], log);
   const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, class: 'chart' }, container);
-  for (const t of logTicks(lo, hi)) {
+  for (const t of log ? logTicks(lo, hi) : niceTicks(lo, hi, 5)) {
     el('line', { x1: X(t), x2: X(t), y1: m.top, y2: H - m.bottom, class: 'grid' }, svg);
     el('text', { x: X(t), y: H - m.bottom + 16, 'text-anchor': 'middle', class: 'tick' }, svg).textContent = o.format(t);
   }
-  el('text', { x: (m.left + W - m.right) / 2, y: H - 6, 'text-anchor': 'middle', class: 'axis-label' }, svg).textContent = o.axisLabel;
+  el('text', { x: (m.left + W - m.right) / 2, y: H - 6, 'text-anchor': 'middle', class: 'axis-label' }, svg).textContent = `${o.axisLabel}${log ? ' (log scale)' : ''}`;
   o.rows.forEach((r, i) => {
     const y = m.top + i * rowH + (narrow ? 20 : 6);
     const cls = r.strong ? 'row-label strong' : 'row-label';
