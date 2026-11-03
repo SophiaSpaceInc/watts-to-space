@@ -115,6 +115,8 @@ export interface LineChartOptions {
   y: Axis;
   markers?: { x: number; y: number; label: string; color?: string }[];
   rules?: { y: number; label: string }[];
+  /** Vertical reference lines, e.g. a threshold on the x axis. */
+  vrules?: { x: number; label: string }[];
   height?: number;
 }
 
@@ -211,6 +213,12 @@ export function lineChart(container: HTMLElement, options: LineChartOptions): vo
     if (r.y < yd[0] || r.y > yd[1]) continue;
     el('line', { x1: m.left, x2: W - m.right, y1: Y(r.y), y2: Y(r.y), class: 'rule' }, svg);
     el('text', { x: m.left + 6, y: Y(r.y) - 5, class: 'rule-label' }, svg).textContent = r.label;
+  }
+
+  for (const r of o.vrules ?? []) {
+    if (!(r.x >= xd[0] && r.x <= xd[1])) continue;
+    el('line', { x1: X(r.x), x2: X(r.x), y1: m.top, y2: H - m.bottom, class: 'rule' }, svg);
+    el('text', { x: X(r.x) + 6, y: m.top + 12, class: 'rule-label' }, svg).textContent = r.label;
   }
 
   const ends: { y: number; text: string; color: string; muted: boolean }[] = [];

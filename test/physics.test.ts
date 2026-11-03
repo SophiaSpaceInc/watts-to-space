@@ -2,9 +2,9 @@
 import { test } from 'bun:test';
 import assert from 'node:assert/strict';
 import { BODIES, SIGMA } from '../src/model/constants.ts';
-import { emittedFlux, fluidTemperatureForRejection, netRejectionPerPanelArea, t4MeanTemperature } from '../src/model/radiation.ts';
+import { emittedFlux, fluidTemperatureForRejection, netRejectionPerPanelArea, t4MeanTemperature } from '../src/model/thermalEmission.ts';
 import { viewFactorEdgeOn, viewFactorFacing } from '../src/model/viewFactor.ts';
-import { circularPeriod_s, eclipseFraction, albedoGeometryFactor } from '../src/model/orbit.ts';
+import { circularPeriod_s, eclipseFraction, eclipseFreeBeta_deg, albedoGeometryFactor } from '../src/model/orbit.ts';
 
 const close = (a: number, b: number, tol: number, msg?: string) => assert.ok(Math.abs(a - b) <= tol, `${msg ?? ''} expected ${b} ± ${tol}, got ${a}`);
 
@@ -86,4 +86,11 @@ test('albedo geometry factor: 1/π at β = 0, zero at β = 90°', () => {
 
 test('SIGMA is the CODATA value', () => {
   assert.equal(SIGMA, 5.670374419e-8);
+});
+
+test('critical beta angle: eclipse vanishes exactly at β* (≈66.1° at 600 km)', () => {
+  const b = eclipseFreeBeta_deg(BODIES.earth, 600);
+  close(b, 66.06, 0.02);
+  assert.ok(eclipseFraction(BODIES.earth, 600, b - 0.5) > 0);
+  assert.equal(eclipseFraction(BODIES.earth, 600, b + 1e-9), 0);
 });

@@ -87,6 +87,15 @@ export function importScenario(text: string): Scenario {
     if (data.version !== SCENARIO_VERSION) throw new ScenarioImportError([`unsupported version ${String(data.version)}; this build reads version ${SCENARIO_VERSION}`]);
     data = data.scenario;
   }
+  return validateScenario(data);
+}
+
+/**
+ * Check an untrusted object field by field (type and physical range) and return it as a
+ * Scenario. Shared by file import and share links.
+ * @throws ScenarioImportError listing every problem found
+ */
+export function validateScenario(data: unknown): Scenario {
   if (!isObj(data)) throw new ScenarioImportError(['scenario must be an object']);
 
   const c = new Checker();
@@ -158,7 +167,8 @@ export function importScenario(text: string): Scenario {
     for (const k of ['cellEfficiency', 'packingFactor', 'operatingFactor', 'conversionEfficiency']) c.num(pw, k, 'power', FRACTION);
     for (const k of ['overheadFraction', 'pumpFraction']) c.num(pw, k, 'power', R(0, 1));
     for (const k of ['solarArrayArealDensity_kg_m2', 'harnessOneWayLength_m']) c.num(pw, k, 'power', NON_NEGATIVE);
-    for (const k of ['busVoltage_V', 'conductorArea_mm2']) c.num(pw, k, 'power', POSITIVE);
+    c.num(pw, 'busVoltage_V', 'power', POSITIVE);
+    c.num(pw, 'harnessLossFraction', 'power', R(0, 0.5, true));
     const bat = c.obj(pw, 'battery', 'power');
     if (bat) {
       c.num(bat, 'roundTripEfficiency', 'power.battery', FRACTION);
@@ -185,7 +195,7 @@ export interface Change {
 }
 
 /** Fields that describe the physics; labels and provenance notes are not "changes". */
-const COMPARED: (keyof Scenario)[] = ['heatSourceId', 'environmentId', 'heatSource', 'environment', 'loop', 'radiator', 'power', 'reported'];
+export const COMPARED: (keyof Scenario)[] = ['heatSourceId', 'environmentId', 'heatSource', 'environment', 'loop', 'radiator', 'power', 'reported'];
 
 /** Leaf-level differences between two scenarios, as dot-paths. */
 export function diffScenario(base: Scenario, current: Scenario): Change[] {

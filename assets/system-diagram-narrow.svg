@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 680" width="360" height="680" role="img" aria-labelledby="sdn-title sdn-desc">
+  <title id="sdn-title">Three parts, three handoffs: how the heat-rejection model splits</title>
+  <desc id="sdn-desc">The model has three nearly independent parts: the heat path, which computes the coolant temperature at the radiator; the radiator, which computes heat rejected per square metre and so the radiator area; and the power supply, which computes the solar array area and battery mass. Only three quantities cross between parts: the coolant temperature T from the heat path into the radiator, the heat load Q into both the radiator and the power supply, and the location into both the radiator and the power supply. The radiator area, solar array area and battery feed the results: mass budget, solar array to radiator area ratio, and sensitivity.</desc>
+
+  <!-- Theme: light tokens by default, dark via prefers-color-scheme. Chart series colours are deliberately absent. -->
+  <style>
+    svg {
+      --surface: #fffffe;
+      --surface-2: #f0efea;
+      --ink: #15140f;
+      --ink-2: #514f49;
+      --muted: #86847c;
+      --border: rgba(21, 20, 15, 0.14);
+      --accent: #3b4d8e;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-size: 11px;
+    }
+    @media (prefers-color-scheme: dark) {
+      svg {
+        --surface: #171716;
+        --surface-2: #202020;
+        --ink: #f0efea;
+        --ink-2: #bfbdb4;
+        --muted: #8a887f;
+        --border: rgba(255, 255, 255, 0.13);
+        --accent: #a4b3ee;
+      }
+    }
+    /* boxes */
+    .part    { fill: var(--surface);   stroke: var(--border); stroke-width: 1; }
+    .results { fill: var(--surface-2); stroke: var(--ink-2);  stroke-width: 1; stroke-opacity: 0.7; }
+    .pill    { fill: var(--surface);   stroke: var(--accent); stroke-width: 1.25; }
+    /* text */
+    .serif   { font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Charter, Georgia, serif; }
+    .h0      { font-size: 19px; fill: var(--ink); }
+    .h1      { font-size: 16px; fill: var(--ink); }
+    .lede    { font-size: 11.5px; fill: var(--ink-2); }
+    .sub     { fill: var(--muted); font-style: italic; }
+    .credit  { font-size: 10.5px; fill: var(--ink-2); }
+    .body    { fill: var(--muted); }
+    .out     { fill: var(--ink); font-size: 12px; font-weight: 600; }
+    .pill-t  { fill: var(--accent); font-size: 11.5px; font-weight: 600; text-anchor: middle; }
+    /* lines */
+    .handoff { stroke: var(--accent); stroke-width: 1.25; fill: none; }
+    .flow    { stroke: var(--ink-2);  stroke-width: 1.25; fill: none; }
+    .mk-accent { fill: var(--accent); }
+    .mk-ink    { fill: var(--ink-2); }
+  </style>
+
+  <defs>
+    <marker id="ahn-accent" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path class="mk-accent" d="M0 1 L10 5 L0 9 Z"/>
+    </marker>
+    <marker id="ahn-ink" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto">
+      <path class="mk-ink" d="M0 1 L10 5 L0 9 Z"/>
+    </marker>
+  </defs>
+
+  <!-- ============ Title ============ -->
+  <g id="title-block">
+    <text class="serif h0" x="16" y="30">Three parts, three handoffs</text>
+    <text class="lede" x="16" y="50">Turn a knob and only its own part moves.</text>
+    <text class="lede" x="16" y="65">The pills are the only quantities that cross.</text>
+  </g>
+
+  <!-- ============ Part 1: Heat path (full width) ============ -->
+  <g id="heat-path">
+    <rect class="part" x="16" y="84" width="328" height="96"/>
+    <text class="serif h1" x="28" y="108">1 · Heat path</text>
+    <text class="sub" x="332" y="108" text-anchor="end">chip to coolant</text>
+    <text class="body" x="28" y="130">heat source type, source temperature limit,
+      <tspan x="28" dy="14">power per package, coolant loop</tspan></text>
+    <text class="out" x="28" y="168">→ coolant temperature at the radiator</text>
+  </g>
+
+  <!-- ============ Handoffs: a centre column of three pills ============ -->
+  <!-- T: heat path → radiator only (elbow left). Q and location: fork to both lower parts. -->
+  <g id="handoff-T">
+    <line class="handoff" x1="180" y1="180" x2="180" y2="196"/>
+    <path class="handoff" d="M180 220 V232 H60 V348" marker-end="url(#ahn-accent)"/>
+    <rect class="pill" x="105" y="196" width="150" height="24" rx="12"/>
+    <text class="pill-t" x="180" y="212">Coolant temperature T</text>
+  </g>
+  <g id="handoff-Q">
+    <path class="handoff" d="M180 264 V276 H100 V348" marker-end="url(#ahn-accent)"/>
+    <path class="handoff" d="M180 276 H260 V348" marker-end="url(#ahn-accent)"/>
+    <rect class="pill" x="125" y="240" width="110" height="24" rx="12"/>
+    <text class="pill-t" x="180" y="256">Heat load Q</text>
+  </g>
+  <g id="handoff-location">
+    <path class="handoff" d="M180 310 V320 H140 V348" marker-end="url(#ahn-accent)"/>
+    <path class="handoff" d="M180 320 H220 V348" marker-end="url(#ahn-accent)"/>
+    <rect class="pill" x="125" y="286" width="110" height="24" rx="12"/>
+    <text class="pill-t" x="180" y="302">Location</text>
+  </g>
+
+  <!-- ============ Part 2: Radiator (left column) ============ -->
+  <g id="radiator">
+    <rect class="part" x="16" y="348" width="158" height="162"/>
+    <text class="serif h1" x="26" y="372">2 · Radiator</text>
+    <text class="body" x="26" y="392">ε, α, fin η, orientation,
+      <tspan x="26" dy="14">margin, areal density</tspan></text>
+    <text class="body" x="26" y="426">Stefan–Boltzmann, net of
+      <tspan x="26" dy="14">what the radiator sees</tspan></text>
+    <text class="out" x="26" y="482">→ heat rejected per m²,
+      <tspan x="26" dy="15">radiator area</tspan></text>
+  </g>
+
+  <!-- ============ Part 3: Power supply (right column) ============ -->
+  <g id="power-supply">
+    <rect class="part" x="186" y="348" width="158" height="162"/>
+    <text class="serif h1" x="196" y="372">3 · Power supply</text>
+    <text class="body" x="196" y="392">cell η, operating factor,
+      <tspan x="196" dy="14">solar array areal density,</tspan>
+      <tspan x="196" dy="14">bus voltage, battery</tspan></text>
+    <text class="body" x="196" y="446">orbit-average power
+      <tspan x="196" dy="14">balance: sunlight, eclipse</tspan></text>
+    <text class="out" x="196" y="482">→ solar array area,
+      <tspan x="196" dy="15">battery mass</tspan></text>
+  </g>
+
+  <!-- ============ Flows into results ============ -->
+  <g id="flows-to-results">
+    <line class="flow" x1="95" y1="510" x2="95" y2="538" marker-end="url(#ahn-ink)"/>
+    <line class="flow" x1="265" y1="510" x2="265" y2="538" marker-end="url(#ahn-ink)"/>
+  </g>
+
+  <!-- ============ Results (sink) ============ -->
+  <g id="results">
+    <rect class="results" x="16" y="538" width="328" height="110"/>
+    <text class="serif h1" x="28" y="562">Results</text>
+    <text class="sub" x="332" y="562" text-anchor="end">all three parts combined</text>
+    <text class="body" x="28" y="582">radiator area + solar array area + battery →</text>
+    <text class="out" x="28" y="601">mass budget · sensitivity ·
+      <tspan x="28" dy="15">solar array : radiator area ratio</tspan></text>
+    <text class="body" x="28" y="636">Charts: Run hotter · Mass budget · Sensitivity slopes</text>
+  </g>
+
+  <!-- ============ Credit (CC BY 4.0: keep when reproducing) ============ -->
+  <text class="credit" x="344" y="670" text-anchor="end">Chris Lewicki · watts-to-space · CC BY 4.0</text>
+</svg>

@@ -4,7 +4,9 @@ import assert from 'node:assert/strict';
 import { buildScenario, ENVIRONMENTS, HEAT_SOURCES, MODES, PARAMETERS, SOURCES } from '../src/model/scenarios.ts';
 import { evaluateScenario } from '../src/model/system.ts';
 import { evaluateChain, stageDeltaT } from '../src/model/thermalChain.ts';
-import { storageSizing, harness } from '../src/model/power.ts';
+import { harness, sizePowerSupply, storageSizing } from '../src/model/power.ts';
+import { EXPLANATIONS } from '../src/model/glossary.ts';
+import { sunlight } from '../src/model/environment.ts';
 import { getPath, tornado } from '../src/model/sensitivity.ts';
 import { wiedemannFranzEquivalentVoltage, wireDeliveredFraction } from '../src/model/transport.ts';
 import type { ModeId, Stage } from '../src/model/types.ts';
@@ -59,10 +61,19 @@ test('storage: no darkness → no battery and no oversize; lunar night → hundr
   close(moon.solarArrayOversize, 2, 1e-12);
 });
 
-test('harness loss scales as 1/V²', () => {
-  const a = harness({ power_W: 1e5, busVoltage_V: 100, oneWayLength_m: 30, conductorArea_mm2: 50 });
-  const b = harness({ power_W: 1e5, busVoltage_V: 200, oneWayLength_m: 30, conductorArea_mm2: 50 });
-  close(a.lossFraction / b.lossFraction, 4, 1e-9);
+test('harness sized for a loss target: copper mass scales as 1/V² and 1/loss', () => {
+  const a = harness({ power_W: 1e5, busVoltage_V: 100, oneWayLength_m: 30, lossFraction: 0.01 });
+  const b = harness({ power_W: 1e5, busVoltage_V: 200, oneWayLength_m: 30, lossFraction: 0.01 });
+  const c = harness({ power_W: 1e5, busVoltage_V: 100, oneWayLength_m: 30, lossFraction: 0.02 });
+  close(a.mass_kg / b.mass_kg, 4, 1e-9);
+  close(a.mass_kg / c.mass_kg, 2, 1e-9);
+  // hand check: 164 kW over 35 m at 120 V for 1 % loss needs ≈1,339 mm² and ≈840 kg of copper
+  const h = harness({ power_W: 163900, busVoltage_V: 120, oneWayLength_m: 35, lossFraction: 0.01 });
+  close(h.conductorArea_mm2, 1339, 1);
+  close(h.mass_kg, 839.5, 1);
+  // and the delivered-power check: R from that area gives back the target loss
+  const R = (1.68e-8 * 70) / (h.conductorArea_mm2 * 1e-6);
+  close((163900 * R) / 120 ** 2, 0.01, 1e-9);
 });
 
 test('electricity vs heat: 1 kW at 120 V over 10 m loses ≈0.5 %; 50 K of copper conduction ≈ 20 mV bus', () => {
@@ -114,5 +125,40 @@ test('provenance hygiene: every note cites a known source or carries a tag; ever
         }
       }
     }
+  }
+});
+
+test('power-supply part sized on its own matches the whole-system result', () => {
+  for (const env of ['iss-leo', 'moon-equator', 'cislunar-deep']) {
+    const s = buildScenario('starmind', { environment: env });
+    const r = evaluateScenario(s);
+    const supply = sizePowerSupply(r.busLoad_W, s.power, sunlight(s.environment));
+    assert.equal(supply.area_m2, r.solarArrayArea_m2);
+    assert.equal(supply.storage.mass_kg, r.mass_kg.battery);
+  }
+});
+
+test('more sunlight never needs more battery or more solar array', () => {
+  const s = buildScenario('iss');
+  let prev = { battery: Infinity, area: Infinity };
+  for (let f = 0.3; f <= 1.0001; f += 0.05) {
+    const sup = sizePowerSupply(150e3, s.power, { sunlitFraction: Math.min(f, 1), cyclePeriod_h: 1.55 });
+    assert.ok(sup.storage.mass_kg <= prev.battery && sup.area_m2 <= prev.area);
+    prev = { battery: sup.storage.mass_kg, area: sup.area_m2 };
+  }
+});
+
+test('every input that can appear in the Assumptions table has a plain-language explanation', () => {
+  const paths = new Set(PARAMETERS.map((p) => p.path));
+  for (const modeId of Object.keys(MODES) as ModeId[])
+    for (const envId of Object.keys(ENVIRONMENTS))
+      for (const hsId of Object.keys(HEAT_SOURCES)) Object.keys(buildScenario(modeId, { environment: envId, heatSource: hsId }).notes).forEach((p) => paths.add(p));
+  const missing = [...paths].filter((p) => !EXPLANATIONS[p]);
+  assert.deepEqual(missing, [], `no explanation for: ${missing.join(', ')}`);
+  const stale = Object.keys(EXPLANATIONS).filter((p) => !paths.has(p));
+  assert.deepEqual(stale, [], `explanations for inputs that no longer exist: ${stale.join(', ')}`);
+  for (const [path, text] of Object.entries(EXPLANATIONS)) {
+    assert.doesNotMatch(text, /\bradiation\b/i, `${path}: say "thermal emission" or "radiates", not "radiation"`);
+    assert.doesNotMatch(text.replace(/solar arrays?/gi, ''), /\barrays?\b/i, `${path}: say "solar array", never a bare "array"`);
   }
 });

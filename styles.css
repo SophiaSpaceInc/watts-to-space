@@ -97,7 +97,13 @@ b, strong { font-weight: 600; }
 .byline { margin: 0 0 22px; font: 500 12px/1.4 var(--sans); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); }
 .byline a { text-decoration: none; color: var(--ink); }
 .byline a:hover { text-decoration: underline; }
-.byline span { margin: 0 0.4em; color: var(--muted); }
+.byline { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.back-link span { margin-right: 0.3em; }
+.socials { display: inline-flex; align-items: center; gap: 10px; }
+.social { display: inline-flex; color: var(--ink-2); }
+.social:hover, .social:focus-visible { color: var(--accent); }
+.social svg { width: 15px; height: 15px; fill: currentColor; }
+.footer-links { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 h1 { margin: 0 0 14px; font: 400 clamp(38px, 5.4vw, 62px)/1.04 var(--serif); letter-spacing: -0.018em; text-wrap: balance; }
 .subtitle { margin: 0 0 34px; font: italic 400 clamp(19px, 2vw, 23px)/1.35 var(--serif); color: var(--ink-2); text-wrap: pretty; }
 .intro { font: 400 18px/1.62 var(--serif); margin-bottom: 44px; }
@@ -153,6 +159,8 @@ h1 { margin: 0 0 14px; font: 400 clamp(38px, 5.4vw, 62px)/1.04 var(--serif); let
 .io-status { flex-basis: 100%; font-size: 13px; color: var(--ink-2); }
 .io-status:empty { display: none; }
 .io-status.error { color: var(--critical); }
+.io-status.warn { color: var(--ink); padding-left: 10px; border-left: 3px solid var(--warning); }
+.io-status.info { color: var(--ink-2); }
 .io-status ul { margin: 4px 0 0; padding-left: 18px; }
 
 .btn, .scenario-actions button, .scenario-actions .button {
@@ -222,7 +230,7 @@ h1 { margin: 0 0 14px; font: 400 clamp(38px, 5.4vw, 62px)/1.04 var(--serif); let
 /* ---------------------------------------------------------------- figures */
 .charts section { padding: 30px 0 26px; border-top: 1px solid var(--grid); }
 .charts section:first-child { padding-top: 6px; border-top: 0; }
-h2 { margin: 0 0 12px; font: 400 clamp(23px, 2.4vw, 28px)/1.22 var(--serif); letter-spacing: -0.01em; text-wrap: balance; }
+h2, h3.fig-heading { margin: 0 0 12px; font: 400 clamp(23px, 2.4vw, 28px)/1.22 var(--serif); letter-spacing: -0.01em; text-wrap: balance; }
 .charts section > p { max-width: var(--measure); margin: 0 0 18px; font: 400 16.5px/1.58 var(--serif); color: var(--ink); text-wrap: pretty; }
 .charts section > p.muted.small, .charts section > p#altitude-note, .charts section > p#wf-note { font: 400 13px/1.5 var(--sans); color: var(--ink-2); margin: 10px 0 0; max-width: var(--measure); font-variant-numeric: tabular-nums; }
 h3.chart-title { margin: 24px 0 8px; font: 600 11px/1.3 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
@@ -292,6 +300,51 @@ table.data tr:focus-visible td { outline: 2px solid var(--accent); outline-offse
 footer { max-width: var(--measure); margin: 48px auto 0; padding-top: 16px; border-top: 1px solid var(--ink); font-size: 13px; line-height: 1.55; color: var(--ink-2); }
 footer p { margin: 0 0 6px; }
 
+/* chart context stamp: the conditions a chart was drawn under travel with any screenshot */
+.chart-stamp { margin: 6px 0 0; font: 400 11.5px/1.4 var(--sans); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+/* ---------------------------------------------------------------- assumptions: parameter explanations */
+.explain-toggle { display: inline-flex; align-items: baseline; gap: 7px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.explain-toggle:hover span:last-child { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.explain-toggle .chev { flex: none; width: 0; height: 0; border-block: 4.5px solid transparent; border-left: 6px solid var(--accent); transform: translateY(-1px); transition: transform 0.15s; }
+.explain-toggle[aria-expanded='true'] .chev { transform: translateY(1px) rotate(90deg); }
+table.data tr.explain-row td { padding: 0 8px 12px 21px; border-top: 0; }
+table.data tr.explain-row p { margin: 0; max-width: 78ch; font: 400 15px/1.55 var(--serif); color: var(--ink); text-wrap: pretty; }
+table.data tr:has(+ tr.explain-row:not([hidden])) td { border-bottom-color: transparent; }
+table.data tr.explain-row[hidden] { display: none; }
+table.data tr:target + tr.explain-row td { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); box-shadow: inset 4px 0 0 var(--accent); }
+
+/* ---------------------------------------------------------------- agent callout and share field */
+.agent-callout { max-width: var(--measure); margin: 0 auto 40px; padding: 14px 18px; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 8px; background: var(--surface); }
+.agent-callout .eyebrow { color: var(--accent); margin-bottom: 6px; }
+.agent-callout p:last-child { margin: 0; font: 400 15px/1.6 var(--sans); color: var(--ink-2); }
+.agent-callout q { color: var(--ink); font-style: italic; quotes: '“' '”'; }
+.share-field { width: min(100%, 640px); margin-left: 6px; padding: 4px 8px; font: 12px var(--mono); border: 1px solid var(--border); border-radius: 5px; background: var(--page); color: var(--ink); }
+
+/* ---------------------------------------------------------------- parts: each part's inputs beside its charts */
+.shared { margin: 28px 0 8px; padding: 14px 18px 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+.shared-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding-bottom: 6px; border-bottom: 1px solid var(--grid); }
+.shared-head .eyebrow { color: var(--ink); }
+.controls-shared { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 36px; overflow: visible; padding: 0; }
+.controls-shared .control-group { border-top: 0; }
+.controls-shared .control-group[open] fieldset { columns: 2 230px; column-gap: 28px; }
+.controls-shared .control-group[open] fieldset > * { break-inside: avoid; }
+
+.system-diagram { margin: 40px 0 8px; }
+.system-diagram img { display: block; width: 100%; max-width: 1100px; height: auto; margin: 0 auto; }
+.system-diagram figcaption { max-width: var(--measure); margin: 14px auto 0; font: 400 15.5px/1.55 var(--serif); color: var(--ink-2); text-align: center; text-wrap: balance; }
+.system-diagram figcaption b { color: var(--ink); font-weight: 600; }
+.system-diagram details { max-width: 920px; margin: 12px auto 0; }
+.system-diagram details > summary { cursor: pointer; font: 500 13px/1.4 var(--sans); color: var(--ink-2); padding: 6px 0; text-align: center; }
+
+.part { margin-top: 44px; padding-top: 22px; border-top: 2px solid var(--ink); scroll-margin-top: 12px; }
+.part-head { max-width: var(--measure); margin: 0 0 26px; }
+.part-head .eyebrow { color: var(--accent); }
+.part-title { margin: 6px 0 10px; font: 400 clamp(30px, 3.4vw, 40px)/1.12 var(--serif); letter-spacing: -0.015em; }
+.part-lede { margin: 0; font: italic 400 17.5px/1.55 var(--serif); color: var(--ink-2); text-wrap: pretty; }
+.part-results > .charts { max-width: none; }
+.appendix { margin-top: 48px; padding-top: 8px; border-top: 2px solid var(--ink); }
+
 /* ---------------------------------------------------------------- responsive */
 @media (max-width: 1060px) {
   :root { --rail: 272px; }
@@ -328,6 +381,8 @@ footer p { margin: 0 0 6px; }
   table.data td:nth-child(2) { text-align: right; }
   table.data td:nth-child(3) { grid-column: 1 / -1; margin-top: 4px; color: var(--ink-2); }
   table.data td:nth-child(2):empty, table.data td:nth-child(3):empty { display: none; }
+  table.data tr.explain-row td { grid-column: 1 / -1; padding: 0 0 4px 13px; }
+  table.data tr:has(+ tr.explain-row:not([hidden])) { border-bottom-color: transparent; }
 }
 
 @media (prefers-reduced-motion: reduce) {

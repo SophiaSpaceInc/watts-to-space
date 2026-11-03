@@ -49,19 +49,48 @@ export function storageSizing(args: { load_W: number } & Sunlight & Battery): St
 
 export interface Harness {
   lossFraction: number;
+  conductorArea_mm2: number;
   mass_kg: number;
 }
 
 /**
- * Two-wire copper DC harness from solar array to payload.
- * Loss fraction = I R / V = P R / V². Doubling the bus voltage quarters the loss:
- * electricity's "transformer" advantage that heat does not have.
+ * Two-wire copper DC harness from solar array to payload, sized the way a designer
+ * would: pick the I²R loss you accept, then size the copper to meet it.
+ *     loss fraction f = P R / V²,  R = ρ 2L / A   →   A = ρ 2L P / (V² f)
+ *     copper mass = 2L A ρ_Cu  ∝  L² P / (V² f)
+ * Voltage therefore trades copper mass, not efficiency: doubling it quarters the copper
+ * for the same loss. That is electricity's "transformer" advantage, which heat lacks.
+ * (A fixed-gauge model instead shows absurd losses at low voltage.)
  */
-export function harness(args: { power_W: number; busVoltage_V: number; oneWayLength_m: number; conductorArea_mm2: number }): Harness {
-  const area_m2 = args.conductorArea_mm2 * 1e-6;
-  const resistance_ohm = (COPPER.resistivity_ohm_m * 2 * args.oneWayLength_m) / area_m2;
+export function harness(args: { power_W: number; busVoltage_V: number; oneWayLength_m: number; lossFraction: number }): Harness {
+  const area_m2 = (COPPER.resistivity_ohm_m * 2 * args.oneWayLength_m * args.power_W) / (args.busVoltage_V ** 2 * args.lossFraction);
   return {
-    lossFraction: (args.power_W * resistance_ohm) / args.busVoltage_V ** 2,
+    lossFraction: args.lossFraction,
+    conductorArea_mm2: area_m2 * 1e6,
     mass_kg: 2 * args.oneWayLength_m * area_m2 * COPPER.density_kg_m3,
   };
+}
+
+export interface PowerSupply {
+  storage: Storage;
+  harness: Harness;
+  specific_W_m2: number;
+  /** Solar array output needed in sunlight. */
+  output_W: number;
+  area_m2: number;
+  solarArrayMass_kg: number;
+}
+
+/**
+ * The power-supply part of the model, on its own: given the bus load and the sunlight,
+ * size the solar array, battery and harness. It needs nothing from the thermal side
+ * except the load, which is why the page can plot it separately.
+ */
+export function sizePowerSupply(load_W: number, p: Power, sun: Sunlight): PowerSupply {
+  const storage = storageSizing({ load_W, ...sun, ...p.battery });
+  const wire = harness({ power_W: load_W, busVoltage_V: p.busVoltage_V, oneWayLength_m: p.harnessOneWayLength_m, lossFraction: p.harnessLossFraction });
+  const specific_W_m2 = solarArraySpecificPower_W_m2(p);
+  const output_W = (load_W * storage.solarArrayOversize) / (1 - Math.min(wire.lossFraction, 0.99));
+  const area_m2 = output_W / specific_W_m2;
+  return { storage, harness: wire, specific_W_m2, output_W, area_m2, solarArrayMass_kg: area_m2 * p.solarArrayArealDensity_kg_m2 };
 }

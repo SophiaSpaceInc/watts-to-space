@@ -37,7 +37,7 @@ Single-phase glide is converted to an effective radiating temperature by the T�
 linear profile: T_eff⁴ = (T_in⁵ − T_out⁵) / (5 (T_in − T_out)). Two-phase loops have no
 glide.
 
-## 3. Radiator and environment (`radiation.ts`, `environment.ts`, `viewFactor.ts`)
+## 3. Radiator and environment (`thermalEmission.ts`, `environment.ts`, `viewFactor.ts`)
 
 Per face: q_net = η_fin ε σ (T⁴ − T_CMB⁴) − absorbed. Absorbed flux:
 
@@ -59,7 +59,7 @@ analogue of electrical transmission efficiency.
 - Storage over a light/dark cycle (f sunlit, period T): oversize = 1 + (1−f)/(f η_rt);
   battery = P (1−f) T / DoD.
 - Eclipse fraction for circular orbits (cylindrical shadow); zero above β* = asin(R/(R+h)).
-- Harness: loss fraction = P R / V².
+- Harness: copper sized for a chosen I²R loss f, as a designer would: A = ρ·2L·P / (V²·f), so copper mass ∝ L²·P / (V²·f). Voltage trades copper mass, not efficiency (about 840 kg of copper at 120 V vs 19 kg at 800 V for 164 kW over 35 m at 1 % loss). Not modelled: arcing of high-voltage solar arrays to the low-orbit plasma, which limits how high a bus can go without mitigation (NASA-HDBK-4006A).
 
 ## 5. Electricity vs heat (`transport.ts`)
 

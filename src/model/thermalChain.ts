@@ -14,7 +14,7 @@
  *      coolant's temperature glide across the radiator. Fin efficiency is applied
  *      to the emitted flux, and shown here as an equivalent temperature drop.
  */
-import { finEquivalentTemperature, t4MeanTemperature } from './radiation.ts';
+import { finEquivalentTemperature, t4MeanTemperature } from './thermalEmission.ts';
 import type { HeatSource, Loop, Stage } from './types.ts';
 
 /** Thermal resistance of a stage in K/W, or null for fixed-ΔT stages. */

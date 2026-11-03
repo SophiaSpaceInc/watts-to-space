@@ -129,7 +129,8 @@ export interface Power {
   pumpFraction: number;
   busVoltage_V: number;
   harnessOneWayLength_m: number;
-  conductorArea_mm2: number;
+  /** I²R loss the copper harness is sized for, as a fraction of delivered power. */
+  harnessLossFraction: number;
   battery: Battery;
 }
 

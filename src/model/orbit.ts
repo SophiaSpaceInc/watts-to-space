@@ -29,6 +29,15 @@ export function eclipseFraction(body: Body, altitude_km: number, beta_deg: numbe
 }
 
 /**
+ * Critical beta angle β* = asin(R/(R+h)), in degrees: above it a circular orbit never
+ * enters the body's shadow. A dawn–dusk sun-synchronous orbit flies along the terminator
+ * to keep β near this range for most of the year.
+ */
+export function eclipseFreeBeta_deg(body: Body, altitude_km: number): number {
+  return (Math.asin(body.radius_km / (body.radius_km + altitude_km)) * 180) / Math.PI;
+}
+
+/**
  * Orbit-average geometry factor for reflected sunlight (albedo) reaching a face that
  * sees the body: the mean of max(0, cos β · cos ν) over one orbit = cos β / π.
  * ≈0.32 for a noon–midnight orbit (β = 0), → 0 for a terminator orbit (β = 90°).

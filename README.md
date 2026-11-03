@@ -1,6 +1,6 @@
 # watts-to-space
 
-**Heat rejection in vacuum.**
+**Heat rejection in vacuum.** Live at **https://watts-to-space.chrislewicki.com** · by [Chris Lewicki](https://chrislewicki.com)
 
 An interactive explorer of the **power and heat-rejection hardware** for energy-hungry work in
 vacuum: orbital compute, cislunar industry, and (first-order) the lunar surface.
@@ -16,6 +16,52 @@ follows that energy from the solar array, through the payload, down the temperat
 - how the environment (Earth or Moon in view, sunlit regolith, eclipses, lunar night)
   changes the answer;
 - what dominates mass: radiators, solar arrays, or energy storage.
+
+## Use it with your AI agent
+
+Point Grok, or any coding agent (Claude Code, Codex, Cursor, ...), at [AGENTS.md](AGENTS.md).
+A chat assistant such as Grok can read the repo and tutor you from the model's documented
+assumptions. A coding agent can also clone it, run the model from the command line, make a link
+you can post, and help you contribute a better number with its source. Copy-paste one of these
+into your agent:
+
+Learn:
+
+```text
+Read https://github.com/interplanetarychris/watts-to-space, start with AGENTS.md, and walk me
+through why heat rejection limits data centers in orbit. Ask me questions one at a time. If you
+can run code, clone the repo and run the model as we go.
+```
+
+Analyze:
+
+```text
+Clone https://github.com/interplanetarychris/watts-to-space, read AGENTS.md, and size the
+radiator and solar array for a 500 kW orbital data center in LEO, then show me what changes
+if the chips can run 30 K hotter. Say which assumptions you are relying on and where each
+one comes from.
+```
+
+Open a shared scenario:
+
+```text
+Clone https://github.com/interplanetarychris/watts-to-space, read AGENTS.md, and analyze
+this share link: <paste the link or the w2s1... string>. Tell me what was changed from the
+reference case and what it implies.
+```
+
+Contribute:
+
+```text
+Clone https://github.com/interplanetarychris/watts-to-space, read AGENTS.md and
+CONTRIBUTING.md. I have a better number for one of the assumptions: <value, unit, and the
+source>. Check what the model uses now, show the before and after results, and prepare a
+pull request that cites my source.
+```
+
+The command line the agent uses is also yours: `bun run analyze --help`. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for how to improve the model, and
+[skills/watts-to-space/SKILL.md](skills/watts-to-space/SKILL.md) for what the agent is told.
 
 ## Relation to McCalip's model
 
@@ -41,6 +87,7 @@ bun install            # TypeScript + Bun type definitions (dev only)
 bun run dev            # serves index.html with on-the-fly TypeScript bundling
 bun test               # unit tests (bun:test)
 bun run typecheck      # tsc --noEmit, strict
+bun run analyze --help # command-line analysis: the same model, JSON out (see the agent section)
 bun run build          # static site in dist/ (serve it with any static server)
 bun run build:standalone  # one self-contained HTML file in dist-standalone/
 ```
@@ -59,6 +106,21 @@ The **mode switch** installs a whole assumption set; the selectors then swap par
 | SpaceX Starmind (reported) | Reported AI1 figures (150 kW peak, 110 m² radiators, ~600 km) with an Earth-style lidded Rubin-class package. A "reality check" panel backs out what the reported radiator area implies. |
 | Ideal engineering | Best plausible near-term choices: direct-die two-phase cooling, a single isothermal loop, optical-solar-reflector coatings, multi-junction cells, light radiators. |
 | Limited by physics | Only physics binds: radiator at the source temperature, black surfaces, perfect fins, detailed-balance solar cells. Areal densities are placeholders (no physical floor exists). |
+
+**Page structure.** The model splits into three nearly independent parts, joined by only
+three quantities (`assets/system-diagram.svg`):
+
+| Part | Inputs | Output |
+|---|---|---|
+| Heat path | heat source, temperature limit, power per package, coolant loop | coolant temperature T |
+| Radiator | ε, α, fin efficiency, orientation, sizing margin, areal density | heat rejected per m² at T → radiator area |
+| Power supply | cells, bus voltage, battery | solar array area, battery mass |
+
+The heat load Q and the location are shared: both feed the radiator and the power supply.
+The page follows the same split: shared inputs at the top, then one section per part with
+its inputs beside its charts, then results that combine everything. In code,
+`evaluateScenario` composes `evaluateChain` (heat path), `netRejectionPerPanelArea`
+(radiator) and `sizePowerSupply` (power supply).
 
 Pick a reference case and it is shown as published, with the other three drawn faint for
 context. Change anything and the page says so ("Modified", with the list of changes). The
@@ -84,7 +146,7 @@ Heat sources: lidded GPU, direct-die GPU, isothermal limit, 600 K industrial pro
 src/model/            pure, DOM-free physics; every function unit-testable
   types.ts            the Scenario data shape (units in field names)
   constants.ts        measured/defined constants only, each with a source
-  radiation.ts        Stefan–Boltzmann, T⁴-mean glide, fin efficiency, inverse solve
+  thermalEmission.ts  Stefan–Boltzmann, T⁴-mean glide, fin efficiency, inverse solve
   viewFactor.ts       plate-to-sphere view factors (nadir, edge-on), plate-to-plane
   orbit.ts            period, eclipse fraction, albedo geometry
   environment.ts      absorbed flux per radiator face; sunlight for storage sizing
@@ -93,6 +155,7 @@ src/model/            pure, DOM-free physics; every function unit-testable
   system.ts           whole-system energy balance → areas, masses, warnings
   sensitivity.ts      sweeps and tornado (one-at-a-time) sensitivities
   scenarioIO.ts       JSON export/import with validation; diff against the reference case
+  glossary.ts         plain-language explanation of every input (page, CLI and skill use it)
   transport.ts        electricity vs heat over distance; Wiedemann–Franz equivalence
   scenarios.ts        modes, environments, heat sources, sources, slider metadata
 src/ui/               charts.ts (dependency-free SVG) and app.ts (page wiring)
@@ -114,3 +177,7 @@ docs/APPROACH.md      equations, assumptions, validation, limitations, roadmap
 - Keep `bun test` and `bun run typecheck` green.
 
 See [docs/APPROACH.md](docs/APPROACH.md) for the model and its known gaps.
+
+## License
+
+Code: [MIT](LICENSE). Written content and figures (docs, explanations, diagrams and the charts the page produces): [CC BY 4.0](LICENSE-CONTENT.md). Please credit "Chris Lewicki, watts-to-space (github.com/interplanetarychris/watts-to-space), CC BY 4.0".

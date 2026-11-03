@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "description": "Interactive power and heat-rejection explorer for industry in vacuum: orbit, cislunar space, lunar surface.",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "bun ./index.html",
     "build": "bun build ./index.html --outdir dist",
     "build:standalone": "bun build --compile --target=browser ./index.html --outdir=dist-standalone",
     "test": "bun test",
+    "analyze": "bun scripts/analyze.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

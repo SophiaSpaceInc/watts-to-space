@@ -52,6 +52,22 @@ export const SOURCES: Record<string, Source> = {
     title: 'A. McCalip, "Space Datacenters" (economics model) and source repository',
     url: 'https://andrewmccalip.com/space-datacenters',
   },
+  'spacex-fcc-2022': {
+    title: 'SpaceX letter to the FCC, Oct 4 2022, Exhibit B "Satellite Dimensions and DAS Outputs" (SAT-LOA-20200526-00055, SAT-AMD-20210818-00105; cited by the FCC in DA 24-1193 n.110). Copy hosted by J. McDowell',
+    url: 'https://planet4589.org/astro/starsim/papers/StarGen2.pdf',
+  },
+  'starlink-v3': {
+    title: 'Starlink, "Starlink V3 satellites" update page (V3 solar arrays ≈ 2× the power of V2)',
+    url: 'https://starlink.com/updates/starlink-version-3-satellites',
+  },
+  'nvidia-800vdc': {
+    title: 'NVIDIA, "800 VDC Architecture" for AI factories (terrestrial facility-to-rack power)',
+    url: 'https://www.nvidia.com/en-us/data-center/technologies/800-vdc-architecture/',
+  },
+  'nasa-hdbk-4006a': {
+    title: 'NASA-HDBK-4006A, Low Earth Orbit Spacecraft Charging Design Handbook (incl. §6.1 solar array arcing)',
+    url: 'https://standards.nasa.gov/sites/default/files/standards/NASA/A/0/nasa-hdbk-4006a.pdf',
+  },
   'nasa-factsheets': {
     title: 'NASA NSSDCA planetary fact sheets (Earth, Moon: radii, GM, Bond albedo, synodic period)',
     url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/',
@@ -270,7 +286,7 @@ export const MODES: Record<ModeId, ModePreset> = {
       pumpFraction: 0.02,
       busVoltage_V: 124,
       harnessOneWayLength_m: 30,
-      conductorArea_mm2: 120,
+      harnessLossFraction: 0.02,
       battery: { roundTripEfficiency: 0.9, depthOfDischarge: 0.35, specificEnergy_Wh_kg: 100 },
     },
     notes: {
@@ -282,7 +298,7 @@ export const MODES: Record<ModeId, ModePreset> = {
       'radiator.solarAbsorptance': 'Z-93 BOL α ≈ 0.17; rises as it degrades [gilmore].',
       'radiator.finEfficiency': '0.85: ASSUMPTION (aluminium honeycomb, 22 tubes per panel [nasa-radiator-2026]).',
       'radiator.arealDensity_kg_m2': 'Radiator ORU: 1,122.64 kg over 23.3 m × 3.4 m = 14.2 kg/m², including deployment mechanism [nasa-atcs].',
-      'radiator.sizingMargin': 'CALIBRATED (1.80): makes this model reproduce the EATCS 70 kW rating on 6 radiator ORUs of 23.3 m × 3.4 m (475 m²) [nasa-atcs]. Lumps hot-case environment, coating degradation, flow distribution and reserve. See test/system.test.js.',
+      'radiator.sizingMargin': 'CALIBRATED (1.80): makes this model reproduce the EATCS 70 kW rating on 6 radiator ORUs of 23.3 m × 3.4 m (475 m²) [nasa-atcs]. Lumps hot-case environment, coating degradation, flow distribution and reserve. See test/system.test.ts.',
       'radiator.loopSpecificMass_kg_per_kW': 'Pump Module 353.8 kg + rotary joint (TRRJ) 420.5 kg per 35 kW loop [nasa-atcs]. Excludes lines and heat exchangers.',
       'radiator.orientation': 'Radiators rotate edge-to-Sun in sunlight [nasa-atcs], so they see Earth edge-on.',
       'power.cellEfficiency': 'ISS silicon cells ≈ 14.5 %. SECONDARY.',
@@ -290,6 +306,7 @@ export const MODES: Record<ModeId, ModePreset> = {
       'power.packingFactor': 'Blanket area per cell area. ASSUMPTION.',
       'power.solarArrayArealDensity_kg_m2': 'ASSUMPTION: no primary figure found for solar array wing mass. Contributors: please replace.',
       'power.busVoltage_V': '160 V primary / 124 V secondary DC. SECONDARY.',
+      'power.harnessLossFraction': 'Copper sized for 2 % I²R loss at the 124 V heritage bus. ASSUMPTION.',
       'power.battery.depthOfDischarge': '~5,600 cycles per year in LEO limits depth of discharge. ASSUMPTION.',
       'power.battery.specificEnergy_Wh_kg': 'Pack-level including enclosure (ISS Li-ion ORUs). ASSUMPTION.',
     },
@@ -312,7 +329,7 @@ export const MODES: Record<ModeId, ModePreset> = {
       pumpFraction: 0.01,
       busVoltage_V: 800,
       harnessOneWayLength_m: 35,
-      conductorArea_mm2: 50,
+      harnessLossFraction: 0.01,
       battery: { roundTripEfficiency: 0.92, depthOfDischarge: 0.3, specificEnergy_Wh_kg: 150 },
     },
     reported: { radiatorArea_m2: 110 },
@@ -322,9 +339,10 @@ export const MODES: Record<ModeId, ModePreset> = {
       'loop.rise_K': '10 K coolant rise. ASSUMPTION.',
       'radiator.arealDensity_kg_m2': 'ASSUMPTION: modern deployable radiator, lighter than ISS.',
       'radiator.sizingMargin': 'ASSUMPTION.',
-      'power.cellEfficiency': 'Silicon-class cells, as in McCalip\'s model (22 %) [mccalip]. ASSUMPTION.',
-      'power.solarArrayArealDensity_kg_m2': 'ASSUMPTION.',
-      'power.busVoltage_V': 'High-voltage DC bus. ASSUMPTION.',
+      'power.cellEfficiency': 'Silicon-class cells, as in McCalip\'s model (22 %) [mccalip]. ASSUMPTION: SpaceX has not published Starlink cell type, efficiency or power. Cross-check (model arithmetic): at these settings the 104.96 m² of solar array SpaceX filed for its F9-2 design, the Falcon 9 "V2 Mini" [spacex-fcc-2022], would deliver about 25 kW in sunlight. SpaceX says V3 arrays generate about twice the power of V2 [starlink-v3].',
+      'power.solarArrayArealDensity_kg_m2': 'ASSUMPTION. SpaceX filed 800 kg and 2 × 12.8 m × 4.1 m of solar array for F9-2, and 2,000 kg with 256.94 m² for its Starship-launched design, as debris-model inputs [spacex-fcc-2022]; how that mass splits between solar array and the rest is not public.',
+      'power.busVoltage_V': 'ASSUMPTION borrowed from terrestrial practice: AI data centers are moving to 800 V DC distribution [nvidia-800vdc]. Not space heritage: the ISS runs 160 V primary / 124 V secondary, and high-voltage solar arrays in low orbit risk arcing to the surrounding plasma unless designed for it [nasa-hdbk-4006a]. Starlink and Starmind bus voltages are not public. Here it sets the copper mass needed for the harness loss target, not the radiator.',
+      'power.harnessLossFraction': 'Copper sized for 1 % I²R loss: a common design target. ASSUMPTION.',
     },
   },
   ideal: {
@@ -345,7 +363,7 @@ export const MODES: Record<ModeId, ModePreset> = {
       pumpFraction: 0.005,
       busVoltage_V: 800,
       harnessOneWayLength_m: 35,
-      conductorArea_mm2: 70,
+      harnessLossFraction: 0.01,
       battery: { roundTripEfficiency: 0.95, depthOfDischarge: 0.8, specificEnergy_Wh_kg: 250 },
     },
     notes: {
@@ -374,7 +392,7 @@ export const MODES: Record<ModeId, ModePreset> = {
       pumpFraction: 0,
       busVoltage_V: 800,
       harnessOneWayLength_m: 35,
-      conductorArea_mm2: 70,
+      harnessLossFraction: 0.01,
       battery: { roundTripEfficiency: 1, depthOfDischarge: 1, specificEnergy_Wh_kg: 500 },
     },
     notes: {
@@ -418,6 +436,13 @@ export function buildScenario(modeId: ModeId, choices: { heatSource?: string; en
 // Tunable parameters: drive the sliders and the tornado chart
 // ---------------------------------------------------------------------------------
 
+/**
+ * The model's parts (see assets/system-diagram.svg). 'shared' inputs feed more than one
+ * part: the heat load (radiator and power supply) and the location (what the radiator
+ * sees, and how much sunlight the solar array gets).
+ */
+export type Part = 'shared' | 'heatPath' | 'radiator' | 'power';
+
 export interface Param {
   path: string;
   label: string;
@@ -427,6 +452,8 @@ export interface Param {
   step: number;
   /** Multiply the stored value for display (e.g. W → kW). */
   display?: number;
+  /** Which part of the model the input belongs to; the page shows it beside that part's charts. */
+  part: Part;
   group: string;
   /** Only shown when true. */
   when?: (s: Scenario) => boolean;
@@ -436,27 +463,28 @@ export interface Param {
 }
 
 export const PARAMETERS: Param[] = [
-  { group: 'Heat source', path: 'heatSource.totalPower_W', label: 'Total heat load', unit: 'kW', display: 1e-3, min: 10e3, max: 2e6, step: 10e3 },
-  { group: 'Heat source', path: 'heatSource.maxTemperature_K', label: 'Source temperature limit', unit: 'K', min: 300, max: 1000, step: 1, tornadoStep: 10 },
-  { group: 'Heat source', path: 'heatSource.unitPower_W', label: 'Power per package', unit: 'kW', display: 1e-3, min: 200, max: 5000, step: 50, tornadoStep: 0.2, relative: true, when: (s) => s.heatSource.stages.some((st) => st.kind !== 'deltaT') },
-  { group: 'Coolant loop', path: 'loop.transportDrop_K', label: 'Transport line drop', unit: 'K', min: 0, max: 10, step: 0.5 },
-  { group: 'Coolant loop', path: 'loop.hxApproach_K', label: 'Intermediate heat exchanger approach', unit: 'K', min: 0, max: 30, step: 1, tornadoStep: 5 },
-  { group: 'Coolant loop', path: 'loop.rise_K', label: 'Coolant rise / radiator glide', unit: 'K', min: 0, max: 80, step: 1, tornadoStep: 5 },
-  { group: 'Radiator', path: 'radiator.emissivity', label: 'IR emissivity ε', unit: '', min: 0.05, max: 1, step: 0.01, tornadoStep: 0.05 },
-  { group: 'Radiator', path: 'radiator.solarAbsorptance', label: 'Solar absorptance α', unit: '', min: 0, max: 0.6, step: 0.01, tornadoStep: 0.05 },
-  { group: 'Radiator', path: 'radiator.finEfficiency', label: 'Fin efficiency η', unit: '', min: 0.5, max: 1, step: 0.01, tornadoStep: 0.05 },
-  { group: 'Radiator', path: 'radiator.arealDensity_kg_m2', label: 'Radiator areal density', unit: 'kg/m²', min: 0.5, max: 25, step: 0.1, tornadoStep: 0.2, relative: true },
-  { group: 'Radiator', path: 'radiator.sizingMargin', label: 'Sizing margin', unit: '×', min: 1, max: 2.5, step: 0.05, tornadoStep: 0.1 },
-  { group: 'Environment', path: 'environment.altitude_km', label: 'Altitude', unit: 'km', min: 100, max: 40000, step: 10, when: (s) => s.environment.kind === 'orbit' },
-  { group: 'Environment', path: 'environment.beta_deg', label: 'Beta angle β', unit: '°', min: 0, max: 90, step: 1, when: (s) => s.environment.kind === 'orbit' },
-  { group: 'Environment', path: 'environment.groundTemperature_K', label: 'Ground temperature', unit: 'K', min: 80, max: 400, step: 1, when: (s) => s.environment.kind === 'surface', tornadoStep: 20 },
-  { group: 'Environment', path: 'environment.sunElevation_deg', label: 'Sun elevation', unit: '°', min: 0, max: 90, step: 1, when: (s) => s.environment.kind === 'surface' },
-  { group: 'Environment', path: 'environment.sunlitFraction', label: 'Sunlit fraction', unit: '', min: 0.05, max: 1, step: 0.01, when: (s) => s.environment.kind !== 'orbit' },
-  { group: 'Solar array & bus', path: 'power.cellEfficiency', label: 'Cell efficiency', unit: '', min: 0.1, max: 0.7, step: 0.005, tornadoStep: 0.1, relative: true },
-  { group: 'Solar array & bus', path: 'power.operatingFactor', label: 'Solar array operating factor', unit: '', min: 0.5, max: 1, step: 0.01 },
-  { group: 'Solar array & bus', path: 'power.solarArrayArealDensity_kg_m2', label: 'Solar array areal density', unit: 'kg/m²', min: 0.2, max: 8, step: 0.1, tornadoStep: 0.2, relative: true },
-  { group: 'Solar array & bus', path: 'power.conversionEfficiency', label: 'Bus-to-payload conversion', unit: '', min: 0.7, max: 1, step: 0.005, tornadoStep: 0.02 },
-  { group: 'Solar array & bus', path: 'power.busVoltage_V', label: 'Bus voltage', unit: 'V', min: 28, max: 3000, step: 1 },
-  { group: 'Energy storage', path: 'power.battery.specificEnergy_Wh_kg', label: 'Battery specific energy', unit: 'Wh/kg', min: 50, max: 600, step: 10, tornadoStep: 0.2, relative: true },
-  { group: 'Energy storage', path: 'power.battery.depthOfDischarge', label: 'Battery depth of discharge', unit: '', min: 0.1, max: 1, step: 0.05 },
+  { part: 'shared', group: 'Load', path: 'heatSource.totalPower_W', label: 'Total heat load', unit: 'kW', display: 1e-3, min: 10e3, max: 2e6, step: 10e3 },
+  { part: 'shared', group: 'Load', path: 'power.conversionEfficiency', label: 'Bus-to-payload conversion', unit: '', min: 0.7, max: 1, step: 0.005, tornadoStep: 0.02 },
+  { part: 'shared', group: 'Location', path: 'environment.altitude_km', label: 'Altitude', unit: 'km', min: 100, max: 40000, step: 10, when: (s) => s.environment.kind === 'orbit' },
+  { part: 'shared', group: 'Location', path: 'environment.beta_deg', label: 'Beta angle β', unit: '°', min: 0, max: 90, step: 1, when: (s) => s.environment.kind === 'orbit' },
+  { part: 'shared', group: 'Location', path: 'environment.groundTemperature_K', label: 'Ground temperature', unit: 'K', min: 80, max: 400, step: 1, when: (s) => s.environment.kind === 'surface', tornadoStep: 20 },
+  { part: 'shared', group: 'Location', path: 'environment.sunElevation_deg', label: 'Sun elevation', unit: '°', min: 0, max: 90, step: 1, when: (s) => s.environment.kind === 'surface' },
+  { part: 'shared', group: 'Location', path: 'environment.sunlitFraction', label: 'Sunlit fraction', unit: '', min: 0.05, max: 1, step: 0.01, when: (s) => s.environment.kind !== 'orbit' },
+  { part: 'heatPath', group: 'Heat source', path: 'heatSource.maxTemperature_K', label: 'Source temperature limit', unit: 'K', min: 300, max: 1000, step: 1, tornadoStep: 10 },
+  { part: 'heatPath', group: 'Heat source', path: 'heatSource.unitPower_W', label: 'Power per package', unit: 'kW', display: 1e-3, min: 200, max: 5000, step: 50, tornadoStep: 0.2, relative: true, when: (s) => s.heatSource.stages.some((st) => st.kind !== 'deltaT') },
+  { part: 'heatPath', group: 'Coolant loop', path: 'loop.transportDrop_K', label: 'Transport line drop', unit: 'K', min: 0, max: 10, step: 0.5 },
+  { part: 'heatPath', group: 'Coolant loop', path: 'loop.hxApproach_K', label: 'Intermediate heat exchanger approach', unit: 'K', min: 0, max: 30, step: 1, tornadoStep: 5 },
+  { part: 'heatPath', group: 'Coolant loop', path: 'loop.rise_K', label: 'Coolant rise / radiator glide', unit: 'K', min: 0, max: 80, step: 1, tornadoStep: 5 },
+  { part: 'radiator', group: 'Radiator surface', path: 'radiator.emissivity', label: 'IR emissivity ε', unit: '', min: 0.05, max: 1, step: 0.01, tornadoStep: 0.05 },
+  { part: 'radiator', group: 'Radiator surface', path: 'radiator.solarAbsorptance', label: 'Solar absorptance α', unit: '', min: 0, max: 0.6, step: 0.01, tornadoStep: 0.05 },
+  { part: 'radiator', group: 'Radiator surface', path: 'radiator.finEfficiency', label: 'Fin efficiency η', unit: '', min: 0.5, max: 1, step: 0.01, tornadoStep: 0.05 },
+  { part: 'radiator', group: 'Sizing and mass', path: 'radiator.sizingMargin', label: 'Sizing margin', unit: '×', min: 1, max: 2.5, step: 0.05, tornadoStep: 0.1 },
+  { part: 'radiator', group: 'Sizing and mass', path: 'radiator.arealDensity_kg_m2', label: 'Radiator areal density', unit: 'kg/m²', min: 0.5, max: 25, step: 0.1, tornadoStep: 0.2, relative: true },
+  { part: 'power', group: 'Solar array & bus', path: 'power.cellEfficiency', label: 'Cell efficiency', unit: '', min: 0.1, max: 0.7, step: 0.005, tornadoStep: 0.1, relative: true },
+  { part: 'power', group: 'Solar array & bus', path: 'power.operatingFactor', label: 'Solar array operating factor', unit: '', min: 0.5, max: 1, step: 0.01 },
+  { part: 'power', group: 'Solar array & bus', path: 'power.solarArrayArealDensity_kg_m2', label: 'Solar array areal density', unit: 'kg/m²', min: 0.2, max: 8, step: 0.1, tornadoStep: 0.2, relative: true },
+  { part: 'power', group: 'Solar array & bus', path: 'power.busVoltage_V', label: 'Bus voltage', unit: 'V', min: 28, max: 3000, step: 1, tornadoStep: 0.5, relative: true },
+  { part: 'power', group: 'Solar array & bus', path: 'power.harnessLossFraction', label: 'Harness loss target', unit: '', min: 0.002, max: 0.1, step: 0.001, tornadoStep: 0.5, relative: true },
+  { part: 'power', group: 'Energy storage', path: 'power.battery.specificEnergy_Wh_kg', label: 'Battery specific energy', unit: 'Wh/kg', min: 50, max: 600, step: 10, tornadoStep: 0.2, relative: true },
+  { part: 'power', group: 'Energy storage', path: 'power.battery.depthOfDischarge', label: 'Battery depth of discharge', unit: '', min: 0.1, max: 1, step: 0.05 },
 ];

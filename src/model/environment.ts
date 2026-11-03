@@ -7,7 +7,7 @@
  *   - surface:   standing on the lunar surface (hot regolith below, sky above)
  *
  * Every radiator face is described by what it sees. The environment returns the flux
- * each face *absorbs*; radiation.ts turns that into net rejection.
+ * each face *absorbs*; thermalEmission.ts turns that into net rejection.
  *
  * Radiator orientation (same three words in every environment):
  *   - 'edgeOn':      two faces, panel plane contains the local vertical (in orbit:

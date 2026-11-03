@@ -5,9 +5,13 @@
  */
 import { BODIES, COOLANTS } from '../model/constants.ts';
 import { absorbedFluxPerFace, orientationLabel } from '../model/environment.ts';
-import { emittedFlux, netRejectionPerPanelArea } from '../model/radiation.ts';
-import { buildScenario, ENVIRONMENTS, HEAT_SOURCES, MODES, PARAMETERS, SOURCES, type Param } from '../model/scenarios.ts';
+import { emittedFlux, netRejectionPerPanelArea } from '../model/thermalEmission.ts';
+import { buildScenario, ENVIRONMENTS, HEAT_SOURCES, MODES, PARAMETERS, SOURCES, type Param, type Part } from '../model/scenarios.ts';
+import { harness, sizePowerSupply } from '../model/power.ts';
+import { eclipseFreeBeta_deg } from '../model/orbit.ts';
 import { changesFromMode, exportScenario, importScenario, ScenarioImportError, type Change } from '../model/scenarioIO.ts';
+import { decodeShareDetailed, encodeShare } from '../model/shareLink.ts';
+import { EXPLANATIONS } from '../model/glossary.ts';
 import { getPath, sweep, tornado, withPath } from '../model/sensitivity.ts';
 import { evaluateScenario, type MassKey, type Result } from '../model/system.ts';
 import type { ChainResult } from '../model/thermalChain.ts';
@@ -61,18 +65,27 @@ function buildControls(): void {
   }
   byId('mode-summary').textContent = MODES[scenario.mode].summary;
 
-  // One collapsible group per parameter group; each group's selector sits with its sliders.
-  // Open/closed state survives rebuilds (mode switch, import); groups start open on wide
-  // screens where the rail scrolls on its own, and closed on narrow screens.
-  const box = byId('controls');
+  // Each part of the model gets its own control panel beside its own charts; inputs
+  // that feed several parts (load, location) sit in the shared strip at the top.
+  // Within a panel, one collapsible group per parameter group, with that group's
+  // selector beside its sliders. Open/closed state survives rebuilds (mode switch,
+  // import); groups start open on wide screens and closed on narrow ones.
+  for (const part of PARTS) buildPart(part);
+}
+
+const PARTS: Part[] = ['shared', 'heatPath', 'radiator', 'power'];
+
+function buildPart(part: Part): void {
+  const box = byId(`controls-${part}`);
   for (const d of box.querySelectorAll<HTMLDetailsElement>('details.control-group')) groupOpen.set(d.dataset.group ?? '', d.open);
   box.replaceChildren();
-  for (const group of [...new Set(PARAMETERS.map((p) => p.group))]) {
+  for (const group of [...new Set(PARAMETERS.filter((p) => p.part === part).map((p) => p.group))]) {
     const key = group.toLowerCase().replace(/[^a-z]+/g, '-');
     const details = document.createElement('details');
     details.className = 'control-group';
     details.dataset.group = key;
-    details.open = groupOpen.get(key) ?? WIDE.matches;
+    // Battery inputs matter less for most cases (terminator orbits have no eclipse), so they start collapsed.
+    details.open = groupOpen.get(key) ?? (part === 'shared' || (WIDE.matches && group !== 'Energy storage'));
     details.innerHTML = `<summary><span class="group-name">${esc(group)}</span><span class="group-hint"></span></summary>`;
     const fs = document.createElement('fieldset');
     fs.innerHTML = `<legend class="sr-only">${esc(group)}</legend>`;
@@ -122,13 +135,13 @@ const GROUP_SELECTS: Record<string, () => HTMLElement> = {
       scenario = { ...scenario, loop: { ...scenario.loop, coolant: id as CoolantId } };
       render();
     }),
-  Radiator: () =>
+  'Radiator surface': () =>
     selectRow('Orientation', (['edgeOn', 'nadirZenith', 'zenithOnly'] as Orientation[]).map((o) => [o, orientationLabel(scenario.environment, o)]), scenario.radiator.orientation, (o) => {
       scenario = { ...scenario, radiator: { ...scenario.radiator, orientation: o as Orientation } };
       render();
     }),
-  Environment: () =>
-    selectRow('Location', Object.entries(ENVIRONMENTS).map(([id, e]) => [id, e.label]), scenario.environmentId, (id) => {
+  Location: () =>
+    selectRow('Place', Object.entries(ENVIRONMENTS).map(([id, e]) => [id, e.label]), scenario.environmentId, (id) => {
       const env = ENVIRONMENTS[id];
       if (!env) return;
       scenario = { ...scenario, environmentId: id, environment: structuredClone(env.environment), notes: { ...scenario.notes, ...env.notes }, reported: null };
@@ -163,7 +176,10 @@ function paramRow(p: Param): HTMLElement {
   };
   range.addEventListener('input', () => set(Number(range.value)));
   box.addEventListener('change', () => set(Number(box.value)));
-  row.querySelector('.info')?.addEventListener('click', () => jumpTo(`note-${p.path}`));
+  row.querySelector('.info')?.addEventListener('click', () => {
+    setExplanationOpen(p.path, true);
+    jumpTo(`note-${p.path}`);
+  });
   sync();
   return row;
 }
@@ -205,6 +221,7 @@ function render(): void {
   const r = evaluateScenario(scenario);
   const presets: Preset[] = MODE_IDS.map((id) => ({ id, r: evaluateScenario(buildScenario(id)) }));
   const changes = changesFromMode(scenario);
+  syncShareUrl();
   renderScenarioBar(changes);
   renderKpis(r);
   renderWarnings(r);
@@ -212,10 +229,39 @@ function render(): void {
   renderDesignCurves(r);
   renderTemperatureSweep(r);
   renderAltitude(r);
+  renderPowerSupply(r);
   renderMass(r, presets, changes.length > 0);
   renderTornado();
   renderTransport(r);
   renderAssumptions();
+  stampCharts(changes.length > 0);
+}
+
+/**
+ * Every chart carries the conditions it was drawn under, so a screenshot or a quoted
+ * number travels with its assumptions (which case, where, how much heat).
+ */
+const STAMPED = ['chart-staircase', 'chart-transport', 'chart-design', 'chart-altitude', 'chart-power', 'chart-temperature', 'chart-mass', 'chart-mass-env', 'chart-tornado'];
+
+function scenarioContext(modified: boolean): string {
+  const env = scenario.environment;
+  const where =
+    env.kind === 'orbit'
+      ? `${env.body === 'earth' ? 'Earth' : 'Moon'} orbit, ${fmt(env.altitude_km)} km, β ${fmt(env.beta_deg)}°`
+      : env.kind === 'deepSpace'
+        ? `deep space, ${fmt(100 * env.sunlitFraction)} % sunlit`
+        : `lunar surface, ground ${fmt(env.groundTemperature_K)} K, Sun ${fmt(env.sunElevation_deg)}° up`;
+  return `${MODES[scenario.mode].name}${modified ? ', modified' : ''} · ${where} · ${fmt(scenario.heatSource.totalPower_W / 1000)} kW heat load · source limit ${fmt(scenario.heatSource.maxTemperature_K)} K · watts-to-space by Chris Lewicki, CC BY 4.0`;
+}
+
+function stampCharts(modified: boolean): void {
+  const text = scenarioContext(modified);
+  for (const id of STAMPED) {
+    const box = document.getElementById(id);
+    if (!box) continue;
+    const stamp = box.querySelector<HTMLElement>(':scope > .chart-stamp') ?? box.appendChild(Object.assign(document.createElement('p'), { className: 'chart-stamp' }));
+    stamp.textContent = text;
+  }
 }
 
 const fmtValue = (v: unknown) => (typeof v === 'number' ? String(+v.toPrecision(4)) : v === undefined ? '—' : typeof v === 'object' ? 'set' : String(v));
@@ -366,6 +412,61 @@ function renderAltitude(r: Result): void {
   byId('altitude-note').textContent = `At ${fmtK(T)}, β = ${fmt(beta)}°. Lunar infrared uses the global mean (~${fmt(BODIES.moon.infrared_W_m2)} W/m²); over the dayside it is up to ~4× higher.`;
 }
 
+/**
+ * Power-supply part, chart 5. In orbit: power-and-thermal mass against the β angle, with
+ * the eclipse-free threshold marked (why data centers want terminator orbits). Elsewhere
+ * (deep space, a surface site): mass against sunlit fraction at this site's day length.
+ */
+function renderPowerSupply(r: Result): void {
+  const t = (kg: number) => kg / 1000;
+  const env = scenario.environment;
+  if (env.kind === 'orbit') {
+    const betas = Array.from({ length: 91 }, (_, i) => i);
+    const metric = (k: MassKey) => sweep(scenario, 'environment.beta_deg', betas, (x) => t(x.mass_kg[k]));
+    const total = sweep(scenario, 'environment.beta_deg', betas, (x) => t(x.mass_kg.solarArray + x.mass_kg.battery + x.mass_kg.harness + x.mass_kg.radiator + x.mass_kg.thermalLoop));
+    const betaStar = eclipseFreeBeta_deg(BODIES[env.body], env.altitude_km);
+    byId('power-heading').textContent = '5. Why terminator orbits: eclipses and the β angle';
+    byId('power-lede').hidden = false;
+    lineChart(byId('chart-power'), {
+      series: [
+        { name: 'Solar array', color: 'var(--s3)', points: metric('solarArray') },
+        { name: 'Battery', color: 'var(--s4)', points: metric('battery') },
+        { name: 'Radiator', color: 'var(--s1)', points: metric('radiator') },
+        { name: 'Power + thermal total', color: 'var(--ink)', width: 2.5, points: total },
+      ],
+      x: { label: 'β angle: orbit plane to Sun (°)', format: (v) => `${fmt(v)}°`, min: 0, max: 90 },
+      y: { label: 'Mass (t)', format: (v) => fmt(v, v < 10 ? 1 : 0), min: 0 },
+      vrules: [{ x: betaStar, label: `no eclipse above ${fmt(betaStar)}° (circular orbit, ${fmt(env.altitude_km)} km${env.body === 'moon' ? ' above the Moon' : ''})` }],
+      markers: [{ x: env.beta_deg, y: t(r.totalMass_kg), label: 'you' }],
+      height: 300,
+    });
+    const dark = 1 - r.sunlight.sunlitFraction;
+    byId('power-note').textContent =
+      dark > 0
+        ? `At β = ${fmt(env.beta_deg)}° and ${fmt(env.altitude_km)} km you spend ${fmt(100 * dark)} % of each ${fmt(r.sunlight.cyclePeriod_h * 60)}-minute orbit in shadow.`
+        : `At β = ${fmt(env.beta_deg)}° and ${fmt(env.altitude_km)} km the orbit never enters shadow (eclipse-free above ${fmt(betaStar)}° at this altitude).`;
+    return;
+  }
+  const fractions = Array.from({ length: 81 }, (_, i) => 0.2 + i * 0.01);
+  const cycle_h = r.sunlight.cyclePeriod_h;
+  const sized = fractions.map((f) => ({ f, s: sizePowerSupply(r.busLoad_W, scenario.power, { sunlitFraction: f, cyclePeriod_h: cycle_h }) }));
+  byId('power-heading').textContent = '5. Darkness is a mass problem: power supply versus sunlight';
+  byId('power-lede').hidden = true;
+  lineChart(byId('chart-power'), {
+    series: [
+      { name: 'Solar array', color: 'var(--s3)', points: sized.map(({ f, s }) => ({ x: f, y: t(s.solarArrayMass_kg) })) },
+      { name: 'Battery', color: 'var(--s4)', points: sized.map(({ f, s }) => ({ x: f, y: t(s.storage.mass_kg) })) },
+      { name: 'Power supply total', color: 'var(--ink)', width: 2.5, points: sized.map(({ f, s }) => ({ x: f, y: t(s.solarArrayMass_kg + s.storage.mass_kg + s.harness.mass_kg) })) },
+    ],
+    x: { label: 'Sunlit fraction of each light/dark cycle', format: (v) => `${fmt(100 * v)}%`, min: 0.2, max: 1 },
+    y: { label: 'Mass (t)', log: true, toggle: true, format: (v) => fmt(v, v < 1 ? 2 : 0) },
+    markers: [{ x: r.sunlight.sunlitFraction, y: t(r.mass_kg.solarArray + r.mass_kg.battery + r.mass_kg.harness), label: 'you' }],
+    height: 300,
+  });
+  const cycle = cycle_h > 48 ? `${fmt(cycle_h / 24, 1)} days` : `${fmt(cycle_h * 60)} minutes`;
+  byId('power-note').textContent = `Away from orbit there is no β angle; what matters is how long the dark lasts. Here each light/dark cycle lasts ${cycle}, and you are ${fmt(100 * r.sunlight.sunlitFraction)} % sunlit: the longer the dark, the more each lost percent of sunlight costs in battery.`;
+}
+
 const MASS_SEGMENTS: [MassKey, string, string][] = [
   ['radiator', 'Radiator', 'var(--s1)'],
   ['thermalLoop', 'Pumps & loop', 'var(--s2)'],
@@ -434,7 +535,16 @@ function renderTransport(r: Result): void {
   });
   const budget = src - c.radiatingEquivalent_K;
   const v = wiedemannFranzEquivalentVoltage((src + c.radiatingEquivalent_K) / 2, Math.max(budget, 1));
-  byId('wf-note').innerHTML = `Your chain spends a <b>${fmt(budget)} K</b> budget. Conducting heat through copper with that budget behaves like distributing electricity at <b>${fmt(v * 1000)} mV</b> (Wiedemann–Franz). Your bus runs at ${fmt(scenario.power.busVoltage_V)} V, and loss scales as 1/V².`;
+  byId('wf-note').innerHTML = `Your chain spends a <b>${fmt(budget)} K</b> budget. Conducting heat through copper with that budget behaves like distributing electricity at <b>${fmt(v * 1000)} mV</b> (Wiedemann–Franz). Electricity has a transformer: copper for a fixed loss scales as 1/V². ${copperComparison(r)}`;
+}
+
+/** The voltage lesson in this scenario's own numbers: copper for the same loss at this bus voltage vs a 120 V heritage bus. */
+function copperComparison(r: Result): string {
+  const p = scenario.power;
+  const at = (V: number) => harness({ power_W: r.busLoad_W, busVoltage_V: V, oneWayLength_m: p.harnessOneWayLength_m, lossFraction: p.harnessLossFraction }).mass_kg;
+  const loss = `${fmt(100 * p.harnessLossFraction, 1)} %`;
+  const ref = p.busVoltage_V > 300 ? 120 : 800; // contrast a high-voltage bus with a heritage one, and vice versa
+  return `Your ${fmt(p.harnessOneWayLength_m)} m harness at ${fmt(p.busVoltage_V)} V needs <b>${fmtT(at(p.busVoltage_V))}</b> of copper for ${loss} loss; at ${ref} V it would need <b>${fmtT(at(ref))}</b>.`;
 }
 
 const EXTRA_LABELS: Record<string, string> = {
@@ -466,10 +576,36 @@ function renderAssumptions(): void {
       .map((path) => {
         const note = scenario.notes[path];
         const prov = note ? cite(note) : '<span class="gap">ASSUMPTION, undocumented. Contributors: please source this value.</span>';
-        return `<tr id="note-${path}" tabindex="-1"><td>${esc(label(path))}<div class="muted mono">${esc(path)}</div></td><td>${value(path)}</td><td>${prov}</td></tr>`;
+        const open = openExplanations.has(path);
+        const toggle = `<button type="button" class="explain-toggle" aria-expanded="${open}" aria-controls="explain-${path}" title="What does this mean?"><span class="chev" aria-hidden="true"></span><span>${esc(label(path))}</span></button>`;
+        const explanation = EXPLANATIONS[path] ?? 'No explanation yet. Contributors: add one in src/model/glossary.ts.';
+        return (
+          `<tr id="note-${path}" tabindex="-1"><td>${toggle}<div class="muted mono">${esc(path)}</div></td><td>${value(path)}</td><td>${prov}</td></tr>` +
+          `<tr class="explain-row" id="explain-${path}"${open ? '' : ' hidden'}><td colspan="3"><p>${esc(explanation)}</p></td></tr>`
+        );
       })
       .join('');
 }
+
+/**
+ * Parameter explanations in the Assumptions table: every name is a disclosure button.
+ * Open rows survive re-renders (the table is rebuilt on every change), and the "i"
+ * buttons beside the sliders open the row they jump to.
+ */
+const openExplanations = new Set<string>();
+
+function setExplanationOpen(path: string, open: boolean): void {
+  if (open) openExplanations.add(path);
+  else openExplanations.delete(path);
+  document.getElementById(`explain-${path}`)?.toggleAttribute('hidden', !open);
+  document.querySelector(`#note-${CSS.escape(path)} .explain-toggle`)?.setAttribute('aria-expanded', String(open));
+}
+
+byId('assumptions').addEventListener('click', (e) => {
+  const button = (e.target as HTMLElement).closest<HTMLButtonElement>('.explain-toggle');
+  const path = button?.getAttribute('aria-controls')?.slice('explain-'.length);
+  if (path) setExplanationOpen(path, !openExplanations.has(path));
+});
 
 function renderReferences(): void {
   byId('references').innerHTML = Object.entries(SOURCES)
@@ -481,6 +617,81 @@ byId('reset').addEventListener('click', () => {
   scenario = buildScenario(scenario.mode);
   buildControls();
   render();
+});
+
+// ------------------------------------------------------------------ share links (?s=)
+const DEFAULT_SHARE = encodeShare(buildScenario('starmind'));
+
+/** The address bar always describes the current scenario, so copying it shares the case. */
+function shareUrl(): string {
+  const share = encodeShare(scenario);
+  return `${location.pathname}${share === DEFAULT_SHARE ? '' : `?s=${share}`}`;
+}
+/** Remembers which ?s= this tab wrote, so a reload is recognised as a restore, not a link someone sent. */
+const OWN_SHARE_KEY = 'watts-to-space:own-share';
+
+function syncShareUrl(): void {
+  try {
+    const url = shareUrl();
+    history.replaceState(history.state, '', `${url}${location.hash}`);
+    const share = new URLSearchParams(url.split('?')[1] ?? '').get('s');
+    if (share) sessionStorage.setItem(OWN_SHARE_KEY, share);
+    else sessionStorage.removeItem(OWN_SHARE_KEY);
+  } catch {
+    // Some file:// contexts refuse history or storage; the Copy button still works.
+  }
+}
+
+/** Load a scenario from ?s= at startup. A bad link leaves the default case and says why. */
+function loadFromUrl(): void {
+  const share = new URLSearchParams(location.search).get('s');
+  if (!share) return;
+  const status = byId('io-status');
+  let ownAddress = false;
+  try {
+    ownAddress = sessionStorage.getItem(OWN_SHARE_KEY) === share;
+  } catch {
+    // storage unavailable: treat as a link
+  }
+  try {
+    const decoded = decodeShareDetailed(share);
+    scenario = decoded.scenario;
+    const dropped = decoded.ignored.length ? ` These settings no longer exist and were dropped: ${decoded.ignored.join(', ')}.` : '';
+    const changed = decoded.presetsChanged || decoded.ignored.length > 0;
+    if (ownAddress) {
+      // A reload of this tab's own address: restore quietly; mention only a model update.
+      status.className = 'io-status info';
+      status.textContent = changed
+        ? `Restored your scenario. The model has been updated since, so values you did not change now come from the updated reference cases.${dropped}`
+        : '';
+    } else {
+      status.className = changed ? 'io-status warn' : 'io-status ok';
+      status.textContent = changed
+        ? `Loaded the scenario from this link. It was made with an earlier version of the reference cases, so values its author did not change now come from the current ones and results may differ from what they saw.${dropped}`
+        : 'Loaded the scenario from this link.';
+    }
+  } catch (err) {
+    status.className = 'io-status error';
+    status.innerHTML =
+      err instanceof ScenarioImportError
+        ? `<b>This link's scenario was not loaded.</b><ul>${err.problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>`
+        : `<b>This link's scenario was not loaded:</b> ${esc(err)}`;
+  }
+}
+
+byId('share').addEventListener('click', async () => {
+  const url = new URL(shareUrl(), location.href).href;
+  const status = byId('io-status');
+  try {
+    await navigator.clipboard.writeText(url);
+    status.className = 'io-status ok';
+    status.textContent = 'Share link copied. It encodes only the parameters of this scenario.';
+  } catch {
+    // Clipboard unavailable (e.g. some file:// pages): show the link for manual copying.
+    status.className = 'io-status ok';
+    status.innerHTML = `Copy this link: <input class="share-field" readonly value="${esc(url)}" aria-label="Share link">`;
+    status.querySelector<HTMLInputElement>('.share-field')?.select();
+  }
 });
 
 byId('export').addEventListener('click', () => {
@@ -521,6 +732,7 @@ window.addEventListener('resize', () => {
   resizeTimer = window.setTimeout(render, 150);
 });
 
+loadFromUrl();
 buildControls();
 renderReferences();
 render();

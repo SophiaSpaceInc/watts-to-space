@@ -1,0 +1,26 @@
+# Content license: CC BY 4.0
+
+watts-to-space is dual-licensed by kind of material.
+
+| Material | License |
+|---|---|
+| **Code**: the TypeScript in `src/` and `scripts/`, the tests, `styles.css`, the page markup, and the build configuration | MIT, see [LICENSE](LICENSE) |
+| **Written content and figures**, wherever they appear: `docs/`, `skills/watts-to-space/`, `README.md`, `CONTRIBUTING.md`, `AGENTS.md`, the diagrams in `assets/`, the essay and explanatory text on the page, the plain-language explanations in `src/model/glossary.ts`, the provenance notes in `src/model/scenarios.ts`, and the charts and figures the page produces | [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/) |
+
+Copyright © 2026 Chris Lewicki.
+
+## Attribution
+
+You may share and adapt the content for any purpose, including commercially, as long as you give credit, link to the license, and say whether you changed anything. Suggested credit:
+
+```text
+Chris Lewicki, watts-to-space (github.com/interplanetarychris/watts-to-space), CC BY 4.0
+```
+
+Every chart and diagram already carries a credit line. Keep it in screenshots and reproductions.
+
+## Third-party material
+
+Sources the model cites (NASA documents, FCC filings, papers and articles) keep their own terms. Short quotations appear for citation only.
+
+Full legal code: https://creativecommons.org/licenses/by/4.0/legalcode

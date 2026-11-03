@@ -11,8 +11,8 @@
  */
 import { COOLANTS } from './constants.ts';
 import { absorbedFluxPerFace, sunlight, type Sunlight } from './environment.ts';
-import { solarArraySpecificPower_W_m2, harness, storageSizing, type Harness, type Storage } from './power.ts';
-import { fluidTemperatureForRejection, idealRejectionPerPanelArea, netRejectionPerPanelArea } from './radiation.ts';
+import { sizePowerSupply, type Harness, type Storage } from './power.ts';
+import { fluidTemperatureForRejection, idealRejectionPerPanelArea, netRejectionPerPanelArea } from './thermalEmission.ts';
 import { evaluateChain, type ChainResult } from './thermalChain.ts';
 import type { Scenario } from './types.ts';
 
@@ -59,8 +59,16 @@ export interface Result {
   warnings: Warning[];
 }
 
+/**
+ * The model is three nearly independent parts joined by three quantities (see
+ * assets/system-diagram.svg): heat path → coolant temperature; radiator × location →
+ * flux per m²; power supply × location → solar array and battery. The heat load Q
+ * couples the radiator and the power supply.
+ */
 export function evaluateScenario(s: Scenario): Result {
+  // Heat-path part: its only output is the coolant temperature reaching the radiator.
   const chain = evaluateChain(s.heatSource, s.loop, s.radiator.finEfficiency);
+  // Radiator part: net flux per m² at that temperature, given what the radiator sees.
   const absorbed = absorbedFluxPerFace(s.environment, s.radiator.orientation, s.radiator);
   const netFlux_W_m2 = netRejectionPerPanelArea(chain.fluidEffective_K, s.radiator, absorbed);
   const feasible = netFlux_W_m2 > 0;
@@ -72,22 +80,18 @@ export function evaluateScenario(s: Scenario): Result {
 
   const radiatorArea_m2 = feasible ? (heatToReject_W * s.radiator.sizingMargin) / netFlux_W_m2 : Infinity;
 
+  // Power-supply part: needs only the load and the sunlight.
   const sun = sunlight(s.environment);
-  const storage = storageSizing({ load_W: busLoad_W, ...sun, ...p.battery });
-  const wire = harness({
-    power_W: busLoad_W,
-    busVoltage_V: p.busVoltage_V,
-    oneWayLength_m: p.harnessOneWayLength_m,
-    conductorArea_mm2: p.conductorArea_mm2,
-  });
-  const solarArraySpecific_W_m2 = solarArraySpecificPower_W_m2(p);
-  const solarArrayOutput_W = (busLoad_W * storage.solarArrayOversize) / (1 - Math.min(wire.lossFraction, 0.99));
-  const solarArrayArea_m2 = solarArrayOutput_W / solarArraySpecific_W_m2;
+  const supply = sizePowerSupply(busLoad_W, p, sun);
+  const { storage, harness: wire } = supply;
+  const solarArraySpecific_W_m2 = supply.specific_W_m2;
+  const solarArrayOutput_W = supply.output_W;
+  const solarArrayArea_m2 = supply.area_m2;
 
   const mass_kg: Record<MassKey, number> = {
     radiator: radiatorArea_m2 * s.radiator.arealDensity_kg_m2,
     thermalLoop: (heatToReject_W / 1000) * s.radiator.loopSpecificMass_kg_per_kW,
-    solarArray: solarArrayArea_m2 * p.solarArrayArealDensity_kg_m2,
+    solarArray: supply.solarArrayMass_kg,
     battery: storage.mass_kg,
     harness: wire.mass_kg,
   };
