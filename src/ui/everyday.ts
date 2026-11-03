@@ -119,12 +119,12 @@ function renderToScale(area: number, foot: number, obj: (typeof OBJECTS)[number]
   // One scale for all three, limited by the width and by a 170 px drawing height.
   const k = Math.min((W - 4 * gap) / shapes.reduce((s, x) => s + x.w, 0), 170 / Math.max(...shapes.map((x) => x.h)));
   const tallest = Math.max(...shapes.map((x) => x.h * k));
-  const H = tallest + 46; // room for two staggered label rows, so narrow shapes' labels do not overlap
+  const H = tallest + 58; // one label row per shape, so labels never overlap however narrow the shapes are
   let x = gap;
   const parts = shapes.map((s, i) => {
     const w = Math.max(1, s.w * k);
     const h = Math.max(1, s.h * k);
-    const g = `<rect class="${s.cls}" x="${x}" y="${tallest + 4 - h}" width="${w}" height="${h}" rx="2"/><text class="tick" x="${x}" y="${tallest + (i % 2 ? 38 : 22)}">${esc(s.label)}</text>`;
+    const g = `<rect class="${s.cls}" x="${x}" y="${tallest + 4 - h}" width="${w}" height="${h}" rx="2"/><text class="tick" x="${x}" y="${tallest + 20 + 16 * i}">${esc(s.label)}</text>`;
     x += w + gap;
     return g;
   });
