@@ -118,7 +118,7 @@ export interface LineChartOptions {
   /** Vertical reference lines, e.g. a threshold on the x axis. */
   vrules?: { x: number; label: string }[];
   /** Shaded x ranges where real hardware works, so the full axis does not read as a design space. */
-  bands?: { from: number; to: number; label: string }[];
+  bands?: { from: number; to: number; label: string; /** A range to stay out of: hatched, not tinted, so no series colour is implied. */ avoid?: boolean }[];
   height?: number;
 }
 
@@ -249,13 +249,19 @@ function drawLineChart(container: HTMLElement, options: LineChartOptions): void 
     el('text', { x: m.left + 6, y: Y(r.y) - 5, class: 'rule-label' }, svg).textContent = r.label;
   }
 
-  for (const b of o.bands ?? []) {
+  const hatch = `hatch-${container.id}`;
+  if (o.bands?.some((b) => b.avoid)) {
+    const pat = el('pattern', { id: hatch, width: 6, height: 6, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, el('defs', {}, svg));
+    el('line', { x1: 0, y1: 0, x2: 0, y2: 6, class: 'hatch-line' }, pat);
+  }
+  (o.bands ?? []).forEach((b, i) => {
     const x0 = X(Math.max(b.from, xd[0]));
     const x1 = X(Math.min(b.to, xd[1]));
-    if (!(x1 > x0)) continue;
-    el('rect', { x: x0, y: m.top, width: x1 - x0, height: H - m.top - m.bottom, class: 'band' }, svg);
-    el('text', { x: x0 + 6, y: H - m.bottom - 8, class: 'band-label' }, svg).textContent = b.label;
-  }
+    if (!(x1 > x0)) return;
+    el('rect', { x: x0, y: m.top, width: x1 - x0, height: H - m.top - m.bottom, class: 'band', ...(b.avoid ? { style: `fill: url(#${hatch}); opacity: 1` } : {}) }, svg);
+    // Stack labels upward so neighbouring narrow bands do not overwrite each other.
+    el('text', { x: x0 + 6, y: H - m.bottom - 8 - 15 * i, class: 'band-label' }, svg).textContent = b.label;
+  });
 
   for (const r of o.vrules ?? []) {
     if (!(r.x >= xd[0] && r.x <= xd[1])) continue;

@@ -435,6 +435,11 @@ function renderAltitude(r: Result): void {
       { name: 'Moon, face at Moon', color: 'var(--s4)', points: curve('moon', 'nadirZenith') },
     ],
     x: { label: 'Altitude above the body (km)', log: true, toggle: true, format: (v) => fmt(v), min: 100, max: 100000 },
+    // Earth only: SpaceX's FCC letter [spacex-fcc-2026-09]; the inner belt as in the altitude glossary entry.
+    bands: [
+      { from: 500, to: 1002, label: 'Starmind filing (Earth)' },
+      { from: 1000, to: 2000, label: 'inner Van Allen belt (Earth)', avoid: true },
+    ],
     y: { label: '% of deep-space rejection', format: (v) => `${fmt(v)}%`, max: 100 },
     rules: [{ y: 100, label: 'deep space' }],
     height: 300,
@@ -562,6 +567,7 @@ function renderTransport(r: Result): void {
       { name: 'Heat: solid copper bar 10×10 cm', color: 'var(--s4)', points: curves.bar, label: 'copper bar' },
     ],
     x: { label: 'Distance from source to panel', log: true, toggle: true, format: fmtLen, min: 0.01, max: 100 },
+    bands: [{ from: 0.01, to: scenario.power.harnessOneWayLength_m, label: `within one spacecraft (up to the ${fmt(scenario.power.harnessOneWayLength_m)} m harness run)` }],
     y: { label: '% of ideal panel area doing useful work', format: (v) => `${fmt(v)}%`, min: 0, max: 100 },
     height: 300,
   });

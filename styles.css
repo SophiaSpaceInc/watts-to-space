@@ -315,6 +315,7 @@ a.challenge { font-size: 12px; white-space: nowrap; color: var(--ink-2); }
 .chart-table summary { cursor: pointer; color: var(--ink-2); }
 .chart-table table { margin-top: 6px; }
 svg .band { fill: var(--ink); opacity: 0.06; }
+svg .hatch-line { stroke: var(--ink-2); stroke-width: 1; opacity: 0.35; }
 svg .band-label { font: 600 11px/1 var(--sans); fill: var(--ink-2); }
 .chart-note { margin: 6px 0 0; font: italic 400 12px/1.4 var(--sans); color: var(--ink-2); }
 svg .infeasible { font-style: italic; }
