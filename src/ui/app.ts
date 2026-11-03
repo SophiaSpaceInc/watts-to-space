@@ -353,8 +353,8 @@ function renderKpis(r: Result): void {
       'Solar array : radiator area',
       `${fmt(r.solarToRadiatorAreaRatio, 1)} : 1`,
       r.reportedCheck?.publishedAreaRatio
-        ? `published areas: ${fmt(r.reportedCheck.publishedAreaRatio, 1)} : 1 (${fmt(scenario.reported?.solarArrayArea_m2 ?? 0)} / ${fmt(r.reportedCheck.radiatorArea_m2)} m²)${r.radiatorArea_m2 > r.reportedCheck.radiatorArea_m2 ? '; this model sizes a larger radiator' : ''}`
-        : 'compare the often-quoted "5:1"',
+        ? `SpaceX's Starmind figures work out to ${fmt(r.reportedCheck.publishedAreaRatio, 2)} : 1 (${fmt(scenario.reported?.solarArrayArea_m2 ?? 0)} / ${fmt(r.reportedCheck.radiatorArea_m2)} m²)${r.radiatorArea_m2 > r.reportedCheck.radiatorArea_m2 ? '; this model sizes a larger radiator' : ''}`
+        : 'compare Musk\'s "~5 times the area of the radiator"',
       pct(r.solarToRadiatorAreaRatio, p?.solarToRadiatorAreaRatio),
     ],
     ['Rejection effectiveness', `${fmt(100 * r.rejectionEffectiveness)} %`, 'vs a black panel at the source limit in deep space', diff(100 * r.rejectionEffectiveness, p ? 100 * p.rejectionEffectiveness : undefined, 'points')],

@@ -83,7 +83,7 @@ Pumped loops avoid this by carrying heat in moving mass. Distance then costs pum
 | View factors | Closed forms match brute-force hemisphere integration (Earth 400–2000 km, Moon 100 km) within 0.002. |
 | ISS orbit | Period ≈ 92.8 min, eclipse ≈ 39 % at β = 0 for 420 km. |
 | GPU stack | With a 45 °C inlet and a 10 K coolant rise, the lidded stack gives a junction of ~86 °C at 1.8 kW and ~94 °C at 2.3 kW, consistent with reported Rubin operating points. |
-| Starmind check (the page's callout; `test/system.test.ts` pins only the ordering) | SpaceX's stated ~1,400 W/m² needs radiating fluid at ~358 K under the preset's radiator assumptions at 600 km, so the radiator physics agrees; the Earth-style lidded stack delivers ~336 K. Rejecting the 250 kW peak (273 kW of heat) on 160 m² needs ~375 K, above the 373 K junction limit; the 175 kW average needs ~345 K. Published areas are 5.25 : 1 (840 / 160 m²); the model's are 2.4 : 1 because its radiator is larger. |
+| Starmind check (the page's callout; `test/system.test.ts` pins only the ordering) | SpaceX's stated ~1,400 W/m² needs radiating fluid at ~358 K under the preset's radiator assumptions at 600 km, so the radiator physics agrees; the Earth-style lidded stack delivers ~336 K. Rejecting the 250 kW peak (273 kW of heat) on 160 m² needs ~375 K, above the 373 K junction limit; the 175 kW average needs ~345 K. SpaceX's Starmind figures work out to 5.25 : 1 (840 / 160 m²), close to Musk's "~5 times the area of the radiator"; the model's case is 2.4 : 1, mostly because it sizes the radiator for peak and the solar array for average load, with a 25 % margin. |
 
 ## 7. Limitations
 
