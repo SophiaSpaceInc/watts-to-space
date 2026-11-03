@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Heat rejection in vacuum: power and thermal design explorer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <p class="byline">
+        <a href="https://x.com/interplanetary" rel="noopener">Chris Lewicki</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://x.com/interplanetary" rel="noopener">@interplanetary</a>
+      </p>
+      <h1>Heat rejection in vacuum</h1>
+      <p class="subtitle">Every watt becomes heat. In space, the only way out is radiation.</p>
+    </header>
+
+    <!-- DRAFT intro in Chris's voice: edit freely. -->
+    <section class="intro" aria-label="Introduction">
+      <p>
+        Every serious conversation about industry in space (computing, refining, manufacturing) eventually becomes a
+        conversation about heat. Electricity is the easy part. A wire carries it across a spacecraft almost for free,
+        and when distance gets expensive you raise the voltage. Heat has no such trick. It only flows downhill in
+        temperature, every interface it crosses takes a toll, and in vacuum the only exit is radiation, which scales
+        with the fourth power of temperature.
+      </p>
+      <figure class="equation" aria-labelledby="sb-caption">
+        <div class="formula" role="math" aria-label="P equals epsilon sigma A T to the fourth">
+          <var>P</var> = <var>ε</var><var>σ</var><var>A</var><var>T</var><sup>4</sup>
+        </div>
+        <figcaption id="sb-caption">
+          The <a href="https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law" rel="noopener">Stefan–Boltzmann law</a>:
+          power <var>P</var> radiated by area <var>A</var> at temperature <var>T</var>, with emissivity <var>ε</var>
+          and <span class="nowrap">σ = 5.67 × 10<sup>−8</sup> W m<sup>−2</sup> K<sup>−4</sup></span>.
+        </figcaption>
+      </figure>
+      <p>
+        I built this explorer to make that intuition quantitative. It follows the energy from the solar array, through
+        the payload, down the temperature staircase, to the radiator, and shows which assumptions actually move the size
+        and mass of the hardware. It started as a question about orbital data centers. I want it to grow into a tool
+        for any energy-hungry work in cislunar space and, eventually, on the Moon.
+      </p>
+      <p>
+        It is a companion to Andrew McCalip's <a href="https://andrewmccalip.com/space-datacenters">Space Datacenters</a>,
+        which asks whether orbital compute pays. This one asks what the heat and power hardware has to look like. Every
+        number carries a source or a label (see <a href="#assumptions-section">Assumptions</a>). Please check the math,
+        challenge the assumptions, and send me better numbers.
+      </p>
+      <p class="note">
+        <strong>Note:</strong> Built from publicly available information and first-principles physics. No proprietary
+        data. These are my personal views.
+      </p>
+    </section>
+
+    <section class="console" aria-label="Case and readouts">
+      <div class="case-switch">
+        <p class="eyebrow" id="modes-label">Reference case</p>
+        <nav class="modes" id="modes" aria-labelledby="modes-label"></nav>
+        <p id="mode-summary" class="mode-summary"></p>
+      </div>
+
+      <section class="scenario-bar" aria-label="Scenario status">
+        <div id="scenario-status" class="scenario-status" aria-live="polite"></div>
+        <div class="scenario-actions">
+          <button type="button" id="reset" hidden>Reset to reference</button>
+          <button type="button" id="export">Export assumptions</button>
+          <label class="button" for="import-file">Import assumptions</label>
+          <input id="import-file" type="file" accept="application/json,.json" class="sr-only" />
+        </div>
+        <div id="io-status" class="io-status" role="status"></div>
+      </section>
+
+      <section id="kpis" class="kpis" aria-live="polite"></section>
+      <div id="warnings"></div>
+      <section id="reported" class="callout" hidden></section>
+    </section>
+
+    <div class="layout">
+      <aside class="rail" aria-labelledby="rail-label">
+        <div class="rail-head">
+          <p class="eyebrow" id="rail-label">Assumptions</p>
+          <span class="rail-hint">Drag, or type a value</span>
+        </div>
+        <div id="controls" class="controls"></div>
+      </aside>
+
+      <main class="charts">
+        <section>
+          <h2>1. The first centimeter: the temperature staircase</h2>
+          <p>
+            Heat flows downhill in temperature: ΔT = Q × R, thermal Ohm's law. Every interface spends part of a small,
+            fixed budget: the source limit minus the radiator temperature. Most of it is spent within a centimeter of
+            the heat source: silicon, interface materials, lid, cold plate. Distance itself costs little once heat is in
+            a pumped loop.
+          </p>
+          <div id="chart-staircase" class="chart-box"></div>
+          <details>
+            <summary>Your chain, stage by stage</summary>
+            <table id="stage-table" class="data"></table>
+          </details>
+        </section>
+
+        <section>
+          <h2>2. Radiator design curves: what a square metre buys</h2>
+          <p>
+            Net heat rejected per m² of two-sided panel, versus the radiating fluid temperature, in each environment. Two
+            facts dominate. First, flux grows as T⁴: hot waste heat is cheap to reject. Second, a warm view (Earth, the
+            lunar dayside, sunlit regolith) cancels the low-temperature end of the curve. On the lunar equator at noon, a
+            vertical fin with the Starmind-mode surface properties absorbs more than it emits below about 335 K (curves
+            that drop off the log scale have gone net-negative).
+          </p>
+          <div id="chart-design" class="chart-box"></div>
+        </section>
+
+        <section>
+          <h2>3. Run hotter: areas versus source temperature</h2>
+          <p>
+            Same scenario, sweeping only the heat source's temperature limit. The solar array is fixed by the power
+            drawn. The radiator shrinks steeply with temperature. Chips are pinned near 350–400 K, so compute pays
+            nearly full price. For a process rejecting heat at 600 K or more, the radiator becomes small next to the
+            solar array.
+          </p>
+          <div id="chart-temperature" class="chart-box"></div>
+        </section>
+
+        <section>
+          <h2>4. Where you orbit: the planet-view penalty</h2>
+          <p>
+            A radiator near a body sees part of it instead of 3 K space and absorbs its infrared. Edge-on panels see less
+            than panels facing the body. The penalty fades with altitude, and is larger for colder radiators.
+          </p>
+          <div id="chart-altitude" class="chart-box"></div>
+          <p id="altitude-note" class="muted small"></p>
+        </section>
+
+        <section>
+          <h2>5. Mass budget: power and thermal hardware only</h2>
+          <p>
+            Payload mass is excluded on purpose. Per m², radiators weigh several times more than solar arrays, so a 5:1
+            area ratio is not a 5:1 mass ratio. In darkness-heavy environments, energy storage can outweigh both.
+          </p>
+          <h3 class="chart-title">Each mode as published, plus your scenario</h3>
+          <div id="chart-mass" class="chart-box"></div>
+          <h3 class="chart-title">Your scenario moved to every environment (composition; totals at right)</h3>
+          <div id="chart-mass-env" class="chart-box"></div>
+        </section>
+
+        <section>
+          <h2>6. Sensitivity slopes: what moves the mass</h2>
+          <p>
+            Each bar moves one parameter down or up by one step and holds everything else fixed. Steps are in natural
+            units: ±10 K on temperatures, ±0.05 on emissivity, ±20 % on areal densities. Hover a bar for the value tried.
+          </p>
+          <div id="chart-tornado" class="chart-box"></div>
+        </section>
+
+        <section>
+          <h2>7. Why heat is harder to move than electricity</h2>
+          <p>
+            Each line is a 1 kW path from source to panel, scored as the share of ideal panel area doing useful work. A
+            wire loses almost nothing over distance, because voltage can be stepped up. Heat has no transformer: a
+            10 × 10 cm solid copper bar cannot carry 1 kW much past a metre, and a pumped loop makes distance cheap but
+            still pays the fixed interface staircase.
+          </p>
+          <div id="chart-transport" class="chart-box"></div>
+          <p id="wf-note" class="muted small"></p>
+        </section>
+
+        <section id="assumptions-section">
+          <h2>Assumptions and provenance (current scenario)</h2>
+          <p class="muted small">
+            Tags: <b>[source]</b> cited reference · <b>ASSUMPTION</b> engineering judgement · <b>CALIBRATED</b> tuned to
+            reproduce a published figure · <b>SECONDARY</b> widely quoted, not confirmed against a primary source.
+          </p>
+          <table id="assumptions" class="data"></table>
+        </section>
+
+        <section>
+          <h2>References</h2>
+          <ol id="references" class="refs"></ol>
+        </section>
+      </main>
+    </div>
+
+    <footer class="muted small">
+      <p><a href="https://x.com/interplanetary" rel="noopener">Follow @interplanetary on X</a></p>
+      Model source: <span class="mono">src/model/</span> (pure functions, unit-tested with <span class="mono">bun test</span>).
+      See <span class="mono">docs/APPROACH.md</span> for equations, validation anchors and known gaps.
+    </footer>
+    <script type="module" src="./src/ui/app.ts"></script>
+  </body>
+</html>
