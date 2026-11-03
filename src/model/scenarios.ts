@@ -371,10 +371,12 @@ export const MODES: Record<ModeId, ModePreset> = {
       harnessLossFraction: 0.01,
       battery: { roundTripEfficiency: 0.92, depthOfDischarge: 0.3, specificEnergy_Wh_kg: 150 },
     },
-    reported: { radiatorArea_m2: 160, vehicleSpecificPower_kW_per_t: 75 },
+    reported: { radiatorArea_m2: 160, vehicleSpecificPower_kW_per_t: 75, radiatorFlux_W_m2: 1400, solarArrayArea_m2: 840 },
     notes: {
       'reported.radiatorArea_m2': 'Deployable liquid radiator, 160 m² [spacex-starmind] (110 m² before 2026-08-04 [spacex-starmind-2026-08-03]); FCC envelope under 200 m² [spacex-fcc-2026-09]. Taken as two-sided panel planform: in SpaceX\'s June 8 update Musk gave about 1,400 W/m² from double-sided radiators oriented knife-edge to the Sun [spacex-0608], and later ~1,300 W/m² for an aluminum radiator [musk-1102]. 160 m² × 1,400 W/m² = 224 kW, below the 250 kW peak; Musk calls the peak battery-assisted [musk-0715]. If the average reaches 250 kW as he has hoped [musk-1001b], 1,300 W/m² needs about 192 m², still inside the FCC envelope. The raw ratio is 250 kW / 160 m² = 1,562 W/m²; the model also counts conversion losses and overhead.',
       'reported.vehicleSpecificPower_kW_per_t': '"75 kW / ton" vehicle efficiency [spacex-starmind] (70 before 2026-08-04 [spacex-starmind-2026-08-03]). Read on peak compute: 150 / 70 = 2.14 t matches outside estimates of about 2.1 t for the earlier sheet, so 250 / 75 ≈ 3.3 t. The S-1 targets about 100 kW of compute per ton [spacex-s1]. The FCC letter\'s 4,000 kg is a ceiling used in the debris analysis, not a design mass [spacex-fcc-2026-09].',
+      'reported.radiatorFlux_W_m2': 'About 1,400 W/m² from double-sided radiators oriented knife-edge to the Sun, Musk in SpaceX\'s June 8 update [spacex-0608]; later ~1,300 W/m² for an aluminum radiator [musk-1102]. The temperature it is quoted at is not published.',
+      'reported.solarArrayArea_m2': '210 kW solar array [spacex-starmind] at 250 W/m² [spacex-starmind][spacex-0608] = 840 m², inside the FCC envelope of under 1,500 m² [spacex-fcc-2026-09].',
       'loop.hxApproach_K': '"Redundant pumping loops" [spacex-starmind]. Modelled as one loop with no intermediate heat exchanger: ASSUMPTION.',
       'loop.rise_K': '10 K coolant rise. ASSUMPTION.',
       'radiator.arealDensity_kg_m2': 'ASSUMPTION: modern deployable radiator, lighter than ISS. Musk describes the radiator as aluminum [musk-1102]; SpaceX has not published its mass.',

@@ -151,6 +151,9 @@ const GROUP_SELECTS: Record<string, () => HTMLElement> = {
 };
 
 /** Slider plus a typed number box, kept in sync; typed values are clamped to the slider range. */
+/** Absolute temperatures also shown in °C ("a 100 °C junction" is the figure most readers know). Not the K-difference inputs. */
+const CELSIUS = new Set(['heatSource.maxTemperature_K', 'environment.groundTemperature_K']);
+
 function paramRow(p: Param): HTMLElement {
   const k = p.display ?? 1;
   const id = `p-${p.path.replace(/\./g, '-')}`;
@@ -160,14 +163,16 @@ function paramRow(p: Param): HTMLElement {
   row.innerHTML = `<div class="param-head">
       <label class="control-label" for="${id}">${esc(p.label)}</label>
       ${note ? `<button type="button" class="info" aria-label="Show where ${esc(p.label)} comes from, in the assumptions table" title="${esc(note)}\n\nClick to jump to this row in the assumptions table (Back returns here).">i</button>` : ''}
-      <span class="param-value"><input id="${id}" type="number" inputmode="decimal" min="${p.min * k}" max="${p.max * k}" step="any"><span class="unit">${esc(p.unit)}</span></span>
+      <span class="param-value"><input id="${id}" type="number" inputmode="decimal" min="${p.min * k}" max="${p.max * k}" step="any"><span class="unit">${esc(p.unit)}</span>${CELSIUS.has(p.path) ? '<span class="celsius"></span>' : ''}</span>
     </div>
     <input type="range" min="${p.min * k}" max="${p.max * k}" step="${p.step * k}" aria-label="${esc(p.label)}" tabindex="-1">`;
   const [box, range] = Array.from(row.querySelectorAll('input')) as [HTMLInputElement, HTMLInputElement];
+  const celsius = row.querySelector<HTMLElement>('.celsius');
   const sync = () => {
     const v = num(p.path) * k;
     box.value = String(+v.toPrecision(6));
     range.value = String(v);
+    if (celsius) celsius.textContent = `${fmt(v - 273.15)} °C`;
   };
   const set = (shown: number) => {
     if (Number.isFinite(shown)) scenario = withPath(scenario, p.path, Math.min(p.max, Math.max(p.min, shown / k)));
@@ -293,7 +298,13 @@ function renderKpis(r: Result): void {
   const secondary: [string, string, string][] = [
     ['Heat to reject', `${fmt(r.heatToReject_W / 1000)} kW`, `${fmt(r.payload_W / 1000)} kW peak payload, plus conversion losses and overhead`],
     ['Radiating fluid temperature', `${fmt(c.fluidEffective_K)} K`, `${fmt(c.fluidEffective_K - 273.15)} °C · ${fmt(scenario.heatSource.maxTemperature_K - c.fluidEffective_K)} K below the source limit, +${fmt(c.fluidEffective_K - c.radiatingEquivalent_K)} K fin-equivalent`],
-    ['Solar array : radiator area', `${fmt(r.solarToRadiatorAreaRatio, 1)} : 1`, 'the "5:1" rule of thumb, recomputed'],
+    [
+      'Solar array : radiator area',
+      `${fmt(r.solarToRadiatorAreaRatio, 1)} : 1`,
+      r.reportedCheck?.publishedAreaRatio
+        ? `published areas: ${fmt(r.reportedCheck.publishedAreaRatio, 1)} : 1 (${fmt(scenario.reported?.solarArrayArea_m2 ?? 0)} / ${fmt(r.reportedCheck.radiatorArea_m2)} m²)${r.radiatorArea_m2 > r.reportedCheck.radiatorArea_m2 ? '; this heat path needs a larger radiator' : ''}`
+        : 'compare the often-quoted "5:1"',
+    ],
     ['Rejection effectiveness', `${fmt(100 * r.rejectionEffectiveness)} %`, 'vs a black panel at the source limit in deep space'],
   ];
   if (r.storage.mass_kg > 0) secondary.push(['Eclipse/night battery', fmtT(r.storage.mass_kg), `${fmt(r.storage.energy_Wh / 1000)} kWh nameplate, ${fmt(100 * (1 - r.sunlight.sunlitFraction))} % dark`]);
@@ -305,24 +316,34 @@ function renderKpis(r: Result): void {
   const check = r.reportedCheck;
   rep.hidden = !check;
   if (!check) return;
-  const gap = check.modelChainDrop_K - check.budgetLeft_K;
+  const limit = scenario.heatSource.maxTemperature_K;
+  const avgBudget = limit - check.requiredFluidAverage_K;
+  const row = (label: string, flux: number, fluid: string) => `<tr><td>${label}</td><td>${fmt(flux)}</td><td>${fluid}</td></tr>`;
+  const vsLimit = (T: number) => (T > limit ? `${fmtK(T)}, ${fmt(T - limit)} K above the source limit` : fmtK(T));
   rep.innerHTML = `<h3>What the reported ${fmt(check.radiatorArea_m2)} m² radiator would require</h3>
     <p class="callout-caveat">Reported figures + assumed hardware: this is not a reconstruction of SpaceX's design. The assumed values are marked in the Assumptions table.</p>
-    <p>Rejecting ${fmt(r.heatToReject_W / 1000)} kW (the ${fmt(r.payload_W / 1000)} kW peak payload plus conversion losses and overhead) on ${fmt(check.radiatorArea_m2)} m² means ${fmt(check.target_W_m2)} W/m² of panel, with no sizing margin.
-    In this environment that needs radiating fluid at <b>${fmtK(check.requiredFluid_K)}</b>. ${
-      check.budgetLeft_K < 0
-        ? `That is <b>${fmt(-check.budgetLeft_K)} K above</b> the ${fmt(scenario.heatSource.maxTemperature_K)} K source limit before the heat path spends anything.`
-        : `That leaves <b>${fmt(check.budgetLeft_K)} K</b> between the ${fmt(scenario.heatSource.maxTemperature_K)} K source limit and the radiator.`
-    }
-    The modelled chain spends <b>${fmt(check.modelChainDrop_K)} K</b> and delivers ${fmtK(check.modelFluid_K)}.
     ${
-      check.budgetLeft_K < 0
-        ? 'At this source limit, eliminating every interface drop would still be insufficient under the selected radiator assumptions. Reconciling the figures requires different operating or radiator assumptions.'
-        : gap > 0
-          ? `To close the gap, remove ${fmt(gap)} K from the chain or run the source hotter. Otherwise, reconciling the figures requires different operating or radiator assumptions.`
-          : 'The modelled chain fits.'
-    }</p>
-    ${r.payloadAverage_W < r.payload_W ? `<p>At the ${fmt(r.payloadAverage_W / 1000)} kW average instead of the ${fmt(r.payload_W / 1000)} kW peak, the same area needs ${fmt(check.targetAverage_W_m2)} W/m², so fluid at <b>${fmtK(check.requiredFluidAverage_K)}</b>. Sized nearer the average, the radiator works only if thermal mass or throttling carries the peaks; this steady-state model does not simulate that.</p>` : ''}
+      check.statedFluxFluid_K !== null && check.statedFlux_W_m2 !== null
+        ? `<p>The published ~${fmt(check.statedFlux_W_m2)} W/m² matches this model's radiator at <b>${fmtK(check.statedFluxFluid_K)}</b> fluid. This case's assumed heat path (${esc(scenario.heatSource.name)}, ${fmt(limit)} K source limit) delivers <b>${fmtK(check.modelFluid_K)}</b>, where the same radiator rejects ${fmt(r.netFlux_W_m2)} W/m². ${
+            check.statedFluxFluid_K > check.modelFluid_K
+              ? `At the same fluid temperature the radiator figures agree; the ${fmt(check.statedFluxFluid_K - check.modelFluid_K)} K gap is in the heat path.`
+              : 'This heat path delivers enough temperature for the published flux.'
+          }</p>`
+        : ''
+    }
+    <table class="data fork">
+      <tr><th>On ${fmt(check.radiatorArea_m2)} m², with no sizing margin</th><th>W/m² of panel</th><th>Radiating fluid needed</th></tr>
+      ${check.statedFlux_W_m2 !== null && check.statedFluxFluid_K !== null ? row('Published flux', check.statedFlux_W_m2, fmtK(check.statedFluxFluid_K)) : ''}
+      ${row(`Peak: ${fmt(r.heatToReject_W / 1000)} kW of heat (${fmt(r.payload_W / 1000)} kW payload plus losses and overhead)`, check.target_W_m2, vsLimit(check.requiredFluid_K))}
+      ${r.payloadAverage_W < r.payload_W ? row(`Average: ${fmt((check.targetAverage_W_m2 * check.radiatorArea_m2) / 1000)} kW of heat`, check.targetAverage_W_m2, vsLimit(check.requiredFluidAverage_K)) : ''}
+      ${row('This heat path delivers', r.netFlux_W_m2, fmtK(check.modelFluid_K))}
+    </table>
+    <p>Ways the reported area can work under this model:</p>
+    <ul>
+      ${r.payloadAverage_W < r.payload_W ? `<li>Size for the average and carry peaks on thermal mass or the battery. ${avgBudget > 0 ? `At the average, a heat path that spends at most ${fmt(avgBudget)} K closes; this one spends ${fmt(check.modelChainDrop_K)} K.` : 'Even the average needs fluid hotter than the source limit.'} This steady-state model does not simulate peaks.</li>` : ''}
+      <li>${check.budgetLeft_K < 0 ? 'At peak, no heat path closes at this source limit under these radiator assumptions.' : `At peak, a heat path that spends at most ${fmt(check.budgetLeft_K)} K closes; this one spends ${fmt(check.modelChainDrop_K)} K.`}</li>
+      <li>Run the source hotter, use radiator surfaces better than assumed here (ε, α, fin efficiency), or add a heat pump, which lifts the radiator temperature by spending electrical power (not modelled).</li>
+    </ul>
     ${
       check.vehicleMass_kg && check.powerThermalShareOfVehicle !== null
         ? `<p>Mass: reading the published ${fmt(scenario.reported?.vehicleSpecificPower_kW_per_t ?? 0)} kW per ton as peak compute per ton of the whole satellite gives about <b>${fmtT(check.vehicleMass_kg)}</b> at ${fmt(r.payload_W / 1000)} kW. This model's power and thermal hardware, with its assumed areal densities, comes to <b>${fmtT(r.totalMass_kg)}</b> (${fmt(100 * check.powerThermalShareOfVehicle)} % of that). ${
@@ -411,7 +432,7 @@ function renderTemperatureSweep(r: Result): void {
     ],
     x: { label: 'Heat source temperature limit (K)', format: (v) => fmt(v), min: 300, max: 1000 },
     bands: [{ from: 350, to: 400, label: 'chip limits, ~350–400 K' }],
-    y: { label: 'Area (m²)', log: true, toggle: true, format: (v) => fmt(v) },
+    y: { label: 'Area (m²)', log: false, toggle: true, format: (v) => fmt(v), min: 0 },
     markers: [{ x: scenario.heatSource.maxTemperature_K, y: r.radiatorArea_m2, label: 'you' }],
     height: 300,
   });
@@ -573,7 +594,8 @@ function renderTransport(r: Result): void {
   });
   const budget = src - c.radiatingEquivalent_K;
   const v = wiedemannFranzEquivalentVoltage((src + c.radiatingEquivalent_K) / 2, Math.max(budget, 1));
-  byId('wf-note').innerHTML = `Your chain spends a <b>${fmt(budget)} K</b> budget. Conducting heat through copper with that budget behaves like distributing electricity at <b>${fmt(v * 1000)} mV</b> (Wiedemann–Franz). Electricity has a transformer: copper for a fixed loss scales as 1/V². ${copperComparison(r)}`;
+  byId('wf-note').innerHTML = `Electricity has a transformer: copper for a fixed loss scales as 1/V². ${copperComparison(r)}
+    <details class="physics"><summary>For physicists: the equivalent voltage</summary>Your chain spends a <b>${fmt(budget)} K</b> budget. Conducting heat through copper with that budget behaves like distributing electricity at <b>${fmt(v * 1000)} mV</b> (Wiedemann–Franz: κ/σ = L·T).</details>`;
 }
 
 /** The voltage lesson in this scenario's own numbers: copper for the same loss at this bus voltage vs a 120 V heritage bus. */

@@ -121,7 +121,6 @@ h1 { margin: 0 0 14px; font: 400 clamp(38px, 5.4vw, 62px)/1.04 var(--serif); let
 .intro .formula var { font-style: italic; margin: 0 0.04em; }
 .intro .formula sup { font-size: 0.6em; font-style: normal; }
 .intro .equation figcaption { margin-top: 8px; font: 400 13.5px/1.5 var(--sans); color: var(--ink-2); }
-.intro .equation .nowrap { white-space: nowrap; }
 .intro .equation figcaption var { font: italic 400 1.05em var(--serif); }
 .intro .note { margin-top: 26px; padding-top: 12px; border-top: 1px solid var(--grid); font: 400 13.5px/1.5 var(--sans); color: var(--ink-2); }
 
@@ -317,6 +316,12 @@ a.challenge { font-size: 12px; white-space: nowrap; color: var(--ink-2); }
 svg .band { fill: var(--ink); opacity: 0.06; }
 svg .hatch-line { stroke: var(--ink-2); stroke-width: 1; opacity: 0.35; }
 svg .band-label { font: 600 11px/1 var(--sans); fill: var(--ink-2); }
+.callout table.fork { margin: 10px 0 12px; font: 400 14px/1.45 var(--sans); }
+.callout table.fork td:nth-child(n+2), .callout table.fork th:nth-child(n+2) { text-align: right; white-space: nowrap; }
+.callout ul { margin: 4px 0 12px; padding-left: 1.2em; font: 400 15px/1.55 var(--sans); }
+.param-value .celsius { margin-left: 6px; font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+details.physics { margin-top: 6px; }
+details.physics summary { cursor: pointer; }
 .chart-note { margin: 6px 0 0; font: italic 400 12px/1.4 var(--sans); color: var(--ink-2); }
 svg .infeasible { font-style: italic; }
 .chart-stamp { margin: 6px 0 0; font: 400 11.5px/1.4 var(--sans); color: var(--ink-2); font-variant-numeric: tabular-nums; }
@@ -333,7 +338,7 @@ table.data tr.explain-row[hidden] { display: none; }
 table.data tr:target + tr.explain-row td { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); box-shadow: inset 4px 0 0 var(--accent); }
 
 /* ---------------------------------------------------------------- agent callout and share field */
-.try-link { margin: 10px 0 0; font: 600 15px/1.4 var(--sans); }
+.try-link { margin: -18px 0 38px; font: 600 15px/1.4 var(--sans); }
 .jump { max-width: var(--measure); margin: 0 auto 28px; font: 500 14px/1.6 var(--sans); color: var(--ink-2); }
 .try-first { margin: 0 0 16px; padding: 10px 14px; border-left: 4px solid var(--accent); background: var(--surface); font: 400 15px/1.5 var(--sans); }
 .agent-callout { max-width: var(--measure); margin: 0 auto 40px; padding: 14px 18px; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 8px; background: var(--surface); }

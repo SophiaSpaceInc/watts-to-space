@@ -183,7 +183,7 @@ export function validateScenario(data: unknown): Scenario {
     if (!isObj(s.reported)) c.problems.push('scenario.reported must be null or an object');
     else {
       c.num(s.reported, 'radiatorArea_m2', 'reported', POSITIVE);
-      if (s.reported.vehicleSpecificPower_kW_per_t !== undefined) c.num(s.reported, 'vehicleSpecificPower_kW_per_t', 'reported', POSITIVE);
+      for (const k of ['vehicleSpecificPower_kW_per_t', 'radiatorFlux_W_m2', 'solarArrayArea_m2'] as const) if (s.reported[k] !== undefined) c.num(s.reported, k, 'reported', POSITIVE);
     }
   }
   const notes = s.notes ?? {};

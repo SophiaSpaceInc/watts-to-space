@@ -39,6 +39,11 @@ export interface ReportedCheck {
   vehicleMass_kg: number | null;
   /** This model's power-and-thermal mass as a share of that vehicle mass. */
   powerThermalShareOfVehicle: number | null;
+  /** The published radiator flux, if given, and the fluid temperature it needs under this case's radiator assumptions. */
+  statedFlux_W_m2: number | null;
+  statedFluxFluid_K: number | null;
+  /** Published solar array area : published radiator area, if both are given. */
+  publishedAreaRatio: number | null;
 }
 
 export interface Result {
@@ -160,6 +165,9 @@ function reportedCheck(s: Scenario, area_m2: number, heatToReject_W: number, ave
     modelChainDrop_K: s.heatSource.maxTemperature_K - chain.fluidEffective_K,
     vehicleMass_kg,
     powerThermalShareOfVehicle: vehicleMass_kg ? totalMass_kg / vehicleMass_kg : null,
+    statedFlux_W_m2: s.reported?.radiatorFlux_W_m2 ?? null,
+    statedFluxFluid_K: s.reported?.radiatorFlux_W_m2 ? fluidTemperatureForRejection(s.reported.radiatorFlux_W_m2, s.radiator, absorbed) : null,
+    publishedAreaRatio: s.reported?.solarArrayArea_m2 ? s.reported.solarArrayArea_m2 / area_m2 : null,
   };
 }
 

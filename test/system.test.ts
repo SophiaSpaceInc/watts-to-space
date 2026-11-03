@@ -174,3 +174,9 @@ test('peak sizes the radiator, average sizes the solar array and battery', () =>
   assert.ok(duty.solarArrayArea_m2 < 0.55 * flat.solarArrayArea_m2);
   assert.equal(duty.mass_kg.harness, flat.mass_kg.harness, 'harness carries the peak current either way');
 });
+
+test('Starmind check: the published flux needs fluid between the delivered and the source temperatures; published areas are about 5:1', () => {
+  const c = evaluateScenario(buildScenario('starmind')).reportedCheck!;
+  assert.ok(c.statedFluxFluid_K! > c.modelFluid_K && c.statedFluxFluid_K! < 373, `stated-flux fluid ${c.statedFluxFluid_K}`);
+  assert.ok(Math.abs(c.publishedAreaRatio! - 840 / 160) < 1e-9);
+});

@@ -154,6 +154,10 @@ export interface Scenario {
     radiatorArea_m2: number;
     /** Published payload power per ton of whole vehicle; implies a whole-vehicle mass at peak load. */
     vehicleSpecificPower_kW_per_t?: number;
+    /** Published net rejection per m² of radiator panel; the check finds the fluid temperature it needs here. */
+    radiatorFlux_W_m2?: number;
+    /** Published solar array area, for the solar array : radiator area comparison. */
+    solarArrayArea_m2?: number;
   } | null;
   /** Provenance note per dot-path (see scenarios.ts for the tags). */
   notes: Record<string, string>;

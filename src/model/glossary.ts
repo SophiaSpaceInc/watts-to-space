@@ -63,6 +63,10 @@ export const EXPLANATIONS: Record<string, string> = {
     'Mass of pumps, accumulators, valves and rotary joints per kW of heat moved. The radiator panels are counted separately.',
   'reported.vehicleSpecificPower_kW_per_t':
     'Payload power per ton of the whole vehicle, as published. The model turns it into a whole-satellite mass at peak load and compares its own power and thermal hardware against it. If that hardware alone exceeds the inferred vehicle mass, either the model\'s mass assumptions are heavier than the real design or the published figure is optimistic.',
+  'reported.radiatorFlux_W_m2':
+    'Net heat a real design says each m² of radiator panel rejects. The model finds the radiating fluid temperature that flux needs under this case\'s radiator assumptions (environment, ε, α, fin efficiency), so the published figure and the model can be compared at the same conditions.',
+  'reported.solarArrayArea_m2':
+    'A solar array area published for a real system, compared with the published radiator area. The ratio of the two is the "5:1" figure often quoted; the model\'s own ratio depends on the radiator area its heat path produces.',
   'reported.radiatorArea_m2':
     'A radiator area published for a real system. The model works backwards from it: what radiating temperature would that area need for this heat load, and does the modelled temperature staircase leave that much room?',
 
