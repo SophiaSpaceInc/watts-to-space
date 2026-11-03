@@ -103,6 +103,28 @@ Check your work: `bun run analyze --mode <mode> --explain <path>` shows the note
 
 Add an entry to `ENVIRONMENTS` or `HEAT_SOURCES` in `src/model/scenarios.ts`; the page and the CLI pick it up automatically (`bun run analyze --list`). A new entry in `MODES` also needs its id added to `ModeId` in `src/model/types.ts` and a colour in `MODE_COLORS` in `src/ui/app.ts` (the type check fails until both are done). Every number in it needs a note. Use the preset ids in commands, share strings and tests, and do not rename an id that has been published: share strings record preset ids, so renaming breaks old links.
 
+## Wanted: more reference cases
+
+Starmind is the only commercial design in the model because SpaceX has published the most about it. Other designs deserve the same treatment. Representative cases are wanted for, for example:
+
+- Starcloud
+- Sophia Space
+- Cowboy Space (formerly Aetherflux)
+- Relativity Space
+- Blue Origin's Project Sunrise
+- Google's Project Suncatcher
+- Axiom Space
+- anyone else with published figures (filings, papers, company statements)
+
+What a case needs:
+
+1. A primary source for each number you take from the company: an FCC or other regulatory filing, a paper, a datasheet, or the company's own published statement. Press coverage is `SECONDARY` until checked against one of those.
+2. Every value the company has not published labelled `ASSUMPTION`, with your reasoning. A case can be mostly assumptions; it just has to say so.
+3. A `reported` block if the company has published a radiator area or a power-per-mass figure, so the page can run the same "what would the reported area require" check it runs for Starmind.
+4. A summary that states plainly which figures are reported and which are assumed.
+
+The comparison charts draw every reference case, and two palette slots (`--s5`, `--s6`) are free, so two more cases fit as things stand. Past that, the comparison needs a design change; open an issue first. If you have numbers but not code, open a "Challenge an assumption" issue with the figures and sources and say they are for a new case.
+
 ## Changing the export or share formats
 
 - **Scenario file** (`watts-to-space/scenario`): bump `SCENARIO_VERSION` in `scenarioIO.ts` when the meaning or required shape of the file changes. `importScenario` currently accepts only the current version, so a bump needs a migration from every older version you want to keep reading, plus a test with a pinned old file.

@@ -353,7 +353,7 @@ export const MODES: Record<ModeId, ModePreset> = {
   starmind: {
     name: 'SpaceX Starmind (reported)',
     summary:
-      'SpaceX\'s published AI1 figures (250 kW peak / 175 kW average compute, 160 m² liquid radiator, 250 W/m² solar array, 75 kW per ton) in a dawn-dusk orbit at ~600 km, with an Earth-style lidded Rubin package and a single-phase pumped loop. Values SpaceX has not published are labelled ASSUMPTION.',
+      'SpaceX\'s published AI1 figures (250 kW peak / 175 kW average compute, 160 m² liquid radiator, 250 W/m² solar array, 75 kW per ton) in a dawn-dusk orbit at ~600 km, with an Earth-style lidded Rubin package and a single-phase pumped loop. Values SpaceX has not published are labelled ASSUMPTION. It is a reference case because SpaceX has shared more of its design than anyone else.',
     heatSource: 'gpu-lidded',
     environment: 'leo-600',
     loop: { coolant: 'water', transportDrop_K: 1, transportLength_m: 20, hxApproach_K: 0, rise_K: 10, coolantCap_K: null },

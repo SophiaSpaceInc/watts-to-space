@@ -108,6 +108,12 @@ The **mode switch** installs a whole assumption set; the selectors then swap par
 | Aggressive engineering | Aggressive near-term choices: direct-die two-phase cooling, a single isothermal loop, optical-solar-reflector coatings, multi-junction cells, light radiators. |
 | Idealized thermal bound | A bound where only physics binds: radiator at the source temperature, black surfaces, perfect fins, detailed-balance solar cells. Areal densities are placeholders (no physical floor exists). |
 
+SpaceX's Starmind is a reference case because it is the most talked-about design and SpaceX
+has shared more of its numbers than anyone else. Credit where it's due: where the model and
+their figures disagree, that is a question about assumptions, not a verdict on their design.
+Cases for other designs are wanted; see
+[Wanted: more reference cases](CONTRIBUTING.md#wanted-more-reference-cases).
+
 **Page structure.** The model splits into three parts, joined by three quantities (`assets/system-diagram.svg`):
 
 | Part | Inputs | Output |
