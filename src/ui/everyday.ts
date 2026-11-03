@@ -180,12 +180,16 @@ function render(): void {
 
 const box = byId('radiator-temp') as HTMLInputElement;
 const range = byId('radiator-temp-range') as HTMLInputElement;
+const resetButton = byId('radiator-reset') as HTMLButtonElement;
+const DEFAULT_RADIATOR_C = radiator_C;
 const setTemp = (v: number) => {
   if (Number.isFinite(v)) radiator_C = Math.min(100, Math.max(30, v));
   box.value = String(radiator_C);
   range.value = String(radiator_C);
+  resetButton.disabled = radiator_C === DEFAULT_RADIATOR_C;
   render();
 };
+resetButton.addEventListener('click', () => setTemp(DEFAULT_RADIATOR_C));
 range.addEventListener('input', () => setTemp(Number(range.value)));
 box.addEventListener('change', () => setTemp(Number(box.value)));
 let resize = 0;

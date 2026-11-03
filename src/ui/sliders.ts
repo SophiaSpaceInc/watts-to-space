@@ -49,3 +49,23 @@ export function buildSliders<K extends string>(box: HTMLElement, sliders: Slider
     box.appendChild(row);
   }
 }
+
+/**
+ * Sliders plus a Reset button that restores the values the page opened with. The button is
+ * disabled while every slider is at its starting value.
+ */
+export function sliderPanel<K extends string>(box: HTMLElement, reset: HTMLButtonElement, sliders: Slider<K>[], state: Record<K, number>, render: () => void): void {
+  const defaults = { ...state };
+  const changed = () => {
+    reset.disabled = sliders.every((s) => state[s.key] === defaults[s.key]);
+    render();
+  };
+  const build = () => buildSliders(box, sliders, state, changed);
+  reset.addEventListener('click', () => {
+    Object.assign(state, defaults);
+    build();
+    changed();
+  });
+  build();
+  changed();
+}

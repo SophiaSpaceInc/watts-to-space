@@ -7,7 +7,7 @@ import { arealDensityFor_kg_m2, loopCeiling_W_kg, panelFlux_W_m2, wattsPerKg } f
 import { evaluateScenario } from '../model/system.ts';
 import type { ModeId } from '../model/types.ts';
 import { lineChart, setChartStamp, type Series } from './charts.ts';
-import { buildSliders, type Slider } from './sliders.ts';
+import { sliderPanel, type Slider } from './sliders.ts';
 
 const byId = (id: string) => document.getElementById(id) as HTMLElement;
 const fmt = (v: number, digits = 0) => v.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: 0 });
@@ -80,8 +80,7 @@ function render(): void {
 }
 
 byId('q50').textContent = `${fmt(panelFlux_W_m2({ T_K: 323.15, emissivity: 0.9, altitude_km: ALTITUDE_KM }))} W per m²`;
-buildSliders(byId('mass-controls'), SLIDERS, state, render);
-render();
+sliderPanel(byId('mass-controls'), byId('mass-reset') as HTMLButtonElement, SLIDERS, state, render);
 let resize = 0;
 window.addEventListener('resize', () => {
   cancelAnimationFrame(resize);

@@ -5,7 +5,7 @@
 import { SOLAR_CONSTANT_W_M2 } from '../model/constants.ts';
 import { DAWN_DUSK_BETA_DEG, SUN, sunShareOfView, sunwardBudget, type SunwardInputs } from '../model/sunward.ts';
 import { lineChart, setChartStamp } from './charts.ts';
-import { buildSliders, type Slider } from './sliders.ts';
+import { sliderPanel, type Slider } from './sliders.ts';
 
 const byId = (id: string) => document.getElementById(id) as HTMLElement;
 const fmt = (v: number, digits = 0) => v.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: 0 }).replace(/^-/, '−');
@@ -23,7 +23,6 @@ const SLIDERS: Slider<keyof typeof state>[] = [
   { key: 'T_C', label: 'Radiator temperature', unit: '°C', min: 0, max: 150, step: 1, hint: 'Where to read the budget below. Chips at 100 °C leave a radiator around 60 °C.' },
 ];
 
-const buildControls = () => buildSliders(byId('sun-controls'), SLIDERS, state, render);
 
 function render(): void {
   const temps = Array.from({ length: 76 }, (_, i) => i * 2); // 0–150 °C
@@ -66,8 +65,7 @@ byId('sun-share').textContent = `${fmt(100 * sunShareOfView(), 3)} %`;
 byId('sun-temp').textContent = `${fmt(SUN.effectiveTemperature_K)} K`;
 byId('sun-flux').textContent = `${fmt(SOLAR_CONSTANT_W_M2)} W per m²`;
 
-buildControls();
-render();
+sliderPanel(byId('sun-controls'), byId('sun-reset') as HTMLButtonElement, SLIDERS, state, render);
 let resize = 0;
 window.addEventListener('resize', () => {
   cancelAnimationFrame(resize);
