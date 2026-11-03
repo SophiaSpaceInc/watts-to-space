@@ -2,6 +2,10 @@
 
 **Heat rejection in vacuum.** Live at **https://watts-to-space.chrislewicki.com** · by [Chris Lewicki](https://chrislewicki.com)
 
+New to the topic? The companion page **[Your laptop in space](https://watts-to-space.chrislewicki.com/everyday/)**
+(`everyday/index.html`, model in `src/model/everyday.ts`) shows what a phone, laptop, server or GPU rack
+would do in a vacuum and how big its radiator would be, in plain language.
+
 An interactive explorer of the power and heat-rejection hardware for energy-hungry work in
 vacuum: orbital compute, cislunar industry, and (first-order) the lunar surface.
 

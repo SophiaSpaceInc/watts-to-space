@@ -511,3 +511,44 @@ function drawTornado(container: HTMLElement, o: TornadoOptions): void {
     }
   });
 }
+
+export interface RangeBarsOptions {
+  rows: { name: string; low: number; high: number; color: string; strong?: boolean }[];
+  /** x axis is logarithmic; values must be positive. */
+  axisLabel: string;
+  format: (v: number) => string;
+}
+
+/** Floating bars on a log axis: each row spans its low–high range (a point if they are equal). */
+export function rangeBars(container: HTMLElement, o: RangeBarsOptions): void {
+  container.replaceChildren();
+  const W = Math.max(300, container.clientWidth);
+  const narrow = W < NARROW;
+  const rowH = narrow ? 44 : 30;
+  const longest = Math.max(0, ...o.rows.map((r) => r.name.length));
+  const m = { top: 6, right: 24, bottom: 40, left: narrow ? 8 : Math.min(300, 24 + longest * 6.6) };
+  const H = m.top + m.bottom + rowH * o.rows.length;
+  const lo = Math.min(...o.rows.map((r) => r.low)) / 1.6;
+  const hi = Math.max(...o.rows.map((r) => r.high)) * 1.6;
+  const X = scale([lo, hi], [m.left, W - m.right], true);
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, class: 'chart' }, container);
+  for (const t of logTicks(lo, hi)) {
+    el('line', { x1: X(t), x2: X(t), y1: m.top, y2: H - m.bottom, class: 'grid' }, svg);
+    el('text', { x: X(t), y: H - m.bottom + 16, 'text-anchor': 'middle', class: 'tick' }, svg).textContent = o.format(t);
+  }
+  el('text', { x: (m.left + W - m.right) / 2, y: H - 6, 'text-anchor': 'middle', class: 'axis-label' }, svg).textContent = o.axisLabel;
+  o.rows.forEach((r, i) => {
+    const y = m.top + i * rowH + (narrow ? 20 : 6);
+    const cls = r.strong ? 'row-label strong' : 'row-label';
+    if (narrow) el('text', { x: m.left, y: y - 6, class: cls }, svg).textContent = r.name;
+    else el('text', { x: m.left - 10, y: y + 13, 'text-anchor': 'end', class: cls }, svg).textContent = r.name;
+    const x0 = X(r.low);
+    const x1 = X(r.high);
+    const bar = x1 - x0 < 4 ? el('circle', { cx: x0, cy: y + 9, r: 6, fill: r.color, stroke: 'var(--surface)', 'stroke-width': 2 }, svg) : el('rect', { x: x0, y, width: x1 - x0, height: 18, rx: 4, fill: r.color }, svg);
+    const text = r.low === r.high ? o.format(r.low) : `${o.format(r.low)} to ${o.format(r.high)}`;
+    bar.addEventListener('pointermove', (evt) => showTip(`${r.name}: <b>${text}</b>`, evt as PointerEvent));
+    bar.addEventListener('pointerleave', hideTip);
+  });
+  appendTable(container, ['', 'Low', 'High'], o.rows.map((r) => [r.name, o.format(r.low), o.format(r.high)]));
+  appendStamp(container);
+}

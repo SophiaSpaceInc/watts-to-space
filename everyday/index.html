@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Your laptop in space: why cooling in a vacuum is hard</title>
+    <meta name="description" content="What would happen to your laptop, a server or a GPU rack in a vacuum, and how big a radiator it would need. A plain-language companion to watts-to-space, by Chris Lewicki." />
+    <meta name="author" content="Chris Lewicki" />
+    <link rel="canonical" href="https://watts-to-space.chrislewicki.com/everyday/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://watts-to-space.chrislewicki.com/everyday/" />
+    <meta property="og:title" content="Your laptop in space" />
+    <meta property="og:description" content="On your desk, air carries the heat away. In space there is no air. Pick something you know and see what happens." />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:creator" content="@interplanetary" />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="everyday">
+    <header class="page-header">
+      <p class="byline">
+        <a class="back-link" href="https://chrislewicki.com" rel="noopener me"><span aria-hidden="true">←</span> Chris Lewicki</a>
+        <span class="socials">
+          <a class="social" href="https://www.linkedin.com/in/chrislewicki/" rel="noopener me" aria-label="Chris Lewicki on LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.125 2.062 2.062 0 0 1 0 4.125zM7.119 20.452H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+          <a class="social" href="https://x.com/interplanetary" rel="noopener me" aria-label="@interplanetary on X" title="X: @interplanetary"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
+        </span>
+      </p>
+      <h1>Your laptop in space</h1>
+      <p class="subtitle">Why cooling in a vacuum is so much harder than on your desk.</p>
+    </header>
+
+    <section class="intro" aria-label="Introduction">
+      <p>
+        On your desk, a laptop dumps its heat into the air. A fan blows air over a small heatsink, and the air carries
+        the heat away. In space there is no air. The only way out is to radiate the heat, and at laptop temperatures
+        that works about as well as still air with the fan switched off. Pick something you know and see what happens.
+      </p>
+      <p class="muted small">
+        A companion to <a href="../index.html">watts-to-space</a>, the full model for engineers. This page uses the same physics,
+        simplified: a box or a flat panel at one temperature, radiating to the dark sky.
+      </p>
+    </section>
+
+    <section class="console" id="explorer" aria-label="Pick a device">
+      <p class="eyebrow" id="device-label">Pick a device</p>
+      <nav class="modes devices" id="devices" aria-labelledby="device-label"></nav>
+      <p id="device-summary" class="mode-summary"></p>
+    </section>
+
+    <section class="everyday-section" aria-labelledby="what-title">
+      <h2 id="what-title">1. What would happen to it?</h2>
+      <p>
+        If the heat spread evenly over the whole case, this is the temperature the case would settle at, running flat out.
+      </p>
+      <div id="places" class="kpi-row places"></div>
+      <p class="muted small">
+        Real devices have hot spots: the chips run much hotter than the case, and without air the fan and heatsink do
+        nothing. Getting the heat from a chip to the outside is the hard part, and the subject of
+        <a href="../index.html#part-heat-path">Part 1 of the full model</a>.
+      </p>
+    </section>
+
+    <section class="everyday-section" aria-labelledby="radiator-title">
+      <h2 id="radiator-title">2. How big would its radiator be?</h2>
+      <p>
+        Give it a radiator instead: a white-painted panel radiating from both faces to the dark sky. The hotter the
+        panel runs, the smaller it can be, but the electronics feeding it have to run hotter still.
+      </p>
+      <div class="param slider-row">
+        <div class="param-head">
+          <label class="control-label" for="radiator-temp">Radiator temperature</label>
+          <span class="param-value"><input id="radiator-temp" type="number" inputmode="decimal" min="30" max="100" step="any" value="60"><span class="unit">°C</span></span>
+        </div>
+        <input id="radiator-temp-range" type="range" min="30" max="100" step="1" value="60" aria-label="Radiator temperature" tabindex="-1">
+      </div>
+      <div id="radiator-readout" class="kpi-row radiator-readout"></div>
+      <div id="to-scale" class="chart-box"></div>
+      <h3 class="chart-title">Every device at this radiator temperature</h3>
+      <table id="scaling" class="data"></table>
+      <p class="muted small">
+        The denser the electronics, the worse it gets: a GPU rack packs 132 kW into less than a square metre of floor.
+      </p>
+    </section>
+
+    <section class="everyday-section" aria-labelledby="air-title">
+      <h2 id="air-title">3. Why is air so much easier?</h2>
+      <p>
+        How much heat each square metre moves for every degree of temperature difference. Every cooler on Earth gets to
+        use the upper rows of this chart. In space there is no air or water outside to carry heat away, so only the
+        bottom row is left.
+      </p>
+      <div id="chart-air" class="chart-box"></div>
+    </section>
+
+    <section class="everyday-section left-out" aria-labelledby="left-out-title">
+      <h2 id="left-out-title">What this page leaves out</h2>
+      <ul>
+        <li><b>Sunlight.</b> Space data centers fly dawn–dusk orbits that stay in sunlight, with their radiators edge-on
+          to the Sun, so radiating to the dark sky is the fair comparison. In other orbits a device swings between
+          sunlight and Earth's shadow: baked on one side of each orbit and frozen on the other.</li>
+        <li><b>Earth.</b> Near Earth, the planet's own warmth costs a radiator about 9 % at 600 km altitude and 60 °C.
+          The full model includes it.</li>
+        <li><b>Getting the heat out.</b> Everything here assumes the heat is already spread evenly over the case or the
+          radiator. In a real design, that takes heat pipes or a pumped coolant loop.</li>
+      </ul>
+      <p><a href="../index.html">Open the full model →</a></p>
+      <details class="sources">
+        <summary>Where these numbers come from</summary>
+        <ul id="sources"></ul>
+      </details>
+    </section>
+
+    <footer class="muted small">
+      <p class="footer-links">
+        <a href="https://chrislewicki.com" rel="noopener me">chrislewicki.com</a>
+        <span class="socials">
+          <a class="social" href="https://www.linkedin.com/in/chrislewicki/" rel="noopener me" aria-label="Chris Lewicki on LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.125 2.062 2.062 0 0 1 0 4.125zM7.119 20.452H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+          <a class="social" href="https://x.com/interplanetary" rel="noopener me" aria-label="@interplanetary on X" title="X: @interplanetary"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
+        </span>
+        <span aria-hidden="true">·</span> <a href="https://github.com/interplanetarychris/watts-to-space" rel="noopener">Source on GitHub</a>
+      </p>
+      <p>Code <a href="https://github.com/interplanetarychris/watts-to-space/blob/main/LICENSE" rel="noopener">MIT</a> · text and figures <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">CC BY 4.0</a>, © 2026 Chris Lewicki.</p>
+      Model source: <span class="mono">src/model/everyday.ts</span> (unit-tested with <span class="mono">bun test</span>).
+    </footer>
+    <script type="module" src="../src/ui/everyday.ts"></script>
+  </body>
+</html>
