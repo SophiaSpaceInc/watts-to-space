@@ -59,8 +59,8 @@
   <!-- ============ Title ============ -->
   <g id="title-block">
     <text class="serif h0" x="16" y="30">Three parts, three handoffs</text>
-    <text class="lede" x="16" y="50">Turn a knob and only its own part moves.</text>
-    <text class="lede" x="16" y="65">The pills are the only quantities that cross.</text>
+    <text class="lede" x="16" y="50">Each part has its own knobs.</text>
+    <text class="lede" x="16" y="65">The pills carry its outputs to the others.</text>
   </g>
 
   <!-- ============ Part 1: Heat path (full width) ============ -->

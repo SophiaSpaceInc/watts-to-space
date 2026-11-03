@@ -24,7 +24,7 @@
  * carried: they come from the presets.
  */
 import { buildScenario, ENVIRONMENTS, HEAT_SOURCES, MODES } from './scenarios.ts';
-import { COMPARED, diffScenario, ScenarioImportError, validateScenario } from './scenarioIO.ts';
+import { COMPARED, diffScenario, presetBaseline, ScenarioImportError, validateScenario } from './scenarioIO.ts';
 import { getPath, withPath } from './sensitivity.ts';
 import type { ModeId, Scenario } from './types.ts';
 
@@ -70,21 +70,13 @@ function fromBase64Url(b64: string): string {
   return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
 }
 
-/** The preset combination a scenario starts from: mode, plus preset ids it can name. */
-function baseFor(s: Pick<Scenario, 'mode' | 'heatSourceId' | 'environmentId'>): Scenario {
-  return buildScenario(s.mode, {
-    heatSource: HEAT_SOURCES[s.heatSourceId] ? s.heatSourceId : undefined,
-    environment: ENVIRONMENTS[s.environmentId] ? s.environmentId : undefined,
-  });
-}
-
 export function encodeShare(s: Scenario): string {
   const payload: Payload = { m: s.mode, p: presetFingerprint() };
   const modeDefault = buildScenario(s.mode);
   if (s.heatSourceId !== modeDefault.heatSourceId) payload.h = s.heatSourceId;
   if (s.environmentId !== modeDefault.environmentId) payload.e = s.environmentId;
   const d: Record<string, unknown> = {};
-  for (const change of diffScenario(baseFor(s), s)) {
+  for (const change of diffScenario(presetBaseline(s), s)) {
     const path = change.path.replace(/\[(\d+)\]/g, '.$1');
     if (path === 'heatSourceId' || path === 'environmentId') continue; // carried in h / e
     const whole = WHOLE.find((w) => path === w || path.startsWith(`${w}.`));

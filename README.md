@@ -172,8 +172,8 @@ docs/APPROACH.md      equations, assumptions, validation, limitations, roadmap
 - **Constants vs assumptions.** Only measured or defined quantities go in `constants.ts`.
 - **New physics** goes in `src/model/` as a pure function with a test. If a closed form
   exists, test it against a brute-force calculation (see the view-factor tests).
-- **New presets**: add an entry to `MODES`, `ENVIRONMENTS` or `HEAT_SOURCES`. The UI picks
-  it up automatically.
+- **New presets**: add an entry to `ENVIRONMENTS` or `HEAT_SOURCES` and the UI picks it up
+  automatically. A new `MODES` entry also needs `ModeId` (types.ts) and `MODE_COLORS` (app.ts).
 - Keep `bun test` and `bun run typecheck` green.
 
 See [docs/APPROACH.md](docs/APPROACH.md) for the model and its known gaps.

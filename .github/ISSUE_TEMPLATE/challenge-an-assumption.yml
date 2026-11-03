@@ -1,0 +1,36 @@
+name: Challenge an assumption
+description: Think a number, label or claim on the page is wrong? Say which one and why. No code needed.
+title: "Challenge: "
+labels: [assumption]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for checking the model. A good challenge names the value, what you'd replace it with, and why. A source is best, but an explicit estimate with your reasoning is welcome too.
+  - type: input
+    id: scenario
+    attributes:
+      label: Scenario link
+      description: Use "Copy share link" on the page so we can see exactly what you saw.
+      placeholder: https://watts-to-space.chrislewicki.com/?s=w2s1...
+  - type: textarea
+    id: assumption
+    attributes:
+      label: Which value or claim
+      description: The parameter, chart or sentence you dispute, and its current value.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What it should be
+      description: Your replacement value or wording.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Source or reasoning
+      description: A link to a primary source (filing, datasheet, paper, the company's own statement), or say "estimate" and explain how you got it.
+    validations:
+      required: true

@@ -175,7 +175,15 @@ h1 { margin: 0 0 14px; font: 400 clamp(38px, 5.4vw, 62px)/1.04 var(--serif); let
 .scenario-actions:has(#import-file:focus-visible) .button { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* readouts: a hairline grid of instrument tiles */
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(196px, 1fr)); gap: 1px; margin: 22px 0 0; background: var(--grid); border: 1px solid var(--grid); }
+.kpis { margin: 22px 0 0; }
+.kpi-row { display: grid; gap: 1px; background: var(--grid); border: 1px solid var(--grid); }
+.kpi-row.primary { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.kpi-row.secondary { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); border-top: 0; }
+.kpi.primary .kpi-value { font-size: 34px; }
+.kpi.secondary { padding: 10px 14px 10px; }
+.kpi.secondary .kpi-value { font-size: 19px; margin-top: 5px; }
+.kpi.secondary .kpi-sub { font-size: 12px; }
+.callout-caveat { font: italic 400 13.5px/1.5 var(--sans) !important; color: var(--ink-2); }
 .kpi { background: var(--surface); padding: 14px 16px 13px; min-width: 0; }
 .kpi-label { font: 600 11px/1.3 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
 .kpi-value { margin-top: 8px; font: 500 28px/1.1 var(--sans); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
@@ -301,6 +309,13 @@ footer { max-width: var(--measure); margin: 48px auto 0; padding-top: 16px; bord
 footer p { margin: 0 0 6px; }
 
 /* chart context stamp: the conditions a chart was drawn under travel with any screenshot */
+.override { margin: 0 0 4px; padding-left: 8px; border-left: 3px solid var(--warning); font: 600 12.5px/1.4 var(--sans); color: var(--ink); }
+a.challenge { font-size: 12px; white-space: nowrap; color: var(--ink-2); }
+.chart-table { margin-top: 8px; font-size: 13px; }
+.chart-table summary { cursor: pointer; color: var(--ink-2); }
+.chart-table table { margin-top: 6px; }
+.chart-note { margin: 6px 0 0; font: italic 400 12px/1.4 var(--sans); color: var(--ink-2); }
+svg .infeasible { font-style: italic; }
 .chart-stamp { margin: 6px 0 0; font: 400 11.5px/1.4 var(--sans); color: var(--ink-2); font-variant-numeric: tabular-nums; }
 
 /* ---------------------------------------------------------------- assumptions: parameter explanations */
@@ -315,6 +330,8 @@ table.data tr.explain-row[hidden] { display: none; }
 table.data tr:target + tr.explain-row td { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); box-shadow: inset 4px 0 0 var(--accent); }
 
 /* ---------------------------------------------------------------- agent callout and share field */
+.jump { max-width: var(--measure); margin: 0 auto 28px; font: 500 14px/1.6 var(--sans); color: var(--ink-2); }
+.try-first { margin: 0 0 16px; padding: 10px 14px; border-left: 4px solid var(--accent); background: var(--surface); font: 400 15px/1.5 var(--sans); }
 .agent-callout { max-width: var(--measure); margin: 0 auto 40px; padding: 14px 18px; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 8px; background: var(--surface); }
 .agent-callout .eyebrow { color: var(--accent); margin-bottom: 6px; }
 .agent-callout p:last-child { margin: 0; font: 400 15px/1.6 var(--sans); color: var(--ink-2); }
@@ -368,7 +385,8 @@ table.data tr:target + tr.explain-row td { background: color-mix(in srgb, var(--
   .control-group[open] fieldset { columns: 1; }
   .modes button { font-size: 13px; padding: 7px 12px 7px 10px; }
   .scenario-actions { margin-left: 0; }
-  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi-row.secondary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi.primary .kpi-value { font-size: 27px; }
   .kpi { padding: 12px 12px 11px; }
   .kpi-value { font-size: 23px; }
   .callout { padding: 12px 14px 4px; }
@@ -394,3 +412,4 @@ table.data tr:target + tr.explain-row td { background: color-mix(in srgb, var(--
   .layout { grid-template-columns: 1fr; }
   body { max-width: none; }
 }
+a.button { text-decoration: none; }

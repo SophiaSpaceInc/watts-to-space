@@ -101,7 +101,7 @@ Check your work: `bun run analyze --mode <mode> --explain <path>` shows the note
 
 ## Adding presets
 
-Add an entry to `MODES`, `ENVIRONMENTS` or `HEAT_SOURCES` in `src/model/scenarios.ts`. The page and the CLI pick it up automatically (`bun run analyze --list`). Every number in it needs a note. Use the preset ids in commands, share strings and tests, and do not rename an id that has been published: share strings record preset ids, so renaming breaks old links.
+Add an entry to `ENVIRONMENTS` or `HEAT_SOURCES` in `src/model/scenarios.ts`; the page and the CLI pick it up automatically (`bun run analyze --list`). A new entry in `MODES` also needs its id added to `ModeId` in `src/model/types.ts` and a colour in `MODE_COLORS` in `src/ui/app.ts` (the type check fails until both are done). Every number in it needs a note. Use the preset ids in commands, share strings and tests, and do not rename an id that has been published: share strings record preset ids, so renaming breaks old links.
 
 ## Changing the export or share formats
 
@@ -129,7 +129,7 @@ Add an entry to `MODES`, `ENVIRONMENTS` or `HEAT_SOURCES` in `src/model/scenario
 - [ ] `bun test` passes (include new tests for new behavior).
 - [ ] `bun x tsc --noEmit` passes.
 - [ ] `bun run build` and `bun run build:standalone` both succeed.
-- [ ] Every new or changed number has a provenance note; every new source was opened and checked.
+- [ ] Every new or changed number has a provenance note; every new source was opened and checked. (The provenance test checks only that each note carries a tag or a known source id. Whether the source supports the number is the reviewer's job.)
 - [ ] Validation anchors still pass, or the pull request says which moved and why.
 - [ ] For any model change, the description has **before and after numbers** from `bun run analyze` (for example `--compare`, or the mode you changed), as a small table.
 - [ ] Terminology rules followed.
@@ -145,12 +145,13 @@ Add an entry to `MODES`, `ENVIRONMENTS` or `HEAT_SOURCES` in `src/model/scenario
 
 ## Reporting a wrong number
 
-Open an issue with:
+Use the **Challenge an assumption** button on the page, or the "Challenge this value" link on any row of its Assumptions table, which fills in the scenario and the value for you. The form asks for:
 
 1. The scenario: a share link or string, or the exact `bun run analyze ...` command (from `--share-out`).
-2. The number you think is wrong, and the number you expect.
-3. Your source (link, page or table), or say it is your own estimate.
-4. Which of the three you believe: the physics, the model's equation, or the assumption.
+2. The value or claim you dispute, and what it should be.
+3. Your source (link, page or table), or say it is your own estimate and how you got it.
+
+You don't need to say whether the problem is the physics, an equation or an assumption; that's for the maintainers to work out.
 
 If you have a better number with a source, a pull request is better still: change the value, replace its note with your `[source-id]` text, add the source to `SOURCES`, and include before and after results. Please be specific and polite; the maintainer would rather be corrected than be wrong.
 

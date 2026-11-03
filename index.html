@@ -65,21 +65,17 @@
       </p>
     </section>
 
-    <aside class="agent-callout" aria-labelledby="agent-callout-title">
-      <p class="eyebrow" id="agent-callout-title">Use it with your AI agent</p>
-      <p>
-        Ask Grok, or a coding agent such as Claude Code, Codex or Cursor:
-        <q>Read github.com/interplanetarychris/watts-to-space, start with AGENTS.md, and walk me through how heat
-        rejection limits industry in space.</q> It will answer from the model's documented assumptions and can share
-        scenarios as links. A coding agent can also clone the repo, run the same model as this page, and help you
-        improve it.
-        <a href="https://github.com/interplanetarychris/watts-to-space/blob/main/AGENTS.md" rel="noopener">AGENTS.md</a> ·
-        <a href="https://github.com/interplanetarychris/watts-to-space/blob/main/CONTRIBUTING.md" rel="noopener">Contributing</a> ·
-        <a href="https://github.com/interplanetarychris/watts-to-space" rel="noopener">Source on GitHub</a>
-      </p>
-    </aside>
+    <nav class="jump" aria-label="On this page">
+      <a href="#part-heat-path">Heat path</a> · <a href="#part-radiator">Radiator</a> ·
+      <a href="#part-power">Power supply</a> · <a href="#part-results">Results</a> ·
+      <a href="#assumptions-section">Assumptions</a> · <a href="#agent">Ask your AI agent</a>
+    </nav>
+
 
     <section class="console" aria-label="Case and readouts">
+      <p class="try-first"><b>Try this first.</b> Lower the <a href="#p-heatSource-maxTemperature_K">source temperature
+        limit</a> and watch the radiator area grow. Then open the <a href="#chart-staircase">temperature staircase</a> to
+        see where the temperature budget goes.</p>
       <div class="case-switch">
         <p class="eyebrow" id="modes-label">Reference case</p>
         <nav class="modes" id="modes" aria-labelledby="modes-label"></nav>
@@ -93,6 +89,7 @@
           <button type="button" id="share">Copy share link</button>
           <button type="button" id="export">Export assumptions</button>
           <label class="button" for="import-file">Import assumptions</label>
+          <a class="button" href="https://github.com/interplanetarychris/watts-to-space/issues/new?template=challenge-an-assumption.yml" target="_blank" rel="noopener">Challenge an assumption</a>
           <input id="import-file" type="file" accept="application/json,.json" class="sr-only" />
         </div>
         <div id="io-status" class="io-status" role="status"></div>
@@ -117,8 +114,9 @@
         <img src="./assets/system-diagram.svg" alt="How the model fits together: the heat path, the radiator and the power supply are independent parts. Only the coolant temperature, the heat load and the location pass between them, and the results combine all three." />
       </picture>
       <figcaption id="system-caption">
-        <b>How the model fits together.</b> Change an input and only its own part moves. The page below follows the same
-        three parts, each with its inputs beside its charts. Charts 6–8 combine everything.
+        <b>How the model fits together.</b> Each part has its own inputs; three quantities carry its outputs to the
+        others, so a change in the heat path also moves the radiator area and the total mass. The page below follows the
+        same three parts, each with its inputs beside its charts. Charts 6–8 combine everything.
       </figcaption>
       <details>
         <summary>The same, as a table</summary>
@@ -285,6 +283,20 @@
             </section>
       </div>
     </section>
+
+    <aside class="agent-callout" id="agent" aria-labelledby="agent-callout-title">
+      <p class="eyebrow" id="agent-callout-title">Use it with your AI agent</p>
+      <p>
+        Ask Grok, or a coding agent such as Claude Code, Codex or Cursor:
+        <q>Read github.com/interplanetarychris/watts-to-space, start with AGENTS.md, and walk me through how heat
+        rejection limits industry in space.</q> It will answer from the model's documented assumptions and can share
+        scenarios as links. A coding agent can also clone the repo, run the same model as this page, and help you
+        improve it.
+        <a href="https://github.com/interplanetarychris/watts-to-space/blob/main/AGENTS.md" rel="noopener">AGENTS.md</a> ·
+        <a href="https://github.com/interplanetarychris/watts-to-space/blob/main/CONTRIBUTING.md" rel="noopener">Contributing</a> ·
+        <a href="https://github.com/interplanetarychris/watts-to-space" rel="noopener">Source on GitHub</a>
+      </p>
+    </aside>
 
     <div class="appendix charts">
       <section id="assumptions-section">

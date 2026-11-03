@@ -7,7 +7,7 @@
  * Problems are reported as a list, not just the first.
  */
 import { COOLANTS } from './constants.ts';
-import { buildScenario, MODES } from './scenarios.ts';
+import { buildScenario, ENVIRONMENTS, HEAT_SOURCES, MODES } from './scenarios.ts';
 import type { Scenario } from './types.ts';
 
 export const SCENARIO_FORMAT = 'watts-to-space/scenario';
@@ -215,7 +215,32 @@ export function diffScenario(base: Scenario, current: Scenario): Change[] {
   return out;
 }
 
-/** Changes relative to the scenario's own reference mode, as published. */
+/** Changes relative to the scenario's own reference mode (its reference assumptions). */
 export function changesFromMode(s: Scenario): Change[] {
   return diffScenario(buildScenario(s.mode), s);
+}
+
+/**
+ * The reference values a scenario's inputs are compared with: its mode, plus the heat
+ * source and environment presets it names. Provenance notes describe these values, so
+ * an input that differs from them is a user override the note does not support.
+ */
+export function presetBaseline(s: Pick<Scenario, 'mode' | 'heatSourceId' | 'environmentId'>): Scenario {
+  return buildScenario(s.mode, {
+    heatSource: HEAT_SOURCES[s.heatSourceId] ? s.heatSourceId : undefined,
+    environment: ENVIRONMENTS[s.environmentId] ? s.environmentId : undefined,
+  });
+}
+
+export interface Override {
+  overridden: boolean;
+  /** The reference value the provenance note describes (undefined if the reference lacks the field). */
+  referenceValue: unknown;
+}
+
+/** Has the user changed this input from the value its provenance note describes? */
+export function overrideOf(s: Scenario, path: string, baseline: Scenario = presetBaseline(s)): Override {
+  const get = (o: unknown) => path.split('.').reduce<unknown>((v, k) => (v as Record<string, unknown> | null | undefined)?.[k], o);
+  const referenceValue = get(baseline);
+  return { overridden: JSON.stringify(get(s)) !== JSON.stringify(referenceValue), referenceValue };
 }

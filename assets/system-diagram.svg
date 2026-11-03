@@ -62,8 +62,8 @@
   <!-- ============ Title block and legend (top right) ============ -->
   <g id="title-block">
     <text class="serif h0" x="500" y="76">Three parts, three handoffs</text>
-    <text class="lede" x="500" y="108">Turn a knob and only its own part moves. Three quantities, the pills,</text>
-    <text class="lede" x="500" y="131">cross between parts. The results combine all three.</text>
+    <text class="lede" x="500" y="108">Each part has its own knobs. Three quantities, the pills,</text>
+    <text class="lede" x="500" y="131">carry its outputs to the others. The results combine all three.</text>
     <!-- legend -->
     <rect class="part" x="500" y="169" width="30" height="18"/>
     <text class="body" x="544" y="183">Part: its own knobs, physics and charts</text>

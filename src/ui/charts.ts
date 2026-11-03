@@ -161,7 +161,39 @@ function scaleToggles(container: HTMLElement, o: LineChartOptions): void {
   container.appendChild(bar);
 }
 
+/**
+ * The conditions line (case, location, load, credit) printed under every chart. Kept
+ * here, not in the app, so any redraw (a Log/Linear switch, a resize) keeps it.
+ */
+let stampText = '';
+export function setChartStamp(text: string): void {
+  stampText = text;
+}
+/** Every value a chart draws, as a table: for keyboard, screen-reader and mobile readers, and for quoting. */
+function appendTable(container: HTMLElement, head: string[], rows: string[][]): void {
+  const cell = (tag: string) => (v: string) => `<${tag}>${v.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</${tag}>`;
+  container.insertAdjacentHTML(
+    'beforeend',
+    `<details class="chart-table"><summary>Values as a table</summary><table class="data"><tr>${head.map(cell('th')).join('')}</tr>${rows
+      .map((r) => `<tr>${r.map(cell('td')).join('')}</tr>`)
+      .join('')}</table></details>`,
+  );
+}
+
+function appendStamp(container: HTMLElement): void {
+  if (!stampText) return;
+  const p = document.createElement('p');
+  p.className = 'chart-stamp';
+  p.textContent = stampText;
+  container.appendChild(p);
+}
+
 export function lineChart(container: HTMLElement, options: LineChartOptions): void {
+  drawLineChart(container, options);
+  appendStamp(container);
+}
+
+function drawLineChart(container: HTMLElement, options: LineChartOptions): void {
   container.replaceChildren();
   scaleToggles(container, options);
   const o: LineChartOptions = { ...options, x: resolveAxis(container, 'x', options.x), y: resolveAxis(container, 'y', options.y) };
@@ -274,6 +306,11 @@ export function lineChart(container: HTMLElement, options: LineChartOptions): vo
     cross.setAttribute('visibility', 'hidden');
     hideTip();
   });
+
+  // Say so when the model returned no finite result for part of the range, rather than
+  // letting a gap in a line pass for a smooth curve.
+  const gaps = o.series.some((s) => s.points.some((p) => Number.isFinite(p.x) && p.x >= xd[0] && p.x <= xd[1] && !Number.isFinite(p.y)));
+  if (gaps) container.insertAdjacentHTML('beforeend', '<p class="chart-note">Gaps in a line: no feasible design at those values under these assumptions.</p>');
 }
 
 export interface StackedBarsOptions {
@@ -290,6 +327,20 @@ export interface StackedBarsOptions {
 
 /** Horizontal stacked bars (one row per category), with the total at the end of each bar. */
 export function stackedBars(container: HTMLElement, o: StackedBarsOptions): void {
+  drawStackedBars(container, o);
+  appendTable(
+    container,
+    ['Case', ...o.segments.map((g) => g.name), 'Total'],
+    o.categories.map((cat, i) => {
+      const vals = o.segments.map((g) => g.values[i] ?? 0);
+      const total = vals.every(Number.isFinite) ? o.format(vals.reduce((a, b) => a + b, 0)) : 'infeasible';
+      return [cat, ...vals.map((v) => (Number.isFinite(v) ? o.format(v) : 'infeasible')), total];
+    }),
+  );
+  appendStamp(container);
+}
+
+function drawStackedBars(container: HTMLElement, o: StackedBarsOptions): void {
   container.replaceChildren();
   legend(container, o.segments, 'block');
   const W = Math.max(300, container.clientWidth);
@@ -302,8 +353,11 @@ export function stackedBars(container: HTMLElement, o: StackedBarsOptions): void
     const v = s.values[i] ?? 0;
     return Number.isFinite(v) && v > 0 ? v : 0;
   };
-  const totals = o.categories.map((_, i) => o.segments.reduce((sum, s) => sum + value(s, i), 0));
-  const X = scale([0, o.normalize ? 1 : Math.max(...totals)], [m.left, W - m.right]);
+  // A row with any non-finite component (e.g. an infinite radiator) has no design: say so,
+  // instead of summing the finite parts into a misleading total.
+  const infeasible = o.categories.map((_, i) => o.segments.some((s) => s.values[i] !== undefined && !Number.isFinite(s.values[i] as number)));
+  const totals = o.categories.map((_, i) => (infeasible[i] ? 0 : o.segments.reduce((sum, s) => sum + value(s, i), 0)));
+  const X = scale([0, o.normalize ? 1 : Math.max(1e-9, ...totals)], [m.left, W - m.right]);
   const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, class: 'chart' }, container);
   o.categories.forEach((cat, i) => {
     const y = m.top + i * rowH + (narrow ? 20 : 4);
@@ -313,6 +367,10 @@ export function stackedBars(container: HTMLElement, o: StackedBarsOptions): void
     const rowClass = i === o.highlight ? 'row-label strong' : muted ? 'row-label muted' : 'row-label';
     if (narrow) el('text', { x: m.left, y: y - 6, class: rowClass }, svg).textContent = cat;
     else el('text', { x: m.left - 10, y: y + 15, 'text-anchor': 'end', class: rowClass }, svg).textContent = cat;
+    if (infeasible[i]) {
+      el('text', { x: m.left + 4, y: y + 14, class: 'row-label muted infeasible' }, svg).textContent = 'Infeasible under these assumptions';
+      return;
+    }
     let acc = 0;
     for (const s of o.segments) {
       const v = value(s, i);
@@ -335,6 +393,17 @@ export interface TornadoOptions {
 
 /** Tornado: % change of a metric when each parameter moves down/up one step. */
 export function tornadoChart(container: HTMLElement, o: TornadoOptions): void {
+  drawTornado(container, o);
+  const pct = (v: number) => (Number.isFinite(v) ? `${v > 0 ? '+' : ''}${v.toFixed(1)} %` : 'infeasible');
+  appendTable(
+    container,
+    ['Input', 'Low value', `Change in ${o.metricLabel}`, 'High value', `Change in ${o.metricLabel}`],
+    o.rows.map((r) => [r.label, r.lowValue, pct(r.lowPct), r.highValue, pct(r.highPct)]),
+  );
+  appendStamp(container);
+}
+
+function drawTornado(container: HTMLElement, o: TornadoOptions): void {
   container.replaceChildren();
   legend(
     container,

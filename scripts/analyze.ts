@@ -11,7 +11,7 @@
 import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { ENVIRONMENTS, HEAT_SOURCES, MODES, PARAMETERS, SOURCES, buildScenario } from '../src/model/scenarios.ts';
-import { ScenarioImportError, COMPARED, diffScenario, exportScenario, importScenario, validateScenario, type Change } from '../src/model/scenarioIO.ts';
+import { ScenarioImportError, COMPARED, diffScenario, exportScenario, importScenario, validateScenario, type Change, presetBaseline, overrideOf } from '../src/model/scenarioIO.ts';
 import { decodeShareDetailed, encodeShare } from '../src/model/shareLink.ts';
 import { EXPLANATIONS } from '../src/model/glossary.ts';
 
@@ -217,11 +217,7 @@ function selectScenario(o: Opts): Scenario {
 
 /** Differences from the preset combination the scenario names (mode + its heat source + environment). */
 function changesFromPresets(s: Scenario): Change[] {
-  const base = buildScenario(s.mode, {
-    heatSource: HEAT_SOURCES[s.heatSourceId] ? s.heatSourceId : undefined,
-    environment: ENVIRONMENTS[s.environmentId] ? s.environmentId : undefined,
-  });
-  return diffScenario(base, s).filter((c) => c.path !== 'heatSourceId' && c.path !== 'environmentId');
+  return diffScenario(presetBaseline(s), s).filter((c) => c.path !== 'heatSourceId' && c.path !== 'environmentId');
 }
 
 function presetNotes(s: Scenario): string[] {
@@ -495,6 +491,17 @@ function tagOf(note: string): string[] {
   return ['ASSUMPTION', 'CALIBRATED', 'SECONDARY'].filter((t) => note.includes(t)).concat(sourcesIn(note).map((x) => `[${x.id}]`));
 }
 
+/** A user override is reported with the reference value its note actually describes. */
+function overrideFields(s: Scenario, path: string, note: string | null): Bag {
+  const o = overrideOf(s, path);
+  if (!o.overridden) return { overridden: false };
+  return {
+    overridden: true,
+    referenceValue: o.referenceValue ?? null,
+    ...(note ? { overrideWarning: `This value was changed from the reference (${JSON.stringify(o.referenceValue)}). The note and sources describe the reference value, not this one.` } : {}),
+  };
+}
+
 function explainOne(s: Scenario, path: string, lenient = false): Bag {
   if (!lenient && !pathExists(s, path)) throw new UsageError([`--explain ${path}: no such field in this scenario (try --explain all, or --list for parameter paths)`]);
   const segs = path.split('.');
@@ -516,6 +523,7 @@ function explainOne(s: Scenario, path: string, lenient = false): Bag {
     part: param?.part ?? null,
     label: param?.label ?? null,
     explanation: EXPLANATIONS[path] ?? null,
+    ...overrideFields(s, path, note),
     note,
     noteAppliesTo: key,
     tags: note ? tagOf(note) : [],
@@ -537,6 +545,7 @@ function explainTable(e: Bag): string {
     [
       `${x.path} = ${fmt(x.value)}${x.unit ? ` ${x.unit}` : ''}${x.sliderRange ? `  (slider ${fmt((x.sliderRange as Bag).min)} to ${fmt((x.sliderRange as Bag).max)})` : ''}`,
       ...(x.explanation ? [`  meaning: ${x.explanation}`] : []),
+      ...(x.overridden ? [`  OVERRIDE: changed from the reference ${fmt(x.referenceValue)}; the note below describes the reference value`] : []),
       x.note ? `  note: ${x.note}` : `  ${x.warning}`,
       ...(x.sources as { id: string; url: string | null }[]).map((src) => `  source [${src.id}]: ${src.url}`),
     ].join('\n');

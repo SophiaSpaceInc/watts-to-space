@@ -9,7 +9,7 @@ import { emittedFlux, netRejectionPerPanelArea } from '../model/thermalEmission.
 import { buildScenario, ENVIRONMENTS, HEAT_SOURCES, MODES, PARAMETERS, SOURCES, type Param, type Part } from '../model/scenarios.ts';
 import { harness, sizePowerSupply } from '../model/power.ts';
 import { eclipseFreeBeta_deg } from '../model/orbit.ts';
-import { changesFromMode, exportScenario, importScenario, ScenarioImportError, type Change } from '../model/scenarioIO.ts';
+import { changesFromMode, exportScenario, importScenario, overrideOf, presetBaseline, ScenarioImportError, type Change } from '../model/scenarioIO.ts';
 import { decodeShareDetailed, encodeShare } from '../model/shareLink.ts';
 import { EXPLANATIONS } from '../model/glossary.ts';
 import { getPath, sweep, tornado, withPath } from '../model/sensitivity.ts';
@@ -17,7 +17,7 @@ import { evaluateScenario, type MassKey, type Result } from '../model/system.ts'
 import type { ChainResult } from '../model/thermalChain.ts';
 import { transportCurves, wiedemannFranzEquivalentVoltage } from '../model/transport.ts';
 import type { BodyId, CoolantId, ModeId, Orientation, Scenario } from '../model/types.ts';
-import { lineChart, stackedBars, tornadoChart, type Series } from './charts.ts';
+import { lineChart, setChartStamp, stackedBars, tornadoChart, type Series } from './charts.ts';
 
 const MODE_COLORS: Record<ModeId, string> = { iss: 'var(--s1)', starmind: 'var(--s2)', ideal: 'var(--s3)', physics: 'var(--s4)' };
 const MODE_IDS = Object.keys(MODES) as ModeId[];
@@ -221,6 +221,7 @@ function render(): void {
   const r = evaluateScenario(scenario);
   const presets: Preset[] = MODE_IDS.map((id) => ({ id, r: evaluateScenario(buildScenario(id)) }));
   const changes = changesFromMode(scenario);
+  setChartStamp(scenarioContext(changes.length > 0));
   syncShareUrl();
   renderScenarioBar(changes);
   renderKpis(r);
@@ -234,15 +235,9 @@ function render(): void {
   renderTornado();
   renderTransport(r);
   renderAssumptions();
-  stampCharts(changes.length > 0);
 }
 
-/**
- * Every chart carries the conditions it was drawn under, so a screenshot or a quoted
- * number travels with its assumptions (which case, where, how much heat).
- */
-const STAMPED = ['chart-staircase', 'chart-transport', 'chart-design', 'chart-altitude', 'chart-power', 'chart-temperature', 'chart-mass', 'chart-mass-env', 'chart-tornado'];
-
+/** The conditions every chart is drawn under (see setChartStamp), so a screenshot or a quoted number travels with its assumptions. */
 function scenarioContext(modified: boolean): string {
   const env = scenario.environment;
   const where =
@@ -261,15 +256,6 @@ function loadText(): string {
   return hs.averageFraction < 1 ? `${peak} kW peak / ${fmt((hs.totalPower_W * hs.averageFraction) / 1000)} kW average` : `${peak} kW heat load`;
 }
 
-function stampCharts(modified: boolean): void {
-  const text = scenarioContext(modified);
-  for (const id of STAMPED) {
-    const box = document.getElementById(id);
-    if (!box) continue;
-    const stamp = box.querySelector<HTMLElement>(':scope > .chart-stamp') ?? box.appendChild(Object.assign(document.createElement('p'), { className: 'chart-stamp' }));
-    stamp.textContent = text;
-  }
-}
 
 const fmtValue = (v: unknown) => (typeof v === 'number' ? String(+v.toPrecision(4)) : v === undefined ? '—' : typeof v === 'object' ? 'set' : String(v));
 
@@ -285,37 +271,42 @@ function renderScenarioBar(changes: Change[]): void {
   byId('scenario-status').innerHTML = changes.length
     ? `<span class="badge modified">Modified</span> <span>${name}, with ${lines.size} change${lines.size === 1 ? '' : 's'}</span>
        <details class="changes"><summary>Show changes</summary><ul>${[...lines].map(([path, what]) => `<li><span class="mono">${esc(path)}</span> ${esc(what)}</li>`).join('')}</ul></details>`
-    : `<span class="badge reference">Reference case</span> <span>${name}, as published</span>`;
+    : `<span class="badge reference">Reference case</span> <span>${name}, reference assumptions</span>`;
   byId('reset').hidden = changes.length === 0;
 }
 
 function renderKpis(r: Result): void {
   const c = r.chain;
-  const tiles: [string, string, string][] = [
+  // Three headline readouts first; the rest are supporting detail.
+  const primary: [string, string, string][] = [
     ['Radiator area', `${fmt(r.radiatorArea_m2)} m²`, `${fmt(r.netFlux_W_m2)} W/m² net, two-sided panel`],
     ['Solar array area', `${fmt(r.solarArrayArea_m2)} m²`, `${fmt(r.solarArraySpecific_W_m2)} W/m² in sunlight; sized for ${fmt(r.payloadAverage_W / 1000)} kW average`],
-    ['Solar array : radiator area', `${fmt(r.solarToRadiatorAreaRatio, 1)} : 1`, 'the "5:1" rule of thumb, recomputed'],
-    ['Power + thermal mass', fmtT(r.totalMass_kg), `${fmt(r.specificMass_kg_per_kW, 1)} kg per kW of heat load`],
+    ['Power + thermal mass', fmtT(r.totalMass_kg), `${fmt(r.specificMass_kg_per_kW, 1)} kg per kW of peak payload`],
+  ];
+  const secondary: [string, string, string][] = [
+    ['Heat to reject', `${fmt(r.heatToReject_W / 1000)} kW`, `${fmt(r.payload_W / 1000)} kW peak payload, plus conversion losses and overhead`],
     ['Radiating fluid temperature', `${fmt(c.fluidEffective_K)} K`, `${fmt(c.fluidEffective_K - 273.15)} °C · ${fmt(scenario.heatSource.maxTemperature_K - c.fluidEffective_K)} K below the source limit, +${fmt(c.fluidEffective_K - c.radiatingEquivalent_K)} K fin-equivalent`],
+    ['Solar array : radiator area', `${fmt(r.solarToRadiatorAreaRatio, 1)} : 1`, 'the "5:1" rule of thumb, recomputed'],
     ['Rejection effectiveness', `${fmt(100 * r.rejectionEffectiveness)} %`, 'vs a black panel at the source limit in deep space'],
   ];
-  if (r.storage.mass_kg > 0) tiles.push(['Energy storage', fmtT(r.storage.mass_kg), `${fmt(r.storage.energy_Wh / 1000)} kWh nameplate, ${fmt(100 * (1 - r.sunlight.sunlitFraction))} % dark`]);
-  byId('kpis').innerHTML = tiles
-    .map(([k, v, sub]) => `<div class="kpi"><div class="kpi-label">${k}</div><div class="kpi-value">${v}</div><div class="kpi-sub">${sub}</div></div>`)
-    .join('');
+  if (r.storage.mass_kg > 0) secondary.push(['Energy storage', fmtT(r.storage.mass_kg), `${fmt(r.storage.energy_Wh / 1000)} kWh nameplate, ${fmt(100 * (1 - r.sunlight.sunlitFraction))} % dark`]);
+  const tile = (cls: string) => ([k, v, sub]: [string, string, string]) =>
+    `<div class="kpi ${cls}"><div class="kpi-label">${k}</div><div class="kpi-value">${v}</div><div class="kpi-sub">${sub}</div></div>`;
+  byId('kpis').innerHTML = `<div class="kpi-row primary">${primary.map(tile('primary')).join('')}</div><div class="kpi-row secondary">${secondary.map(tile('secondary')).join('')}</div>`;
 
   const rep = byId('reported');
   const check = r.reportedCheck;
   rep.hidden = !check;
   if (!check) return;
   const gap = check.modelChainDrop_K - check.budgetLeft_K;
-  rep.innerHTML = `<h3>Reality check: the reported ${fmt(check.radiatorArea_m2)} m² radiator</h3>
+  rep.innerHTML = `<h3>What the reported ${fmt(check.radiatorArea_m2)} m² radiator would require</h3>
+    <p class="callout-caveat">Reported figures + assumed hardware: this is not a reconstruction of SpaceX's design. The assumed values are marked in the Assumptions table.</p>
     <p>Rejecting ${fmt(r.heatToReject_W / 1000)} kW (the ${fmt(r.payload_W / 1000)} kW peak payload plus conversion losses and overhead) on ${fmt(check.radiatorArea_m2)} m² means ${fmt(check.target_W_m2)} W/m² of panel, with no sizing margin.
     In this environment that needs radiating fluid at <b>${fmtK(check.requiredFluid_K)}</b>. That leaves <b>${fmt(check.budgetLeft_K)} K</b> between the ${fmt(scenario.heatSource.maxTemperature_K)} K source limit and the radiator.
     The modelled chain spends <b>${fmt(check.modelChainDrop_K)} K</b> and delivers ${fmtK(check.modelFluid_K)}.
     ${gap > 0 ? `To close the gap, remove ${fmt(gap)} K from the chain, run the source hotter, or the reported area is not two-sided planform.` : 'The modelled chain fits.'}</p>
     ${r.payloadAverage_W < r.payload_W ? `<p>At the ${fmt(r.payloadAverage_W / 1000)} kW average instead of the ${fmt(r.payload_W / 1000)} kW peak, the same area needs ${fmt(check.targetAverage_W_m2)} W/m², so fluid at <b>${fmtK(check.requiredFluidAverage_K)}</b>. Sized nearer the average, the radiator works only if thermal mass or throttling carries the peaks; this steady-state model does not simulate that.</p>` : ''}
-    ${check.vehicleMass_kg && check.powerThermalShareOfVehicle !== null ? `<p>Mass: the published ${fmt(scenario.reported?.vehicleSpecificPower_kW_per_t ?? 0)} kW per ton implies about <b>${fmtT(check.vehicleMass_kg)}</b> for the whole satellite at ${fmt(r.payload_W / 1000)} kW. This model's power and thermal hardware alone is <b>${fmtT(r.totalMass_kg)}</b>, ${fmt(100 * check.powerThermalShareOfVehicle)} % of that${check.powerThermalShareOfVehicle >= 0.8 ? ', which leaves too little for the compute, structure and avionics. Either the model\'s mass assumptions (radiator, solar array and loop per m² and per kW) are heavier than SpaceX\'s design, or the published figures are optimistic' : ''}.</p>` : ''}`;
+    ${check.vehicleMass_kg && check.powerThermalShareOfVehicle !== null ? `<p>Mass, with this model's assumed areal densities: the published ${fmt(scenario.reported?.vehicleSpecificPower_kW_per_t ?? 0)} kW per ton implies about <b>${fmtT(check.vehicleMass_kg)}</b> for the whole satellite at ${fmt(r.payload_W / 1000)} kW. This model's power and thermal hardware alone is <b>${fmtT(r.totalMass_kg)}</b>, ${fmt(100 * check.powerThermalShareOfVehicle)} % of that${check.powerThermalShareOfVehicle >= 0.8 ? ', which leaves too little for the compute, structure and avionics. Either the model\'s mass assumptions (radiator, solar array and loop per m² and per kW) are heavier than SpaceX\'s design, or the published figures are optimistic' : ''}.</p>` : ''}`;
 }
 
 function renderWarnings(r: Result): void {
@@ -338,7 +329,7 @@ function comparisonSeries(presets: Preset[], modified: boolean, current: Result,
     const name = MODES[p.id].name;
     if (!selected) return { name, color: MODE_COLORS[p.id], points: points(p.r), width: 1.5, muted: true };
     if (!modified) return { name: `${name} · selected`, label: name, color: MODE_COLORS[p.id], points: points(p.r), width: 3 };
-    return { name: `${name} as published`, label: 'published', color: MODE_COLORS[p.id], points: points(p.r), width: 1.75, dash: true };
+    return { name: `${name}, reference`, label: 'reference', color: MODE_COLORS[p.id], points: points(p.r), width: 1.75, dash: true };
   });
   if (modified) out.push({ name: 'Your scenario', label: 'your scenario', color: YOURS, points: points(current), width: 3 });
   return out;
@@ -486,7 +477,7 @@ const MASS_SEGMENTS: [MassKey, string, string][] = [
 
 function renderMass(r: Result, presets: Preset[], modified: boolean): void {
   const segments = (rows: { r: Result }[]) => MASS_SEGMENTS.map(([k, name, color]) => ({ name, color, values: rows.map((x) => x.r.mass_kg[k]) }));
-  const rows = presets.map((p) => ({ name: p.id === scenario.mode ? `${MODES[p.id].name}${modified ? ' as published' : ' · selected'}` : MODES[p.id].name, r: p.r }));
+  const rows = presets.map((p) => ({ name: p.id === scenario.mode ? `${MODES[p.id].name}${modified ? ', reference' : ' · selected'}` : MODES[p.id].name, r: p.r }));
   if (modified) rows.push({ name: 'Your scenario', r });
   const selectedIdx = MODE_IDS.indexOf(scenario.mode);
   stackedBars(byId('chart-mass'), {
@@ -569,32 +560,49 @@ const EXTRA_LABELS: Record<string, string> = {
 
 function renderAssumptions(): void {
   const label = (path: string) => PARAMETERS.find((p) => p.path === path)?.label ?? EXTRA_LABELS[path] ?? path;
-  const value = (path: string) => {
-    const v = getPath(scenario, path);
+  const value = (path: string, from: Scenario = scenario) => {
+    const v = getPath(from, path);
     if (Array.isArray(v)) return `${v.length} stages`;
     if (typeof v !== 'number') return esc(v ?? '—');
     const p = PARAMETERS.find((q) => q.path === path);
     const shown = v * (p?.display ?? 1);
-    return `${fmt(shown, Math.abs(shown) < 10 ? 2 : 0)} ${p?.unit ?? ''}`;
+    return `${fmt(shown, Math.abs(shown) < 10 ? 2 : 0)} ${p?.unit ?? ''}`.trim();
   };
   // Every visible tunable parameter appears; ones without a note are flagged as gaps to fill.
   const visible = PARAMETERS.filter((p) => !p.when || p.when(scenario)).map((p) => p.path);
   const paths = [...new Set([...Object.keys(scenario.notes), ...visible])];
+  const baseline = presetBaseline(scenario);
+  const link = new URL(shareUrl(), location.href).href;
   byId('assumptions').innerHTML =
     '<tr><th>Parameter</th><th>Value</th><th>Provenance</th></tr>' +
     paths
       .map((path) => {
         const note = scenario.notes[path];
-        const prov = note ? cite(note) : '<span class="gap">ASSUMPTION, undocumented. Contributors: please source this value.</span>';
+        // A changed value keeps the reference citation, labelled as supporting the reference only.
+        const changed = overrideOf(scenario, path, baseline).overridden;
+        const flag = changed ? `<p class="override">Your value. The reference is ${value(path, baseline)}; the note below supports the reference, not your value.</p>` : '';
+        const prov = flag + (note ? cite(note) : '<span class="gap">ASSUMPTION, undocumented. Contributors: please source this value.</span>') + challengeLink(path, label(path), value(path), note, link);
         const open = openExplanations.has(path);
         const toggle = `<button type="button" class="explain-toggle" aria-expanded="${open}" aria-controls="explain-${path}" title="What does this mean?"><span class="chev" aria-hidden="true"></span><span>${esc(label(path))}</span></button>`;
         const explanation = EXPLANATIONS[path] ?? 'No explanation yet. Contributors: add one in src/model/glossary.ts.';
         return (
-          `<tr id="note-${path}" tabindex="-1"><td>${toggle}<div class="muted mono">${esc(path)}</div></td><td>${value(path)}</td><td>${prov}</td></tr>` +
+          `<tr id="note-${path}" tabindex="-1"${changed ? ' class="overridden"' : ''}><td>${toggle}<div class="muted mono">${esc(path)}</div></td><td>${value(path)}</td><td>${prov}</td></tr>` +
           `<tr class="explain-row" id="explain-${path}"${open ? '' : ' hidden'}><td colspan="3"><p>${esc(explanation)}</p></td></tr>`
         );
       })
       .join('');
+}
+
+const ISSUE_FORM = 'https://github.com/interplanetarychris/watts-to-space/issues/new?template=challenge-an-assumption.yml';
+
+/** A pre-filled "Challenge an assumption" issue: no account of the code needed, only a reason and a source. */
+function challengeLink(path: string, name: string, shown: string, note: string | undefined, share: string): string {
+  const q = new URLSearchParams({
+    title: `Challenge: ${name} (${path})`,
+    scenario: share,
+    assumption: `${name} (${path}) = ${shown.replace(/<[^>]+>/g, '')}${note ? `\nCurrent note: ${note}` : ''}`,
+  });
+  return ` <a class="challenge" href="${ISSUE_FORM}&${q}" target="_blank" rel="noopener">Challenge this value</a>`;
 }
 
 /**

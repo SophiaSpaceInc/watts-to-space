@@ -111,3 +111,11 @@ test('conflicting or unknown options exit 2', () => {
     assert.equal(run(a).code, 2, a.join(' '));
   }
 });
+
+test('--explain marks a user override and keeps the reference value the note describes', () => {
+  const out = json(['--mode', 'iss', '--set', 'radiator.emissivity=0.5', '--explain', 'radiator.emissivity']);
+  assert.equal(out.overridden, true);
+  assert.equal(out.referenceValue, 0.92);
+  assert.match(out.overrideWarning, /describe the reference value/);
+  assert.equal(json(['--mode', 'iss', '--explain', 'radiator.emissivity']).overridden, false);
+});
