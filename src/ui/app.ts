@@ -944,3 +944,5 @@ loadFromUrl();
 buildControls();
 renderReferences();
 render();
+// A link from a companion page to an Assumptions row (#note-…) scrolls to it and opens its explanation.
+if (location.hash) highlightTarget(true);

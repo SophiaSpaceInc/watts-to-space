@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pointing a radiator at the Sun</title>
+    <meta name="description" content="The Sun covers a tiny patch of sky but delivers 1,361 W per square metre. Move the Sun angle and the orbit height and watch what a radiator loses. A companion to watts-to-space, by Chris Lewicki." />
+    <meta name="author" content="Chris Lewicki" />
+    <link rel="canonical" href="https://watts-to-space.chrislewicki.com/sun/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://watts-to-space.chrislewicki.com/sun/" />
+    <meta property="og:title" content="Pointing a radiator at the Sun" />
+    <meta property="og:description" content="The Sun fills almost none of the sky. Here is why it still matters." />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:creator" content="@interplanetary" />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="everyday sunward">
+    <header class="page-header">
+      <p class="byline">
+        <a class="back-link" href="https://chrislewicki.com" rel="noopener me"><span aria-hidden="true">←</span> Chris Lewicki</a>
+        <span class="socials">
+          <a class="social" href="https://www.linkedin.com/in/chrislewicki/" rel="noopener me" aria-label="Chris Lewicki on LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.125 2.062 2.062 0 0 1 0 4.125zM7.119 20.452H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+          <a class="social" href="https://x.com/interplanetary" rel="noopener me" aria-label="@interplanetary on X" title="X: @interplanetary"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
+        </span>
+      </p>
+      <h1>Pointing a radiator at the Sun</h1>
+      <p class="subtitle">The Sun fills almost none of the sky. Here is why it still matters.</p>
+    </header>
+
+    <section class="intro" aria-label="Introduction">
+      <p>
+        A radiator in orbit looks out at a sky that is almost all 3 K. The Sun's disc covers about
+        <b id="sun-share">0.001 %</b> of what a flat face sees, so turning a face toward the Sun hardly blocks its view
+        of cold space. The instinct that the Sun is a small thing in the sky is right.
+      </p>
+      <p>
+        It is wrong about the heat. The Sun's surface is at <b id="sun-temp">5,772 K</b>, and because thermal emission
+        goes as T⁴, that tiny patch delivers <b id="sun-flux">1,361 W per m²</b>: about twice what a 60 °C radiator
+        face sends out. How much of it the face keeps depends on its coating. White paint absorbs about a fifth; black
+        paint absorbs nearly all of it.
+      </p>
+      <p class="muted small">
+        A companion to <a href="../index.html">watts-to-space</a>, the full model, and to
+        <a href="../everyday/index.html">Your laptop in space</a>. The full model keeps its radiators knife-edge to the
+        Sun; this page lets you turn them toward it.
+      </p>
+    </section>
+
+    <section class="part" id="sun-explorer" aria-labelledby="sun-explorer-title">
+      <h2 id="sun-explorer-title">Turn the panel toward the Sun</h2>
+      <p class="part-lede">
+        A flat panel radiating from both faces, held edge-on to Earth below. Sunlight strikes one face at the angle you
+        set; 90° is knife-edge, the way space data centers fly their radiators.
+      </p>
+      <div class="layout">
+        <aside class="rail" aria-label="Inputs">
+          <div class="rail-head">
+            <p class="eyebrow">Inputs</p>
+            <span class="rail-hint">Drag, or type a value</span>
+          </div>
+          <div id="sun-controls" class="controls"></div>
+        </aside>
+        <div class="sun-chart">
+          <h3 class="chart-title">Net heat rejected per m² of panel, both faces</h3>
+          <div id="chart-sun" class="chart-box"></div>
+        </div>
+        <div class="sun-results">
+          <div id="sun-budget" class="kpi-row places"></div>
+          <p id="sun-note" class="muted small"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="everyday-section left-out" aria-labelledby="left-out-title">
+      <h2 id="left-out-title">What this page leaves out</h2>
+      <ul>
+        <li><b>The back face</b> is assumed to be in shade, and the panel is at one temperature everywhere (no fin
+          losses).</li>
+        <li><b>Earth's reflected sunlight</b> is averaged over a dawn–dusk orbit (β = 70°, like the full model's Starmind
+          case). In a noon–midnight orbit it would be larger, and the panel would also pass through Earth's shadow.</li>
+        <li><b>The panel stays edge-on to Earth.</b> Turn one face to Earth instead and, at 600 km, that face absorbs
+          about 3.4 times as much from Earth, and the panel as a whole about 1.7 times (its back face then sees only
+          sky). The full model's radiator orientation setting covers that.</li>
+      </ul>
+      <p><a href="../index.html">Open the full model →</a></p>
+    </section>
+
+    <footer class="muted small">
+      <p class="footer-links">
+        <a href="https://chrislewicki.com" rel="noopener me">chrislewicki.com</a>
+        <span class="socials">
+          <a class="social" href="https://www.linkedin.com/in/chrislewicki/" rel="noopener me" aria-label="Chris Lewicki on LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.125 2.062 2.062 0 0 1 0 4.125zM7.119 20.452H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+          <a class="social" href="https://x.com/interplanetary" rel="noopener me" aria-label="@interplanetary on X" title="X: @interplanetary"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
+        </span>
+        <span aria-hidden="true">·</span> <a href="https://github.com/interplanetarychris/watts-to-space" rel="noopener">Source on GitHub</a>
+      </p>
+      <p>Code <a href="https://github.com/interplanetarychris/watts-to-space/blob/main/LICENSE" rel="noopener">MIT</a> · text and figures <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">CC BY 4.0</a>, © 2026 Chris Lewicki.</p>
+      Model source: <span class="mono">src/model/sunward.ts</span> (unit-tested with <span class="mono">bun test</span>).
+    </footer>
+    <script type="module" src="../src/ui/sunward.ts"></script>
+  </body>
+</html>

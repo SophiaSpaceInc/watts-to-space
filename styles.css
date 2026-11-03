@@ -454,3 +454,30 @@ table.data tr.current td { font-weight: 600; }
 .left-out li { margin-bottom: 8px; }
 details.sources ul { font-size: 13.5px; }
 @media (max-width: 640px) { .modes.devices { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ---------------------------------------------------------------- sun sister page */
+.sunward .part { margin-top: 40px; }
+.param-hint { margin: 4px 0 0; font-size: 12px; line-height: 1.4; color: var(--ink-2); }
+a.info-anchor { display: inline-grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; border: 1px solid var(--muted); font: 600 9.5px/1 var(--sans); color: var(--ink-2); text-decoration: none; flex: none; }
+a.info-anchor:hover, a.info-anchor:focus-visible { border-color: var(--ink); color: var(--ink); }
+.kpi.strong .kpi-value { color: var(--accent); }
+.sunward #sun-controls .param { padding: 12px 16px; border-bottom: 1px solid var(--grid); }
+/* Chart, rail and results as grid areas; on narrow screens the chart sticks to the top so it
+   stays in view while the sliders scroll beneath it. */
+.sunward .layout { grid-template-areas: 'chart rail' 'results rail'; }
+.sunward .sun-chart { grid-area: chart; min-width: 0; }
+.sunward .sun-results { grid-area: results; min-width: 0; }
+.sunward .rail { grid-area: rail; }
+@media (max-width: 900px) {
+  .sunward .layout { grid-template-areas: 'chart' 'rail' 'results'; gap: 16px; }
+  .sunward .rail { grid-area: rail; }
+  .sunward .sun-chart { position: sticky; top: 0; z-index: 2; background: var(--page); padding: 6px 0 4px; box-shadow: 0 6px 10px -8px rgba(0, 0, 0, 0.25); }
+  .sunward .sun-chart .chart-title { margin-top: 0; }
+}
+
+/* ---------------------------------------------------------------- hero illustrations (assets/hero/) */
+figure.hero { max-width: 1100px; margin: 0 auto 40px; }
+figure.hero img { display: block; width: 100%; height: auto; aspect-ratio: 2 / 1; object-fit: cover; object-position: 65% 55%; border: 1px solid var(--grid); border-radius: 8px; background: #f3f4f6; }
+figure.hero figcaption { margin-top: 6px; font-size: 12px; color: var(--ink-2); text-align: right; }
+@media (prefers-color-scheme: dark) { figure.hero img { filter: brightness(0.86); border-color: transparent; } }
+@media (max-width: 640px) { figure.hero img { aspect-ratio: 16 / 9; } }
