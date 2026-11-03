@@ -56,6 +56,10 @@ export const SOURCES: Record<string, Source> = {
     title: 'SpaceX AI-satellite technical update on X, 2026-06-08, with Elon Musk and Ian Dahl. Musk, about 16:53–17:26: 250 W/m² solar array; about 1,400 W/m² from double-sided radiators oriented knife-edge to the Sun',
     url: 'https://x.com/SpaceX/status/2064099405758906727',
   },
+  'mach33-250kw': {
+    title: 'Mach33, "The Engineering Paths Behind StarMind\'s 250 kW Target" (interactive, October 6, 2026 model pack): about 327 m² of radiator holds 105 °C GPU logic and 95 °C HBM at 250 kW; at 200 m² they reach about 134 °C and 132 °C',
+    url: 'https://research.33fg.com/analysis/the-engineering-paths-behind-starmind-s-250-kw-target-117a100b-5f3b-4429-8042-916a5516cd2c',
+  },
   'musk-1102': {
     title: 'Elon Musk on X, 2026-11-03: "~1300 W/m^2 is easily achievable for an aluminum radiator pointed away from the Sun"',
     url: 'https://x.com/elonmusk/status/2117462581371719779',
@@ -157,7 +161,7 @@ const GPU_NOTES: Record<string, string> = {
   'heatSource.unitPower_W': 'Rubin "Max Q" GPU ≈ 1.8 kW; "Max P" ≈ 2.3 kW [rubin-ctee]. SECONDARY (pre-launch reporting).',
   'heatSource.totalPower_W': 'AI1 compute payload "Up to 250 kW peak / 175 kW average" [spacex-starmind], up from 150 / 120 kW before 2026-08-04 [spacex-starmind-2026-08-03]. Used for every mode so modes compare technology, not payload.',
   'heatSource.averageFraction': '175 kW average / 250 kW peak = 0.7 [spacex-starmind]; the earlier sheet gave 120 / 150 = 0.8 [spacex-starmind-2026-08-03]. Musk calls the peak "battery-assisted" with an average of ~160 kW [musk-0715], and has since hoped for "close to 250kW average", the peak ~10 % higher [musk-1001b]. The published average is moving; the page value is used.',
-  'heatSource.maxTemperature_K': '373 K (100 °C) junction: the premise that the chips run reliably this hot. HBM DRAM may set a lower limit. ASSUMPTION.',
+  'heatSource.maxTemperature_K': '373 K (100 °C) junction: the premise that the chips run reliably this hot. ASSUMPTION. HBM memory may set a lower limit: Mach33\'s independent model compares against 105 °C for GPU logic and 95 °C for HBM [mach33-250kw] (SECONDARY).',
   'heatSource.stages': 'Die 0.5 mm Si (k ≈ 120 W/m·K near 360 K [glassbrenner1964]) over ~16 cm² (two reticle-sized dies), ×1.5 hot-spot peaking; TIM1 0.05 K·cm²/W; 3 mm Cu lid; TIM2 0.08 K·cm²/W over 40 cm²; microchannel h_eff 50 kW/m²K. ASSUMPTION, sanity-checked: with a 45 °C inlet [rubin-2crsi] and a 10 K coolant rise, this stack puts the junction at ~86 °C (1.8 kW) to ~94 °C (2.3 kW).',
 };
 
@@ -373,7 +377,7 @@ export const MODES: Record<ModeId, ModePreset> = {
     },
     reported: { radiatorArea_m2: 160, vehicleSpecificPower_kW_per_t: 75, radiatorFlux_W_m2: 1400, solarArrayArea_m2: 840 },
     notes: {
-      'reported.radiatorArea_m2': 'Deployable liquid radiator, 160 m² [spacex-starmind] (110 m² before 2026-08-04 [spacex-starmind-2026-08-03]); FCC envelope under 200 m² [spacex-fcc-2026-09]. Taken as two-sided panel planform: in SpaceX\'s June 8 update Musk gave about 1,400 W/m² from double-sided radiators oriented knife-edge to the Sun [spacex-0608], and later ~1,300 W/m² for an aluminum radiator [musk-1102]. 160 m² × 1,400 W/m² = 224 kW, below the 250 kW peak; Musk calls the peak battery-assisted [musk-0715]. If the average reaches 250 kW as he has hoped [musk-1001b], 1,300 W/m² needs about 192 m², still inside the FCC envelope. The raw ratio is 250 kW / 160 m² = 1,562 W/m²; the model also counts conversion losses and overhead.',
+      'reported.radiatorArea_m2': 'Deployable liquid radiator, 160 m² [spacex-starmind] (110 m² before 2026-08-04 [spacex-starmind-2026-08-03]); FCC envelope under 200 m² [spacex-fcc-2026-09]. Taken as two-sided panel planform: in SpaceX\'s June 8 update Musk gave about 1,400 W/m² from double-sided radiators oriented knife-edge to the Sun [spacex-0608], and later ~1,300 W/m² for an aluminum radiator [musk-1102]. 160 m² × 1,400 W/m² = 224 kW, below the 250 kW peak; Musk calls the peak battery-assisted [musk-0715]. If the average reaches 250 kW as he has hoped [musk-1001b], 1,300 W/m² needs about 192 m², still inside the FCC envelope. The raw ratio is 250 kW / 160 m² = 1,562 W/m²; the model also counts conversion losses and overhead. Mach33\'s independent model needs about 327 m² to hold 105 °C logic and 95 °C HBM at 250 kW [mach33-250kw] (SECONDARY).',
       'reported.vehicleSpecificPower_kW_per_t': '"75 kW / ton" vehicle efficiency [spacex-starmind] (70 before 2026-08-04 [spacex-starmind-2026-08-03]). Read on peak compute: 150 / 70 = 2.14 t matches outside estimates of about 2.1 t for the earlier sheet, so 250 / 75 ≈ 3.3 t. The S-1 targets about 100 kW of compute per ton [spacex-s1]. The FCC letter\'s 4,000 kg is a ceiling used in the debris analysis, not a design mass [spacex-fcc-2026-09].',
       'reported.radiatorFlux_W_m2': 'About 1,400 W/m² from double-sided radiators oriented knife-edge to the Sun, Musk in SpaceX\'s June 8 update [spacex-0608]; later ~1,300 W/m² for an aluminum radiator [musk-1102]. The temperature it is quoted at is not published.',
       'reported.solarArrayArea_m2': '210 kW solar array [spacex-starmind] at 250 W/m² [spacex-starmind][spacex-0608] = 840 m², inside the FCC envelope of under 1,500 m² [spacex-fcc-2026-09].',
