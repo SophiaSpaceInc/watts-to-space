@@ -45,7 +45,7 @@ test('energy balance: heat rejected equals bus load; solar array covers load + s
   for (const id of Object.keys(MODES) as ModeId[]) {
     const r = evaluateScenario(buildScenario(id));
     assert.equal(r.heatToReject_W, r.busLoad_W);
-    const expected = (r.busLoad_W * r.storage.solarArrayOversize) / (1 - r.harness.lossFraction);
+    const expected = (r.busLoadAverage_W * r.storage.solarArrayOversize) / (1 - r.harness.lossFraction);
     close(r.solarArrayOutput_W, expected, 1e-6 * expected, id);
     const sum = Object.values(r.mass_kg).reduce((a, b) => a + b, 0);
     close(r.totalMass_kg, sum, 1e-9 * sum, id);
@@ -132,7 +132,7 @@ test('power-supply part sized on its own matches the whole-system result', () =>
   for (const env of ['iss-leo', 'moon-equator', 'cislunar-deep']) {
     const s = buildScenario('starmind', { environment: env });
     const r = evaluateScenario(s);
-    const supply = sizePowerSupply(r.busLoad_W, s.power, sunlight(s.environment));
+    const supply = sizePowerSupply(r.busLoadAverage_W, s.power, sunlight(s.environment), r.busLoad_W);
     assert.equal(supply.area_m2, r.solarArrayArea_m2);
     assert.equal(supply.storage.mass_kg, r.mass_kg.battery);
   }
@@ -161,4 +161,16 @@ test('every input that can appear in the Assumptions table has a plain-language 
     assert.doesNotMatch(text, /\bradiation\b/i, `${path}: say "thermal emission" or "radiates", not "radiation"`);
     assert.doesNotMatch(text.replace(/solar arrays?/gi, ''), /\barrays?\b/i, `${path}: say "solar array", never a bare "array"`);
   }
+});
+
+test('peak sizes the radiator, average sizes the solar array and battery', () => {
+  const base = buildScenario('starmind', { environment: 'iss-leo' });
+  const flat = evaluateScenario({ ...base, heatSource: { ...base.heatSource, averageFraction: 1 } });
+  const duty = evaluateScenario({ ...base, heatSource: { ...base.heatSource, averageFraction: 0.5 } });
+  assert.equal(duty.radiatorArea_m2, flat.radiatorArea_m2);
+  assert.equal(duty.heatToReject_W, flat.heatToReject_W);
+  close(duty.busLoadAverage_W / flat.busLoadAverage_W, 0.5, 1e-12);
+  close(duty.mass_kg.battery / flat.mass_kg.battery, 0.5, 1e-9);
+  assert.ok(duty.solarArrayArea_m2 < 0.55 * flat.solarArrayArea_m2);
+  assert.equal(duty.mass_kg.harness, flat.mass_kg.harness, 'harness carries the peak current either way');
 });

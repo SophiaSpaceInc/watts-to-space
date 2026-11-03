@@ -251,7 +251,14 @@ function scenarioContext(modified: boolean): string {
       : env.kind === 'deepSpace'
         ? `deep space, ${fmt(100 * env.sunlitFraction)} % sunlit`
         : `lunar surface, ground ${fmt(env.groundTemperature_K)} K, Sun ${fmt(env.sunElevation_deg)}° up`;
-  return `${MODES[scenario.mode].name}${modified ? ', modified' : ''} · ${where} · ${fmt(scenario.heatSource.totalPower_W / 1000)} kW heat load · source limit ${fmt(scenario.heatSource.maxTemperature_K)} K · watts-to-space by Chris Lewicki, CC BY 4.0`;
+  return `${MODES[scenario.mode].name}${modified ? ', modified' : ''} · ${where} · ${loadText()} · source limit ${fmt(scenario.heatSource.maxTemperature_K)} K · watts-to-space by Chris Lewicki, CC BY 4.0`;
+}
+
+/** "150 kW peak / 120 kW average", or "150 kW heat load" when they are the same. */
+function loadText(): string {
+  const hs = scenario.heatSource;
+  const peak = fmt(hs.totalPower_W / 1000);
+  return hs.averageFraction < 1 ? `${peak} kW peak / ${fmt((hs.totalPower_W * hs.averageFraction) / 1000)} kW average` : `${peak} kW heat load`;
 }
 
 function stampCharts(modified: boolean): void {
@@ -286,7 +293,7 @@ function renderKpis(r: Result): void {
   const c = r.chain;
   const tiles: [string, string, string][] = [
     ['Radiator area', `${fmt(r.radiatorArea_m2)} m²`, `${fmt(r.netFlux_W_m2)} W/m² net, two-sided panel`],
-    ['Solar array area', `${fmt(r.solarArrayArea_m2)} m²`, `${fmt(r.solarArraySpecific_W_m2)} W/m² in sunlight`],
+    ['Solar array area', `${fmt(r.solarArrayArea_m2)} m²`, `${fmt(r.solarArraySpecific_W_m2)} W/m² in sunlight; sized for ${fmt(r.payloadAverage_W / 1000)} kW average`],
     ['Solar array : radiator area', `${fmt(r.solarToRadiatorAreaRatio, 1)} : 1`, 'the "5:1" rule of thumb, recomputed'],
     ['Power + thermal mass', fmtT(r.totalMass_kg), `${fmt(r.specificMass_kg_per_kW, 1)} kg per kW of heat load`],
     ['Radiating fluid temperature', `${fmt(c.fluidEffective_K)} K`, `${fmt(c.fluidEffective_K - 273.15)} °C · ${fmt(scenario.heatSource.maxTemperature_K - c.fluidEffective_K)} K below the source limit, +${fmt(c.fluidEffective_K - c.radiatingEquivalent_K)} K fin-equivalent`],
@@ -306,7 +313,8 @@ function renderKpis(r: Result): void {
     <p>Rejecting ${fmt(r.heatToReject_W / 1000)} kW on ${fmt(check.radiatorArea_m2)} m² means ${fmt(check.target_W_m2)} W/m² of panel, with no sizing margin.
     In this environment that needs radiating fluid at <b>${fmtK(check.requiredFluid_K)}</b>. That leaves <b>${fmt(check.budgetLeft_K)} K</b> between the ${fmt(scenario.heatSource.maxTemperature_K)} K source limit and the radiator.
     The modelled chain spends <b>${fmt(check.modelChainDrop_K)} K</b> and delivers ${fmtK(check.modelFluid_K)}.
-    ${gap > 0 ? `To close the gap, remove ${fmt(gap)} K from the chain, run the source hotter, or the reported area is not two-sided planform.` : 'The modelled chain fits.'}</p>`;
+    ${gap > 0 ? `To close the gap, remove ${fmt(gap)} K from the chain, run the source hotter, or the reported area is not two-sided planform.` : 'The modelled chain fits.'}</p>
+    ${r.payloadAverage_W < r.payload_W ? `<p>At the ${fmt(r.payloadAverage_W / 1000)} kW average instead of the ${fmt(r.payload_W / 1000)} kW peak, the same area needs ${fmt(check.targetAverage_W_m2)} W/m², so fluid at <b>${fmtK(check.requiredFluidAverage_K)}</b>. Sized nearer the average, the radiator works only if thermal mass or throttling carries the peaks; this steady-state model does not simulate that.</p>` : ''}`;
 }
 
 function renderWarnings(r: Result): void {
@@ -449,7 +457,7 @@ function renderPowerSupply(r: Result): void {
   }
   const fractions = Array.from({ length: 81 }, (_, i) => 0.2 + i * 0.01);
   const cycle_h = r.sunlight.cyclePeriod_h;
-  const sized = fractions.map((f) => ({ f, s: sizePowerSupply(r.busLoad_W, scenario.power, { sunlitFraction: f, cyclePeriod_h: cycle_h }) }));
+  const sized = fractions.map((f) => ({ f, s: sizePowerSupply(r.busLoadAverage_W, scenario.power, { sunlitFraction: f, cyclePeriod_h: cycle_h }, r.busLoad_W) }));
   byId('power-heading').textContent = '5. Darkness is a mass problem: power supply versus sunlight';
   byId('power-lede').hidden = true;
   lineChart(byId('chart-power'), {

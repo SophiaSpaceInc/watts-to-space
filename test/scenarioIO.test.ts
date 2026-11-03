@@ -67,3 +67,9 @@ test('switching environment counts as a change; notes do not', () => {
   assert.ok(diffScenario(base, moved).some((c) => c.path === 'environmentId'));
   assert.deepEqual(diffScenario(base, { ...base, notes: {} }), []);
 });
+
+test('files from before peak/average load with average = peak', () => {
+  const s = JSON.parse(exportScenario(buildScenario('starmind')));
+  delete s.scenario.heatSource.averageFraction;
+  assert.equal(importScenario(JSON.stringify(s)).heatSource.averageFraction, 1);
+});

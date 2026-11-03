@@ -125,8 +125,8 @@ bun run analyze --mode starmind --environment moon-polar --format table
 ```
 
 **Notice.**
-- In LEO at 420 km (`iss-leo`, beta 0) the sunlit fraction is 0.61253 over a 1.547 h cycle; battery 2183.2 kg (34 % of total) and a solar array of 1147.3 m² (versus 679.87 m² in `leo-600`, because it must also charge the battery). In `leo-600` (beta 70, no eclipse) the battery is 0 kg and the solar array is 679.87 m².
-- At the lunar equator (`moon-equator`) the sunlit fraction is 0.5 over a 708.72 h cycle: about 354 h of darkness (`--explain environment.sunlitFraction`). Battery mass is 1,290,620 kg, 96 % of the total (the CLI warns "darkness, not heat, dominates this design"). Raising sunlit fraction to 0.7 cuts battery to 774,370 kg. The polar ridge (`moon-polar`, 0.85 sunlit, an `ASSUMPTION`) needs 387,185 kg.
+- In LEO at 420 km (`iss-leo`, beta 0) the sunlit fraction is 0.61253 over a 1.547 h cycle; battery 1746.6 kg (31 % of total) and a solar array of 921.54 m² (versus 546.08 m² in `leo-600`, because it must also charge the battery). In `leo-600` (beta 70, no eclipse) the battery is 0 kg and the solar array is 546.08 m².
+- At the lunar equator (`moon-equator`) the sunlit fraction is 0.5 over a 708.72 h cycle: about 354 h of darkness (`--explain environment.sunlitFraction`). Battery mass is 1,032,490 kg, 95 % of the total (the CLI warns "darkness, not heat, dominates this design"). Raising sunlit fraction to 0.7 cuts battery to 619,500 kg. The polar ridge (`moon-polar`, 0.85 sunlit, an `ASSUMPTION`) needs 309,748 kg.
 - Battery mass is energy over specific energy: doubling specific energy halves it (`--sweep power.battery.specificEnergy_Wh_kg`).
 
 Storage oversize is 1 + (1-f)/(f eta_rt) (APPROACH section 4): darkness inflates the solar array as well as the battery.
@@ -155,9 +155,9 @@ bun run analyze --mode starmind --format table
 ```
 
 **Notice.**
-- `--compare`: radiator area 1201.3 (`iss`, at LEO 420 km), 192.88 (`starmind`), 118.91 (`ideal`), 72.993 m² (`physics`); total mass 33,946, 3,367.8, 1,356.7, 241.46 kg; solar array : radiator area ratio 2.35, 3.52, 4.04, 2.23.
-- Starmind mass budget (kg): radiator 1157.3, thermal loop 819.47, solar array 1359.7, battery 0, harness 31.36, total 3367.8, which is 22.452 kg/kW. The solar array is 3.5x the radiator in area; by mass, radiator plus thermal loop is about 1977 kg and the solar array about 1360 kg.
-- Tornado, total mass, top rows: solar array areal density +/-8.1 %, radiator areal density +/-6.9 %, source temperature limit +4.9 % (10 K colder) and -4.2 % (10 K hotter), cell efficiency +4.5 % / -3.7 %. Some "levers" are material properties (areal density) rather than design choices. In this model they are partly `ASSUMPTION` (`--explain power.solarArrayArealDensity_kg_m2`).
+- `--compare`: radiator area 1201.3 (`iss`, at LEO 420 km), 192.88 (`starmind`), 118.91 (`ideal`), 72.993 m² (`physics`); total mass 30,993, 3,087.8, 1,237.2, 205.50 kg; solar array : radiator area ratio 1.73, 2.83, 3.25, 1.79.
+- Starmind mass budget (kg): radiator 1157.3, thermal loop 819.47, solar array 1092.2, battery 0, harness 18.889, total 3087.8, which is 20.585 kg/kW. The solar array is 2.8x the radiator in area; by mass, radiator plus thermal loop is about 1977 kg and the solar array about 1092 kg.
+- Tornado, total mass, top rows: radiator areal density +/-7.5 %, solar array areal density +/-7.1 %, source temperature limit +5.4 % (10 K colder) and -4.5 % (10 K hotter), average-load fraction +/-4.4 %, cell efficiency +3.9 % / -3.2 %. Some "levers" are material properties (areal density) rather than design choices. In this model they are partly `ASSUMPTION` (`--explain power.solarArrayArealDensity_kg_m2`).
 
 **Ask.**
 1. Which is the larger piece of hardware here, the radiator or the solar array? By how much, and does it match your intuition?
@@ -190,7 +190,7 @@ bun run analyze --mode iss --explain radiator.sizingMargin
 bun run analyze --mode starmind
 ```
 
-Look at `reportedCheck`: 110 m² of radiator must reject 1489.95 W/m² of panel, which needs radiating fluid at 363.4 K; the Earth-style lidded stack gives 336.2 K. The report leaves a chain budget of 9.6 K between the source limit and the fluid; the lidded stack spends 36.8 K. So either the heat path is far better than the lidded Earth-style assumption (try `--heat-source gpu-direct-die`), the junction runs hotter than 373 K, or the figures describe different things. It is a consistency check, not proof anything is wrong. Ask the learner which of the three they would check first, and what source would settle it. Be careful: the sources are reporting, tagged `SECONDARY` where applicable (`--explain heatSource.totalPower_W`).
+Look at `reportedCheck`: 110 m² of radiator must reject 1489.95 W/m² of panel at peak load (1191.96 W/m² at average load), which needs radiating fluid at 363.4 K (345.2 K at average load); the Earth-style lidded stack gives 336.2 K. The report leaves a chain budget of 9.6 K between the source limit and the fluid; the lidded stack spends 36.8 K. So either the heat path is far better than the lidded Earth-style assumption (try `--heat-source gpu-direct-die`), the junction runs hotter than 373 K, or the figures describe different things. It is a consistency check, not proof anything is wrong. Ask the learner which of the three they would check first, and what source would settle it. Be careful: the sources are reporting, tagged `SECONDARY` where applicable (`--explain heatSource.totalPower_W`).
 
 ### 5c. The physics limit
 

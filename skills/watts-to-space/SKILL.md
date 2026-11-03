@@ -63,7 +63,7 @@ Environment ids: `iss-leo`, `leo-600`, `llo-100`, `cislunar-deep`, `moon-equator
 bun run analyze --mode starmind --set heatSource.totalPower_W=500000
 ```
 
-Real output (trimmed): `heatToReject_W` 546316, `radiatorArea_m2` 642.936, `solarArrayArea_m2` 2298.72, `solarArrayToRadiatorAreaRatio` 3.57535, total mass 11218 kg, 22.436 kg/kW. Starmind mode is LEO 600 km with an Earth-style lidded GPU stack.
+Real output (trimmed): `heatToReject_W` 546316, `radiatorArea_m2` 642.936, `solarArrayArea_m2` 1820.26, `solarArrayToRadiatorAreaRatio` 2.83116, total mass 10292.7 kg, 20.5853 kg/kW. Starmind mode is LEO 600 km with an Earth-style lidded GPU stack.
 
 **What if the chips run hotter?** Sweep the source temperature limit.
 
@@ -79,7 +79,7 @@ Real output: 308.18 m² at 340 K, 229.97 at 360 K, 176.15 at 380 K, 137.76 at 40
 bun run analyze --mode starmind --tornado --format table
 ```
 
-Real output, top rows for total mass: solar array areal density ±8.1 % (for a ±20 % step), radiator areal density ±6.9 %, source temperature limit ±10 K gives +4.9 % (colder) and −4.2 % (hotter), cell efficiency ±10 % gives +4.5 % (lower) and −3.7 % (higher). Each row perturbs one input by its own step (listed in `--list` as the tornado step) and holds the rest. Use `--metric radiatorArea_m2` to rank for radiator area instead.
+Real output, top rows for total mass: radiator areal density ±7.5 % (for a ±20 % step), solar array areal density ±7.1 %, source temperature limit ±10 K gives +5.4 % (colder) and −4.5 % (hotter), average-load fraction ±0.1 gives ±4.4 %, cell efficiency ±10 % gives +3.9 % (lower) and −3.2 % (higher). Each row perturbs one input by its own step (listed in `--list` as the tornado step) and holds the rest. Use `--metric radiatorArea_m2` to rank for radiator area instead.
 
 **LEO vs cislunar vs the lunar surface.** Same hardware, different location:
 
@@ -88,7 +88,7 @@ bun run analyze --mode starmind --environment moon-equator --format table
 bun run analyze --mode starmind --environment cislunar-deep --format table
 ```
 
-Real results for the Starmind hardware (radiator m² / solar array m² / battery kg): `iss-leo` 197.7 / 1147.3 / 2183; `leo-600` 192.9 / 679.9 / 0; `llo-100` 203.5 / 1161.3 / 2821; `cislunar-deep` 174.5 / 679.9 / 0; `moon-equator` 9045.5 / 1418.8 / 1,290,620; `moon-polar` 193.4 / 810.3 / 387,185. The lunar equator at noon rejects only 22.6 W/m² per panel with a vertical fin, and the 14-day night makes the battery 96 % of mass (the CLI's warning says so). See `references/curriculum.md` lesson 3.
+Real results for the Starmind hardware (radiator m² / solar array m² / battery kg): `iss-leo` 197.7 / 921.5 / 1747; `leo-600` 192.9 / 546.1 / 0; `llo-100` 203.5 / 932.8 / 2257; `cislunar-deep` 174.5 / 546.1 / 0; `moon-equator` 9045.5 / 1139.6 / 1,032,490; `moon-polar` 193.4 / 650.8 / 309,748. The lunar equator at noon rejects only 22.6 W/m² per panel with a vertical fin, and the 14-day night makes the battery 95 % of mass (the CLI's warning says so). See `references/curriculum.md` lesson 3.
 
 **Compare the four reference modes** (add `--environment` or `--heat-source` to apply to all four):
 
@@ -104,7 +104,7 @@ Real output rows (radiator m²): `iss` 1201.3, `starmind` 192.88, `ideal` 118.91
 bun run analyze --mode starmind
 ```
 
-`reportedCheck` (real): 110 m² must reject 1489.95 W/m², so the radiating fluid must be 363.398 K; the model's coolant is 336.242 K; `budgetLeft_K` 9.6015 K is what the report leaves for the whole heat path, versus `modelChainDrop_K` 36.7575 K for the lidded stack. Reading: the reported area is only consistent with a source stack far better than an Earth-style lidded package, or a hotter junction. It is a consistency check, not proof the report is wrong.
+`reportedCheck` (real): 110 m² must reject 1489.95 W/m² at peak load (1191.96 W/m² at average load, `targetAverage_W_m2`), so the radiating fluid must be 363.398 K (345.174 K at average load, `requiredFluidAverage_K`); the model's coolant is 336.242 K; `budgetLeft_K` 9.6015 K is what the report leaves for the whole heat path, versus `modelChainDrop_K` 36.7575 K for the lidded stack. Reading: the reported area is only consistent with a source stack far better than an Earth-style lidded package, or a hotter junction. It is a consistency check, not proof the report is wrong.
 
 **Any scenario from a file or link.**
 
@@ -117,9 +117,10 @@ bun run analyze --share 'w2s1....'
 
 | Field | Meaning |
 |---|---|
-| `heatToReject_W` | Bus load. Every delivered watt becomes heat. |
+| `payloadPeak_W`, `payloadAverage_W` | Payload at peak and averaged over time (`heatSource.averageFraction` times peak). |
+| `heatToReject_W`, `busLoadAverage_W` | Bus load at peak, which sizes the radiator, and averaged, which sizes the solar array and battery. Every delivered watt becomes heat. |
 | `radiatorArea_m2` | Panel area (planform) including the sizing margin. A string `"Infinity"` means the environment heats the radiator faster than it radiates at that temperature. |
-| `solarArrayArea_m2`, `solarArrayToRadiatorAreaRatio` | Solar array sized for the load plus battery recharge. Ratio above 1 means the solar array, not the radiator, is the bigger structure. |
+| `solarArrayArea_m2`, `solarArrayToRadiatorAreaRatio` | Solar array sized for the average load plus battery recharge. Ratio above 1 means the solar array, not the radiator, is the bigger structure. |
 | `mass_kg` | radiator, thermalLoop (pumps and joints), solarArray, battery, harness, total. |
 | `specificMass_kg_per_kW` | Total power-and-thermal mass per kW of payload. |
 | `temperatures_K` | `sourceLimit`, `sourceActual`, `coolantHot`, `radiatorIn/Out`, `radiatingEffective` (T⁴-mean of the coolant glide), `radiatingAfterFin`. |
@@ -140,7 +141,7 @@ Produce a link to post in a thread, paper or issue:
 bun run analyze --mode ideal --environment moon-polar --set heatSource.totalPower_W=100000 --set radiator.emissivity=0.85 --share-out --format table
 ```
 
-Real output: a share string `w2s1.eyJtIjoiaWRlYWwi...d8293a1d`, the link `https://watts-to-space.chrislewicki.com/?s=<share string>`, a suggested one-line post, and the list of changes. (That is the public page. The string also works with the CLI, and the page can be opened offline from `dist-standalone/index.html` after `bun run build:standalone`.) Use `--base-url` for a different host.
+Real output: a share string `w2s1.eyJtIjoiaWRlYWwi...e63a9a1d`, the link `https://watts-to-space.chrislewicki.com/?s=<share string>`, a suggested one-line post, and the list of changes. (That is the public page. The string also works with the CLI, and the page can be opened offline from `dist-standalone/index.html` after `bun run build:standalone`.) Use `--base-url` for a different host.
 
 **Open a link someone posted:** `bun run analyze --share '<w2s1 string or the whole URL>'`. Quote it; the string can contain characters the shell dislikes. The user can also paste the URL into a browser.
 
@@ -155,7 +156,7 @@ Real output: a share string `w2s1.eyJtIjoiaWRlYWwi...d8293a1d`, the link `https:
 **Posting convention.** Post the link plus one line saying what changed and what it shows. `--share-out --format table` prints that line ("Suggested post") and the changes. Example shape:
 
 ```text
-Moon polar ridge, 100 kW payload, emissivity 0.85 instead of 0.92: radiator 86 m², solar array 380 m², 57 t.
+Moon polar ridge, 100 kW payload, emissivity 0.85 instead of 0.92: radiator 86 m², solar array 306 m², 46 t.
 https://watts-to-space.chrislewicki.com/?s=w2s1....
 ```
 

@@ -245,7 +245,10 @@ function summarize(s: Scenario, r: Result): Bag {
       coolant: s.loop.coolant,
     },
     feasible: r.feasible,
+    payloadPeak_W: r.payload_W,
+    payloadAverage_W: r.payloadAverage_W,
     heatToReject_W: r.heatToReject_W,
+    busLoadAverage_W: r.busLoadAverage_W,
     radiatorArea_m2: r.radiatorArea_m2,
     solarArrayArea_m2: r.solarArrayArea_m2,
     solarArrayToRadiatorAreaRatio: r.solarToRadiatorAreaRatio,
@@ -337,7 +340,7 @@ function summaryTable(sum: Bag, s: Scenario, r: Result): string {
   if (r.reportedCheck) {
     const c = r.reportedCheck;
     parts.push(
-      `\nReported-area check: ${fmt(c.radiatorArea_m2)} m2 needs ${fmt(c.target_W_m2)} W/m2, i.e. radiating fluid at ${fmt(c.requiredFluid_K)} K (model ${fmt(c.modelFluid_K)} K); chain budget left ${fmt(c.budgetLeft_K)} K vs model chain drop ${fmt(c.modelChainDrop_K)} K`,
+      `\nReported-area check: ${fmt(c.radiatorArea_m2)} m2 needs ${fmt(c.target_W_m2)} W/m2, i.e. radiating fluid at ${fmt(c.requiredFluid_K)} K (model ${fmt(c.modelFluid_K)} K); chain budget left ${fmt(c.budgetLeft_K)} K vs model chain drop ${fmt(c.modelChainDrop_K)} K; at the average load it needs ${fmt(c.targetAverage_W_m2)} W/m2, fluid ${fmt(c.requiredFluidAverage_K)} K`,
     );
   }
   for (const w of r.warnings) parts.push(`${w.level.toUpperCase()}: ${w.text}`);

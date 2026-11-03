@@ -77,8 +77,10 @@ export interface HeatSource {
   maxTemperature_K: number;
   /** Heat through ONE stack of `stages` (e.g. one GPU package). */
   unitPower_W: number;
-  /** Total heat load of the installation. */
+  /** Peak heat load of the installation: what the radiator and pumped loop are sized for. */
   totalPower_W: number;
+  /** Average load as a share of peak (0–1]: what the solar array and battery must sustain. */
+  averageFraction: number;
   stages: Stage[];
 }
 

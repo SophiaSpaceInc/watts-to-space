@@ -85,10 +85,14 @@ export interface PowerSupply {
  * The power-supply part of the model, on its own: given the bus load and the sunlight,
  * size the solar array, battery and harness. It needs nothing from the thermal side
  * except the load, which is why the page can plot it separately.
+ *
+ * The solar array and battery are sized on the AVERAGE load through each light/dark
+ * cycle; the harness on the PEAK current it must carry (defaults to the average).
+ * Not modelled: battery energy for peaks above the average within a sunlit period.
  */
-export function sizePowerSupply(load_W: number, p: Power, sun: Sunlight): PowerSupply {
+export function sizePowerSupply(load_W: number, p: Power, sun: Sunlight, peakLoad_W = load_W): PowerSupply {
   const storage = storageSizing({ load_W, ...sun, ...p.battery });
-  const wire = harness({ power_W: load_W, busVoltage_V: p.busVoltage_V, oneWayLength_m: p.harnessOneWayLength_m, lossFraction: p.harnessLossFraction });
+  const wire = harness({ power_W: peakLoad_W, busVoltage_V: p.busVoltage_V, oneWayLength_m: p.harnessOneWayLength_m, lossFraction: p.harnessLossFraction });
   const specific_W_m2 = solarArraySpecificPower_W_m2(p);
   const output_W = (load_W * storage.solarArrayOversize) / (1 - Math.min(wire.lossFraction, 0.99));
   const area_m2 = output_W / specific_W_m2;

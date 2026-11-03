@@ -109,6 +109,8 @@ export function validateScenario(data: unknown): Scenario {
     c.num(hs, 'maxTemperature_K', 'heatSource', TEMPERATURE);
     c.num(hs, 'unitPower_W', 'heatSource', POSITIVE);
     c.num(hs, 'totalPower_W', 'heatSource', POSITIVE);
+    if (hs.averageFraction === undefined) hs.averageFraction = 1; // files from before peak/average: average = peak
+    c.num(hs, 'averageFraction', 'heatSource', FRACTION);
     if (!Array.isArray(hs.stages)) c.problems.push('heatSource.stages must be an array');
     else
       hs.stages.forEach((st: unknown, i: number) => {

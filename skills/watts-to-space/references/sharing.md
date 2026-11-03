@@ -16,7 +16,7 @@ bun run analyze --mode starmind --environment cislunar-deep --set radiator.emiss
 
 Prints the share string, the link (`https://watts-to-space.chrislewicki.com/?s=<share string>`), a suggested one-line post and the list of changes. The JSON form (`--share-out` alone) has `share`, `url`, `headline`, `changes`. Use `--base-url` to point at another host (a fork, a local build). Recipients without a browser can use the share string with the CLI, or open the repo's offline `dist-standalone/index.html` build.
 
-An unmodified reference mode is a very short string (for example `w2s1.eyJtIjoiaXNzIn0.0d9e1f64` for ISS heritage).
+An unmodified reference mode is a very short string (for example `w2s1.eyJtIjoiaXNzIiwicCI6ImUyMTE5YWE2In0.d9f7d59d` for ISS heritage).
 
 ## Open a link someone else posted
 
@@ -60,7 +60,7 @@ You can read a payload yourself: split on `.`, base64url-decode the middle part.
 `--share-out --format table` produces items 1 and 2. Real example:
 
 ```text
-Ideal engineering (ideal), Moon polar ridge, 106 kW rejected: radiator 86.056 m², solar array 379.64 m², total 57125 kg. Changes: environment leo-600 -> moon-polar; heatSource.totalPower_W 150000 -> 100000; radiator.emissivity 0.92 -> 0.85
+Ideal engineering (ideal), Moon polar ridge, 106 kW rejected: radiator 86.056 m², solar array 305.93 m², total 45794 kg. Changes: environment leo-600 -> moon-polar; heatSource.totalPower_W 150000 -> 100000; radiator.emissivity 0.92 -> 0.85
 ```
 
 Tidy it for the audience before posting; do not alter the numbers.

@@ -25,9 +25,12 @@ export interface Warning {
 
 export interface ReportedCheck {
   radiatorArea_m2: number;
-  /** Net rejection the reported area must achieve, W/m² of panel (no margin: best case). */
+  /** Net rejection the reported area must achieve at PEAK heat, W/m² of panel (no margin: best case). */
   target_W_m2: number;
   requiredFluid_K: number;
+  /** The same at AVERAGE heat: the reported area works at this fluid temperature if thermal mass rides through peaks. */
+  targetAverage_W_m2: number;
+  requiredFluidAverage_K: number;
   modelFluid_K: number;
   /** Source limit minus the required fluid temperature: the chain budget the report allows. */
   budgetLeft_K: number;
@@ -39,8 +42,13 @@ export interface Result {
   absorbedPerFace_W_m2: number[];
   netFlux_W_m2: number;
   feasible: boolean;
+  /** Peak payload power; the radiator is sized for this. */
   payload_W: number;
+  payloadAverage_W: number;
+  /** Peak bus load (payload, conversion losses, overhead, pumps). */
   busLoad_W: number;
+  /** Average bus load; the solar array and battery are sized for this. */
+  busLoadAverage_W: number;
   heatToReject_W: number;
   radiatorArea_m2: number;
   solarArraySpecific_W_m2: number;
@@ -73,16 +81,22 @@ export function evaluateScenario(s: Scenario): Result {
   const netFlux_W_m2 = netRejectionPerPanelArea(chain.fluidEffective_K, s.radiator, absorbed);
   const feasible = netFlux_W_m2 > 0;
 
+  // Peak and average load. The radiator and pumped loop are sized for the peak (no thermal
+  // storage is modelled, so peaks are not ridden through); the solar array and battery
+  // for the average over each light/dark cycle; the harness for the peak current.
   const p = s.power;
+  const bus = (payload: number) => payload / p.conversionEfficiency + payload * (p.overheadFraction + p.pumpFraction);
   const payload_W = s.heatSource.totalPower_W;
-  const busLoad_W = payload_W / p.conversionEfficiency + payload_W * (p.overheadFraction + p.pumpFraction);
+  const payloadAverage_W = payload_W * s.heatSource.averageFraction;
+  const busLoad_W = bus(payload_W);
+  const busLoadAverage_W = bus(payloadAverage_W);
   const heatToReject_W = busLoad_W;
 
   const radiatorArea_m2 = feasible ? (heatToReject_W * s.radiator.sizingMargin) / netFlux_W_m2 : Infinity;
 
   // Power-supply part: needs only the load and the sunlight.
   const sun = sunlight(s.environment);
-  const supply = sizePowerSupply(busLoad_W, p, sun);
+  const supply = sizePowerSupply(busLoadAverage_W, p, sun, busLoad_W);
   const { storage, harness: wire } = supply;
   const solarArraySpecific_W_m2 = supply.specific_W_m2;
   const solarArrayOutput_W = supply.output_W;
@@ -103,7 +117,9 @@ export function evaluateScenario(s: Scenario): Result {
     netFlux_W_m2,
     feasible,
     payload_W,
+    payloadAverage_W,
     busLoad_W,
+    busLoadAverage_W,
     heatToReject_W,
     radiatorArea_m2,
     solarArraySpecific_W_m2,
@@ -117,19 +133,22 @@ export function evaluateScenario(s: Scenario): Result {
     totalMass_kg,
     specificMass_kg_per_kW: totalMass_kg / (payload_W / 1000),
     rejectionEffectiveness: netFlux_W_m2 / idealRejectionPerPanelArea(s.heatSource.maxTemperature_K, 2),
-    reportedCheck: s.reported ? reportedCheck(s, s.reported.radiatorArea_m2, heatToReject_W, absorbed, chain) : null,
+    reportedCheck: s.reported ? reportedCheck(s, s.reported.radiatorArea_m2, heatToReject_W, bus(payloadAverage_W), absorbed, chain) : null,
     warnings: warnings(s, chain, feasible, mass_kg, totalMass_kg),
   };
 }
 
 /** What a reported radiator area implies: the fluid temperature it would need. */
-function reportedCheck(s: Scenario, area_m2: number, heatToReject_W: number, absorbed: number[], chain: ChainResult): ReportedCheck {
+function reportedCheck(s: Scenario, area_m2: number, heatToReject_W: number, averageHeat_W: number, absorbed: number[], chain: ChainResult): ReportedCheck {
   const target_W_m2 = heatToReject_W / area_m2;
   const requiredFluid_K = fluidTemperatureForRejection(target_W_m2, s.radiator, absorbed);
+  const targetAverage_W_m2 = averageHeat_W / area_m2;
   return {
     radiatorArea_m2: area_m2,
     target_W_m2,
     requiredFluid_K,
+    targetAverage_W_m2,
+    requiredFluidAverage_K: fluidTemperatureForRejection(targetAverage_W_m2, s.radiator, absorbed),
     modelFluid_K: chain.fluidEffective_K,
     budgetLeft_K: s.heatSource.maxTemperature_K - requiredFluid_K,
     modelChainDrop_K: s.heatSource.maxTemperature_K - chain.fluidEffective_K,

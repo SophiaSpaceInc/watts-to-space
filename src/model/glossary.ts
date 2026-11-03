@@ -10,7 +10,9 @@
 export const EXPLANATIONS: Record<string, string> = {
   // ------------------------------------------------------------- shared: load
   'heatSource.totalPower_W':
-    'Total heat load of the installation: the power the payload uses, all of which ends up as heat. It scales the radiator, the solar array and the battery together.',
+    'Peak heat load of the installation: the most power the payload draws, all of which ends up as heat. The radiator and pumped loop are sized for it, because the model holds no thermal storage to ride through peaks.',
+  'heatSource.averageFraction':
+    'Average load as a share of peak. The solar array and battery only have to sustain the average through each light/dark cycle; peaks above it come from the battery. SpaceX quotes AI1 as peak and average figures.',
   'power.conversionEfficiency':
     'Efficiency of converting bus power into what the payload uses. The lost share also becomes heat inside the spacecraft, so a lower efficiency enlarges both the solar array and the radiator.',
 

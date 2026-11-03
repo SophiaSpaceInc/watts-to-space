@@ -7,10 +7,17 @@ enough to audit line by line. Each simplification is listed under
 ## 1. Energy balance
 
 ```
-bus load          P_bus   = P_payload / η_conv + P_payload × (overhead + pumps)
-heat to reject    Q       = P_bus                      (every delivered watt becomes heat)
-solar array output P_solar = P_bus × oversize / (1 − harness loss)
+bus load            P_bus(P)  = P / η_conv + P × (overhead + pumps)
+heat to reject      Q         = P_bus(P_peak)          (every delivered watt becomes heat)
+solar array output  P_solar   = P_bus(P_avg) × oversize / (1 − harness loss)
+average payload     P_avg     = P_peak × average fraction
 ```
+
+Two loads, because the hardware answers to different ones. The radiator and pumped loop
+are sized for the **peak** heat: the model holds no thermal storage, so it cannot ride
+through a peak. The solar array and battery are sized for the **average** over each
+light/dark cycle; peaks above it come from the battery. The harness is sized for the
+peak current. SpaceX quotes AI1 the same way (peak and average compute).
 
 The solar array radiates its own unconverted sunlight, so that heat never reaches the
 payload radiator. Harness I²R is dissipated along the wires.
@@ -81,7 +88,9 @@ Pumped loops avoid this by carrying heat in moving mass. Distance then costs pum
 ## 7. Limitations
 
 1. **Steady state, orbit-averaged.** No eclipse transients, no thermal mass, no
-   hot-case/cold-case split. Real radiators are sized for the hot case and protected
+   hot-case/cold-case split. The radiator is sized for the peak load, so a design that
+   rides through short peaks on thermal mass, or throttles, needs less radiator than
+   shown; the battery energy for peaks above the average in sunlight is not counted. Real radiators are sized for the hot case and protected
    against freezing in the cold case.
 2. **Lunar IR in orbit uses the global mean.** Over the dayside, low-lunar-orbit radiators
    see up to ~4× more.

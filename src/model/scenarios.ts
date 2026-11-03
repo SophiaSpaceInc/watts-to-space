@@ -119,7 +119,8 @@ const GPU_DIRECT_DIE_STAGES: Stage[] = [
 
 const GPU_NOTES: Record<string, string> = {
   'heatSource.unitPower_W': 'Rubin "Max Q" GPU ≈ 1.8 kW; "Max P" ≈ 2.3 kW [rubin-ctee]. SECONDARY (pre-launch reporting).',
-  'heatSource.totalPower_W': 'Starmind AI1 reported 120 kW average, 150 kW peak compute [starmind-nbc]. Used for every mode so modes compare technology, not payload.',
+  'heatSource.totalPower_W': 'Starmind AI1 reported 150 kW peak, 120 kW average compute [starmind-nbc]. Used for every mode so modes compare technology, not payload. SECONDARY. A later version of the Starmind page reports 250 kW peak / 175 kW average; pending verification.',
+  'heatSource.averageFraction': '120 kW average / 150 kW peak = 0.8 for AI1 [starmind-nbc]. SECONDARY. The later 175 / 250 kW figures give 0.7; pending verification.',
   'heatSource.maxTemperature_K': '373 K (100 °C) junction: the premise that the chips run reliably this hot. HBM DRAM may set a lower limit. ASSUMPTION.',
   'heatSource.stages': 'Die 0.5 mm Si (k ≈ 120 W/m·K near 360 K [glassbrenner1964]) over ~16 cm² (two reticle-sized dies), ×1.5 hot-spot peaking; TIM1 0.05 K·cm²/W; 3 mm Cu lid; TIM2 0.08 K·cm²/W over 40 cm²; microchannel h_eff 50 kW/m²K. ASSUMPTION, sanity-checked: with a 45 °C inlet [rubin-2crsi] and a 10 K coolant rise, this stack puts the junction at ~86 °C (1.8 kW) to ~94 °C (2.3 kW).',
 };
@@ -136,13 +137,13 @@ export const HEAT_SOURCES: Record<string, HeatSourcePreset> = {
   'gpu-lidded': {
     label: 'AI accelerator, lidded (Rubin-class, Earth-style cold plate)',
     loopCoolant: 'water',
-    heatSource: { name: 'Rubin-class GPU (lidded)', maxTemperature_K: 373, unitPower_W: 1800, totalPower_W: 150e3, stages: GPU_LIDDED_STAGES },
+    heatSource: { name: 'Rubin-class GPU (lidded)', maxTemperature_K: 373, unitPower_W: 1800, totalPower_W: 150e3, averageFraction: 0.8, stages: GPU_LIDDED_STAGES },
     notes: GPU_NOTES,
   },
   'gpu-direct-die': {
     label: 'AI accelerator, direct-die two-phase',
     loopCoolant: 'twoPhaseAmmonia',
-    heatSource: { name: 'Rubin-class GPU (direct-die)', maxTemperature_K: 373, unitPower_W: 1800, totalPower_W: 150e3, stages: GPU_DIRECT_DIE_STAGES },
+    heatSource: { name: 'Rubin-class GPU (direct-die)', maxTemperature_K: 373, unitPower_W: 1800, totalPower_W: 150e3, averageFraction: 0.8, stages: GPU_DIRECT_DIE_STAGES },
     notes: {
       ...GPU_NOTES,
       'heatSource.stages': 'Die thinned to 0.3 mm with ×1.5 peaking; no lid, no TIMs; flow boiling h_eff 150 kW/m²K on the die footprint. ASSUMPTION (aggressive, not flight-proven at this power).',
@@ -151,7 +152,7 @@ export const HEAT_SOURCES: Record<string, HeatSourcePreset> = {
   'isothermal-limit': {
     label: 'Physics limit: no interface drops (radiator at source temperature)',
     loopCoolant: 'twoPhaseAmmonia',
-    heatSource: { name: 'Isothermal source', maxTemperature_K: 373, unitPower_W: 1800, totalPower_W: 150e3, stages: [] },
+    heatSource: { name: 'Isothermal source', maxTemperature_K: 373, unitPower_W: 1800, totalPower_W: 150e3, averageFraction: 0.8, stages: [] },
     notes: { ...GPU_NOTES, 'heatSource.stages': 'No stages: the radiator runs at the source temperature. A bound, not a design.' },
   },
   'process-600K': {
@@ -162,12 +163,14 @@ export const HEAT_SOURCES: Record<string, HeatSourcePreset> = {
       maxTemperature_K: 600,
       unitPower_W: 150e3,
       totalPower_W: 150e3,
+      averageFraction: 1,
       stages: [{ id: 'processHx', label: 'Process to coolant heat exchanger', kind: 'deltaT', deltaT_K: 20, lengthScale_m: 0.05 }],
     },
     notes: {
       'heatSource.maxTemperature_K': 'Generic mid-temperature process. The point: radiator flux grows as T⁴, so hot waste heat is cheap to reject. ASSUMPTION.',
       'heatSource.stages': '20 K approach in the process heat exchanger. ASSUMPTION.',
       'heatSource.totalPower_W': 'Same 150 kW as the compute cases, for comparison. ASSUMPTION.',
+      'heatSource.averageFraction': 'A continuous process runs at its peak: average = peak. ASSUMPTION.',
     },
   },
 };
@@ -463,7 +466,8 @@ export interface Param {
 }
 
 export const PARAMETERS: Param[] = [
-  { part: 'shared', group: 'Load', path: 'heatSource.totalPower_W', label: 'Total heat load', unit: 'kW', display: 1e-3, min: 10e3, max: 2e6, step: 10e3 },
+  { part: 'shared', group: 'Load', path: 'heatSource.totalPower_W', label: 'Peak heat load', unit: 'kW', display: 1e-3, min: 10e3, max: 2e6, step: 10e3 },
+  { part: 'shared', group: 'Load', path: 'heatSource.averageFraction', label: 'Average load, share of peak', unit: '', min: 0.1, max: 1, step: 0.01, tornadoStep: 0.1 },
   { part: 'shared', group: 'Load', path: 'power.conversionEfficiency', label: 'Bus-to-payload conversion', unit: '', min: 0.7, max: 1, step: 0.005, tornadoStep: 0.02 },
   { part: 'shared', group: 'Location', path: 'environment.altitude_km', label: 'Altitude', unit: 'km', min: 100, max: 40000, step: 10, when: (s) => s.environment.kind === 'orbit' },
   { part: 'shared', group: 'Location', path: 'environment.beta_deg', label: 'Beta angle β', unit: '°', min: 0, max: 90, step: 1, when: (s) => s.environment.kind === 'orbit' },
