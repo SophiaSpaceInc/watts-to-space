@@ -53,12 +53,20 @@ export const SOURCES: Record<string, Source> = {
     url: 'https://www.sec.gov/Archives/edgar/data/1181412/000162828026036936/spaceexplorationtechnologi.htm',
   },
   'spacex-0608': {
-    title: 'SpaceX AI-satellite technical update on X, 2026-06-08 (250 W/m² solar array; about 1,400 W/m² double-sided radiators, knife-edge to the Sun; speaker not confirmed)',
+    title: 'SpaceX AI-satellite technical update on X, 2026-06-08, with Elon Musk and Ian Dahl. Musk, about 16:53–17:26: 250 W/m² solar array; about 1,400 W/m² from double-sided radiators oriented knife-edge to the Sun',
     url: 'https://x.com/SpaceX/status/2064099405758906727',
   },
   'musk-1102': {
     title: 'Elon Musk on X, 2026-11-03: "~1300 W/m^2 is easily achievable for an aluminum radiator pointed away from the Sun"',
     url: 'https://x.com/elonmusk/status/2117462581371719779',
+  },
+  'musk-0715': {
+    title: 'Elon Musk on X, 2026-07-15: AI Sat V1 peak power "raised to ~250kW (battery-assisted), with average power of ~160kW"',
+    url: 'https://x.com/elonmusk/status/2077626509615829213',
+  },
+  'musk-1001b': {
+    title: 'Elon Musk on X, 2026-10-01: hopes to run the SpaceX VR72 "at close to 250kW average power, meaning peak power would be ~10% higher"',
+    url: 'https://x.com/elonmusk/status/2105749349166661848',
   },
   'musk-1001': {
     title: 'Elon Musk on X, 2026-10-01: each Starmind spacecraft "will have over 250kW of solar power" (the Starmind page says 210 kW)',
@@ -148,7 +156,7 @@ const GPU_DIRECT_DIE_STAGES: Stage[] = [
 const GPU_NOTES: Record<string, string> = {
   'heatSource.unitPower_W': 'Rubin "Max Q" GPU ≈ 1.8 kW; "Max P" ≈ 2.3 kW [rubin-ctee]. SECONDARY (pre-launch reporting).',
   'heatSource.totalPower_W': 'AI1 compute payload "Up to 250 kW peak / 175 kW average" [spacex-starmind], up from 150 / 120 kW before 2026-08-04 [spacex-starmind-2026-08-03]. Used for every mode so modes compare technology, not payload.',
-  'heatSource.averageFraction': '175 kW average / 250 kW peak = 0.7 [spacex-starmind]; the earlier sheet gave 120 / 150 = 0.8 [spacex-starmind-2026-08-03].',
+  'heatSource.averageFraction': '175 kW average / 250 kW peak = 0.7 [spacex-starmind]; the earlier sheet gave 120 / 150 = 0.8 [spacex-starmind-2026-08-03]. Musk calls the peak "battery-assisted" with an average of ~160 kW [musk-0715], and has since hoped for "close to 250kW average", the peak ~10 % higher [musk-1001b]. The published average is moving; the page value is used.',
   'heatSource.maxTemperature_K': '373 K (100 °C) junction: the premise that the chips run reliably this hot. HBM DRAM may set a lower limit. ASSUMPTION.',
   'heatSource.stages': 'Die 0.5 mm Si (k ≈ 120 W/m·K near 360 K [glassbrenner1964]) over ~16 cm² (two reticle-sized dies), ×1.5 hot-spot peaking; TIM1 0.05 K·cm²/W; 3 mm Cu lid; TIM2 0.08 K·cm²/W over 40 cm²; microchannel h_eff 50 kW/m²K. ASSUMPTION, sanity-checked: with a 45 °C inlet [rubin-2crsi] and a 10 K coolant rise, this stack puts the junction at ~86 °C (1.8 kW) to ~94 °C (2.3 kW).',
 };
@@ -365,7 +373,7 @@ export const MODES: Record<ModeId, ModePreset> = {
     },
     reported: { radiatorArea_m2: 160, vehicleSpecificPower_kW_per_t: 75 },
     notes: {
-      'reported.radiatorArea_m2': 'Deployable liquid radiator, 160 m² [spacex-starmind] (110 m² before 2026-08-04 [spacex-starmind-2026-08-03]); FCC envelope under 200 m² [spacex-fcc-2026-09]. Taken as two-sided panel planform: SpaceX\'s June 8 update assumed about 1,400 W/m² from double-sided radiators oriented knife-edge to the Sun [spacex-0608], and Musk later cited ~1,300 W/m² for an aluminum radiator [musk-1102]. 160 m² × 1,400 W/m² = 224 kW, below the 250 kW peak. The raw ratio is 250 kW / 160 m² = 1,562 W/m²; the model also counts conversion losses and overhead.',
+      'reported.radiatorArea_m2': 'Deployable liquid radiator, 160 m² [spacex-starmind] (110 m² before 2026-08-04 [spacex-starmind-2026-08-03]); FCC envelope under 200 m² [spacex-fcc-2026-09]. Taken as two-sided panel planform: in SpaceX\'s June 8 update Musk gave about 1,400 W/m² from double-sided radiators oriented knife-edge to the Sun [spacex-0608], and later ~1,300 W/m² for an aluminum radiator [musk-1102]. 160 m² × 1,400 W/m² = 224 kW, below the 250 kW peak; Musk calls the peak battery-assisted [musk-0715]. If the average reaches 250 kW as he has hoped [musk-1001b], 1,300 W/m² needs about 192 m², still inside the FCC envelope. The raw ratio is 250 kW / 160 m² = 1,562 W/m²; the model also counts conversion losses and overhead.',
       'reported.vehicleSpecificPower_kW_per_t': '"75 kW / ton" vehicle efficiency [spacex-starmind] (70 before 2026-08-04 [spacex-starmind-2026-08-03]). Read on peak compute: 150 / 70 = 2.14 t matches outside estimates of about 2.1 t for the earlier sheet, so 250 / 75 ≈ 3.3 t. The S-1 targets about 100 kW of compute per ton [spacex-s1]. The FCC letter\'s 4,000 kg is a ceiling used in the debris analysis, not a design mass [spacex-fcc-2026-09].',
       'loop.hxApproach_K': '"Redundant pumping loops" [spacex-starmind]. Modelled as one loop with no intermediate heat exchanger: ASSUMPTION.',
       'loop.rise_K': '10 K coolant rise. ASSUMPTION.',
