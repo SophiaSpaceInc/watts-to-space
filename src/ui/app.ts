@@ -262,6 +262,8 @@ function render(): void {
   syncShareUrl();
   renderScenarioBar(changes);
   renderKpis(r);
+  const issWkg = presets.find((p) => p.id === 'iss')?.r.thermalRejection_W_per_kg;
+  if (issWkg) byId('iss-wkg').textContent = `${fmt(issWkg)} W/kg`;
   renderWarnings(r);
   renderStaircase(r, presets, changes.length > 0);
   renderDesignCurves(r);
@@ -342,6 +344,7 @@ function renderKpis(r: Result): void {
     ['Radiator area', `${fmt(r.radiatorArea_m2)} m²`, `${fmt(r.netFlux_W_m2)} W/m² net, two-sided panel`, pct(r.radiatorArea_m2, p?.radiatorArea_m2)],
     ['Solar array area', `${fmt(r.solarArrayArea_m2)} m²`, `${fmt(r.solarArraySpecific_W_m2)} W/m² in sunlight; sized for ${fmt(r.payloadAverage_W / 1000)} kW average`, pct(r.solarArrayArea_m2, p?.solarArrayArea_m2)],
     ['Power + thermal mass', fmtT(r.totalMass_kg), `${fmt(r.specificMass_kg_per_kW, 1)} kg per kW of peak payload. Storage for brief power peaks is not included.`, pct(r.totalMass_kg, p?.totalMass_kg)],
+    ['Thermal rejection', `${fmt(r.thermalRejection_W_per_kg)} W/kg`, `heat rejected per kg of radiator and pumped loop: the thermal figure of merit`, pct(r.thermalRejection_W_per_kg, p?.thermalRejection_W_per_kg)],
   ];
   const secondary: [string, string, string, string][] = [
     ['Heat to reject', `${fmt(r.heatToReject_W / 1000)} kW`, `${fmt(r.payload_W / 1000)} kW peak payload, plus conversion losses and overhead`, pct(r.heatToReject_W, p?.heatToReject_W)],
@@ -651,11 +654,33 @@ function renderMass(r: Result, presets: Preset[], modified: boolean): void {
  * baseline (pinning the current scenario first if nothing is pinned); clicking it again
  * returns to the baseline.
  */
+/** What chart 8 ranks the inputs by. */
+const TORNADO_METRICS = {
+  mass: { label: 'Mass', heading: 'what moves the mass', of: (x: Result) => x.totalMass_kg },
+  wkg: { label: 'W/kg', heading: 'what moves the thermal W/kg', of: (x: Result) => x.thermalRejection_W_per_kg },
+} as const;
+let tornadoMetric: keyof typeof TORNADO_METRICS = 'mass';
+
+function renderTornadoSwitch(): void {
+  const box = byId('tornado-switch');
+  box.innerHTML = `<div class="segmented" role="group" aria-label="Rank the inputs by"><span class="segmented-label">Rank by</span>${(Object.keys(TORNADO_METRICS) as (keyof typeof TORNADO_METRICS)[])
+    .map((k) => `<button type="button" data-metric="${k}" aria-pressed="${k === tornadoMetric}">${k === 'mass' ? 'Power + thermal mass' : 'Thermal W/kg'}</button>`)
+    .join('')}</div>`;
+  for (const b of box.querySelectorAll<HTMLButtonElement>('button'))
+    b.addEventListener('click', () => {
+      tornadoMetric = b.dataset.metric as keyof typeof TORNADO_METRICS;
+      renderTornado();
+    });
+  byId('fig8-heading').textContent = `8. Sensitivity slopes: ${TORNADO_METRICS[tornadoMetric].heading}`;
+}
+
 function renderTornado(): void {
+  renderTornadoSwitch();
   const base = pinned ?? scenario;
   const params = PARAMETERS.filter((p) => p.tornadoStep !== undefined && (!p.when || p.when(base)));
   const specs = params.map((p) => ({ path: p.path, label: p.label, step: p.tornadoStep ?? 0, relative: p.relative, min: p.min, max: p.max }));
-  const rows = tornado(base, specs, (x) => x.totalMass_kg)
+  const metric = TORNADO_METRICS[tornadoMetric];
+  const rows = tornado(base, specs, metric.of)
     .map((t) => {
       const p = params.find((q) => q.path === t.path);
       const k = p?.display ?? 1;
@@ -667,7 +692,7 @@ function renderTornado(): void {
   const activeRowData = rows[activeRow];
   tornadoChart(byId('chart-tornado'), {
     rows,
-    metricLabel: 'Mass',
+    metricLabel: metric.label,
     active: activeRowData && activeStep ? { row: activeRow, side: activeStep.value === activeRowData.lowRaw ? 'low' : 'high' } : null,
     onPick: (i, side) => {
       const row = rows[i];

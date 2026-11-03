@@ -5,6 +5,7 @@
 import { SOLAR_CONSTANT_W_M2 } from '../model/constants.ts';
 import { DAWN_DUSK_BETA_DEG, SUN, sunShareOfView, sunwardBudget, type SunwardInputs } from '../model/sunward.ts';
 import { lineChart, setChartStamp } from './charts.ts';
+import { buildSliders, type Slider } from './sliders.ts';
 
 const byId = (id: string) => document.getElementById(id) as HTMLElement;
 const fmt = (v: number, digits = 0) => v.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: 0 }).replace(/^-/, '−');
@@ -14,62 +15,15 @@ const loss = (v: number) => (v < 0.5 ? '0' : `−${fmt(v)}`);
 const state = { sunAngle_deg: 45, altitude_km: 600, solarAbsorptance: 0.2, emissivity: 0.9, T_C: 60 };
 const inputs = (T_C = state.T_C): SunwardInputs => ({ ...state, T_K: T_C + 273.15 });
 
-interface Slider {
-  key: keyof typeof state;
-  label: string;
-  unit: string;
-  min: number;
-  max: number;
-  step: number;
-  hint: string;
-  /** Parameter explanation on the main page (opens the Assumptions row), if it has one. */
-  explain?: string;
-  /** Log-scaled slider (the number box still shows the plain value). */
-  log?: boolean;
-}
-
-const SLIDERS: Slider[] = [
+const SLIDERS: Slider<keyof typeof state>[] = [
   { key: 'sunAngle_deg', label: 'Sun angle', unit: '°', min: 0, max: 90, step: 1, hint: 'Between the Sun and the sunlit face: 0° face-on, 90° knife-edge.' },
-  { key: 'altitude_km', label: 'Orbit height', unit: 'km', min: 200, max: 40000, step: 1, hint: 'Above Earth. Geostationary is 35,786 km.', explain: 'environment.altitude_km', log: true },
-  { key: 'solarAbsorptance', label: 'Solar absorptance α', unit: '', min: 0, max: 1, step: 0.01, hint: 'Share of sunlight the coating absorbs: about 0.1 for optical solar reflectors, 0.2 white paint, 0.95 black paint.', explain: 'radiator.solarAbsorptance' },
-  { key: 'emissivity', label: 'IR emissivity ε', unit: '', min: 0.5, max: 1, step: 0.01, hint: 'How well the coating radiates heat; 0.9 is typical for white paint.', explain: 'radiator.emissivity' },
+  { key: 'altitude_km', label: 'Orbit height', unit: 'km', min: 200, max: 40000, step: 1, hint: 'Above Earth. Geostationary is 35,786 km.', explain: '../index.html#note-environment.altitude_km', log: true },
+  { key: 'solarAbsorptance', label: 'Solar absorptance α', unit: '', min: 0, max: 1, step: 0.01, hint: 'Share of sunlight the coating absorbs: about 0.1 for optical solar reflectors, 0.2 white paint, 0.95 black paint.', explain: '../index.html#note-radiator.solarAbsorptance' },
+  { key: 'emissivity', label: 'IR emissivity ε', unit: '', min: 0.5, max: 1, step: 0.01, hint: 'How well the coating radiates heat; 0.9 is typical for white paint.', explain: '../index.html#note-radiator.emissivity' },
   { key: 'T_C', label: 'Radiator temperature', unit: '°C', min: 0, max: 150, step: 1, hint: 'Where to read the budget below. Chips at 100 °C leave a radiator around 60 °C.' },
 ];
 
-function buildControls(): void {
-  const box = byId('sun-controls');
-  box.replaceChildren();
-  for (const s of SLIDERS) {
-    const id = `sun-${s.key}`;
-    const row = document.createElement('div');
-    row.className = 'param';
-    const toRange = (v: number) => (s.log ? Math.log10(v) : v);
-    const fromRange = (r: number) => (s.log ? 10 ** r : r);
-    const [rmin, rmax] = [toRange(s.min), toRange(s.max)];
-    row.innerHTML = `<div class="param-head">
-        <label class="control-label" for="${id}">${s.label}</label>
-        ${s.explain ? `<a class="info-anchor" href="../index.html#note-${s.explain}" target="_blank" rel="noopener" title="What is ${s.label}? Opens its explanation in the full model" aria-label="What is ${s.label}? Opens the full model's explanation in a new tab">i</a>` : ''}
-        <span class="param-value"><input id="${id}" type="number" inputmode="decimal" min="${s.min}" max="${s.max}" step="any"><span class="unit">${s.unit}</span></span>
-      </div>
-      <input type="range" min="${rmin}" max="${rmax}" step="${s.log ? (rmax - rmin) / 400 : s.step}" aria-label="${s.label}" tabindex="-1">
-      <p class="param-hint">${s.hint}</p>`;
-    const [num, range] = Array.from(row.querySelectorAll('input')) as [HTMLInputElement, HTMLInputElement];
-    const sync = () => {
-      const v = state[s.key];
-      num.value = String(s.log ? Math.round(v) : +v.toPrecision(4));
-      range.value = String(toRange(v));
-    };
-    const set = (v: number) => {
-      if (Number.isFinite(v)) state[s.key] = Math.min(s.max, Math.max(s.min, v));
-      sync();
-      render();
-    };
-    range.addEventListener('input', () => set(fromRange(Number(range.value))));
-    num.addEventListener('change', () => set(Number(num.value)));
-    sync();
-    box.appendChild(row);
-  }
-}
+const buildControls = () => buildSliders(byId('sun-controls'), SLIDERS, state, render);
 
 function render(): void {
   const temps = Array.from({ length: 76 }, (_, i) => i * 2); // 0–150 °C

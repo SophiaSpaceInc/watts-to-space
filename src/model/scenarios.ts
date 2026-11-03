@@ -379,6 +379,7 @@ export const MODES: Record<ModeId, ModePreset> = {
       'reported.solarArrayArea_m2': '210 kW solar array [spacex-starmind] at 250 W/m² [spacex-starmind][spacex-0608] = 840 m², inside the FCC envelope of under 1,500 m² [spacex-fcc-2026-09].',
       'loop.hxApproach_K': '"Redundant pumping loops" [spacex-starmind]. Modelled as one loop with no intermediate heat exchanger: ASSUMPTION.',
       'loop.rise_K': '10 K coolant rise. ASSUMPTION.',
+      'radiator.loopSpecificMass_kg_per_kW': 'ASSUMPTION: pumps, accumulators, valves and joints for a modern single-phase loop, about a quarter of the ISS heritage figure (22.1 kg/kW). SpaceX has not published it.',
       'radiator.arealDensity_kg_m2': 'ASSUMPTION: modern deployable radiator, lighter than ISS. Musk describes the radiator as aluminum [musk-1102]; SpaceX has not published its mass.',
       'radiator.sizingMargin': 'ASSUMPTION.',
       'power.operatingFactor': 'CALIBRATED (0.928): with the assumed 22 % cells and 0.9 packing, reproduces SpaceX\'s stated solar power density of 250 W/m² [spacex-starmind][spacex-0608]. SpaceX gives "Solar Array 210 kW", which is 840 m² at 250 W/m² [spacex-starmind]; Musk has said "over 250kW of solar power" [musk-1001]; the FCC envelope is under 1,500 m² [spacex-fcc-2026-09].',

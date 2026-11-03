@@ -113,7 +113,8 @@ export interface LineChartOptions {
   series: Series[];
   x: Axis;
   y: Axis;
-  markers?: { x: number; y: number; label: string; color?: string }[];
+  /** Points to mark; `labelLeft` puts the label on the left, to keep it clear of a neighbour. */
+  markers?: { x: number; y: number; label: string; color?: string; labelLeft?: boolean }[];
   rules?: { y: number; label: string }[];
   /** Vertical reference lines, e.g. a threshold on the x axis. */
   vrules?: { x: number; label: string }[];
@@ -231,6 +232,9 @@ function drawLineChart(container: HTMLElement, options: LineChartOptions): void 
   const X = scale(xd, [m.left, W - m.right], o.x.log);
   const Y = scale(yd, [H - m.bottom, m.top], o.y.log);
   const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, class: 'chart' }, container);
+  // Lines that leave the plot are clipped at its edge rather than flattened against it.
+  const clipId = `plot-${container.id || Math.random().toString(36).slice(2)}`;
+  el('rect', { x: m.left, y: m.top - 2, width: W - m.left - m.right, height: H - m.top - m.bottom + 4 }, el('clipPath', { id: clipId }, el('defs', {}, svg)));
 
   for (const t of yTicks) {
     el('line', { x1: m.left, x2: W - m.right, y1: Y(t), y2: Y(t), class: t === 0 ? 'baseline' : 'grid' }, svg);
@@ -288,7 +292,7 @@ function drawLineChart(container: HTMLElement, options: LineChartOptions): void 
         prev = null;
         continue;
       }
-      const xy = `${X(p.x).toFixed(1)},${Math.min(H - m.bottom, Math.max(m.top, Y(p.y))).toFixed(1)}`;
+      const xy = `${X(p.x).toFixed(1)},${Y(p.y).toFixed(1)}`;
       if (p.outside) {
         dOut += penOut ? `L${xy}` : prev ? `M${prev}L${xy}` : `M${xy}`;
         penOut = true;
@@ -301,10 +305,10 @@ function drawLineChart(container: HTMLElement, options: LineChartOptions): void 
       }
       prev = xy;
     }
-    el('path', { d, fill: 'none', stroke: s.color, 'stroke-width': s.width ?? 2, 'stroke-dasharray': s.dash ? '6 4' : 'none', 'stroke-linejoin': 'round', 'stroke-linecap': 'round', opacity: s.muted ? 0.35 : 1, class: s.muted ? 'series muted' : 'series' }, svg);
+    el('path', { d, 'clip-path': `url(#${clipId})`, fill: 'none', stroke: s.color, 'stroke-width': s.width ?? 2, 'stroke-dasharray': s.dash ? '6 4' : 'none', 'stroke-linejoin': 'round', 'stroke-linecap': 'round', opacity: s.muted ? 0.35 : 1, class: s.muted ? 'series muted' : 'series' }, svg);
     if (dOut) {
       extrapolated = true;
-      el('path', { d: dOut, fill: 'none', stroke: s.color, 'stroke-width': s.width ?? 2, 'stroke-dasharray': '2 5', 'stroke-linecap': 'round', opacity: 0.5, class: 'series extrapolated' }, svg);
+      el('path', { d: dOut, 'clip-path': `url(#${clipId})`, fill: 'none', stroke: s.color, 'stroke-width': s.width ?? 2, 'stroke-dasharray': '2 5', 'stroke-linecap': 'round', opacity: 0.5, class: 'series extrapolated' }, svg);
     }
     const last = [...s.points].reverse().find((p) => ok(p) && p.x <= xd[1] && p.y >= yd[0] && p.y <= yd[1]);
     if (!narrow && last && s.label !== '') ends.push({ y: Y(last.y), text: s.label ?? s.name, color: s.color, muted: !!s.muted });
@@ -321,7 +325,7 @@ function drawLineChart(container: HTMLElement, options: LineChartOptions): void 
   for (const mk of o.markers ?? []) {
     if (![mk.x, mk.y].every(Number.isFinite) || mk.x < xd[0] || mk.x > xd[1] || mk.y < yd[0] || mk.y > yd[1]) continue;
     el('circle', { cx: X(mk.x), cy: Y(mk.y), r: 5, fill: mk.color ?? 'var(--ink)', stroke: 'var(--surface)', 'stroke-width': 2 }, svg);
-    el('text', { x: X(mk.x) + 8, y: Y(mk.y) - 8, class: 'marker-label' }, svg).textContent = mk.label;
+    el('text', { x: X(mk.x) + (mk.labelLeft ? -8 : 8), y: Y(mk.y) - 8, class: 'marker-label', 'text-anchor': mk.labelLeft ? 'end' : 'start' }, svg).textContent = mk.label;
   }
 
   // Crosshair + tooltip: nearest point of each series to the pointer's x.

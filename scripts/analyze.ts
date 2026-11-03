@@ -250,6 +250,7 @@ function summarize(s: Scenario, r: Result): Bag {
     solarArrayToRadiatorAreaRatio: r.solarToRadiatorAreaRatio,
     mass_kg: { ...r.mass_kg, total: r.totalMass_kg },
     specificMass_kg_per_kW: r.specificMass_kg_per_kW,
+    thermalRejection_W_per_kg: r.thermalRejection_W_per_kg,
     temperatures_K: {
       sourceLimit: s.heatSource.maxTemperature_K,
       sourceActual: r.chain.sourceActual_K,
@@ -323,6 +324,7 @@ function summaryTable(sum: Bag, s: Scenario, r: Result): string {
       ['Solar array : radiator area', r.solarToRadiatorAreaRatio],
       ['Total mass (kg)', r.totalMass_kg],
       ['Specific mass (kg/kW)', r.specificMass_kg_per_kW],
+      ['Thermal rejection (W/kg of radiator + loop)', r.thermalRejection_W_per_kg],
       ['Net flux (W/m2 of panel)', r.netFlux_W_m2],
       ['Rejection effectiveness', r.rejectionEffectiveness],
       ['Sunlit fraction', r.sunlight.sunlitFraction],
@@ -392,7 +394,7 @@ function parseSweep(spec: string): { path: string; values: number[] } {
 }
 
 function metricProblems(r: Result, metrics: string[]): string[] {
-  return metrics.filter((p) => typeof getPath(r, p) !== 'number').map((p) => `--metric ${p}: not a numeric field of the result (try radiatorArea_m2, solarArrayArea_m2, totalMass_kg, specificMass_kg_per_kW, mass_kg.battery, chain.fluidEffective_K)`);
+  return metrics.filter((p) => typeof getPath(r, p) !== 'number').map((p) => `--metric ${p}: not a numeric field of the result (try radiatorArea_m2, solarArrayArea_m2, totalMass_kg, specificMass_kg_per_kW, thermalRejection_W_per_kg, mass_kg.battery, chain.fluidEffective_K)`);
 }
 
 function doSweeps(s: Scenario, specs: string[], metrics: string[]): Bag {
@@ -455,7 +457,7 @@ function doTornado(s: Scenario, metrics: string[]): Bag {
   };
 }
 
-const COMPARE_FIELDS = ['radiatorArea_m2', 'solarArrayArea_m2', 'solarToRadiatorAreaRatio', 'totalMass_kg', 'specificMass_kg_per_kW', 'rejectionEffectiveness', 'netFlux_W_m2'] as const;
+const COMPARE_FIELDS = ['radiatorArea_m2', 'solarArrayArea_m2', 'solarToRadiatorAreaRatio', 'totalMass_kg', 'specificMass_kg_per_kW', 'thermalRejection_W_per_kg', 'rejectionEffectiveness', 'netFlux_W_m2'] as const;
 
 function doCompare(o: Opts): Bag {
   if (o.scenario !== undefined || o.share !== undefined || o.mode !== undefined) {
@@ -560,6 +562,7 @@ function compareTable(c: Bag): string {
     ['Solar array : radiator', 'solarArrayToRadiatorAreaRatio'],
     ['Total mass (kg)', 'totalMass_kg'],
     ['Specific mass (kg/kW)', 'specificMass_kg_per_kW'],
+    ['Thermal rejection (W/kg)', 'thermalRejection_W_per_kg'],
     ['Coolant hot (K)', 'coolantHot_K'],
     ['Radiating T4-mean (K)', 'radiatingEffective_K'],
     ['Source-stack drop (K)', 'sourceStackDrop_K'],

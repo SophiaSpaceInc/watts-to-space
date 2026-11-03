@@ -6,9 +6,9 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "bun ./index.html ./everyday/index.html ./sun/index.html",
-    "build": "bun build ./index.html ./everyday/index.html ./sun/index.html --outdir dist",
-    "build:standalone": "bun build --compile --target=browser ./index.html ./everyday/index.html ./sun/index.html --outdir=dist-standalone",
+    "dev": "bun ./index.html ./everyday/index.html ./sun/index.html ./mass/index.html",
+    "build": "bun build ./index.html ./everyday/index.html ./sun/index.html ./mass/index.html --outdir dist",
+    "build:standalone": "bun build --compile --target=browser ./index.html ./everyday/index.html ./sun/index.html ./mass/index.html --outdir=dist-standalone",
     "test": "bun test",
     "analyze": "bun scripts/analyze.ts",
     "typecheck": "tsc --noEmit"

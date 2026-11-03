@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Watts per kilogram: the figure of merit for space radiators</title>
+    <meta name="description" content="Heat rejected per kilogram of radiator and pumps: what sets it, what caps it, and where the room is. A companion to watts-to-space, by Chris Lewicki." />
+    <meta name="author" content="Chris Lewicki" />
+    <link rel="canonical" href="https://watts-to-space.chrislewicki.com/mass/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://watts-to-space.chrislewicki.com/mass/" />
+    <meta property="og:title" content="Watts per kilogram" />
+    <meta property="og:description" content="The figure of merit for getting rid of heat in space: what sets it, what caps it, and where the room is." />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:creator" content="@interplanetary" />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="everyday sunward massward">
+    <header class="page-header">
+      <p class="byline">
+        <a class="back-link" href="https://chrislewicki.com" rel="noopener me"><span aria-hidden="true">←</span> Chris Lewicki</a>
+        <span class="socials">
+          <a class="social" href="https://www.linkedin.com/in/chrislewicki/" rel="noopener me" aria-label="Chris Lewicki on LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.125 2.062 2.062 0 0 1 0 4.125zM7.119 20.452H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+          <a class="social" href="https://x.com/interplanetary" rel="noopener me" aria-label="@interplanetary on X" title="X: @interplanetary"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
+        </span>
+      </p>
+      <h1>Watts per kilogram</h1>
+      <p class="subtitle">The figure of merit for getting rid of heat in space.</p>
+    </header>
+
+    <section class="intro" aria-label="Introduction">
+      <p>
+        Every kilogram launched costs money, so the useful question about a radiator is how much heat it rejects per
+        kilogram. Two things set the answer. Physics sets the heat per square metre: at 50 °C in low Earth orbit, a
+        white-painted panel radiating from both faces sheds about <b id="q50">1,000 W per m²</b>, and only a hotter
+        radiator does better. Engineering sets the mass per square metre: the panel, its tubes and coolant, armour
+        against micrometeoroids and the deployment mechanism, plus pumps and plumbing for every kilowatt it carries.
+        Divide one by the other.
+      </p>
+      <figure class="equation" aria-labelledby="wkg-caption">
+        <div class="formula" role="math" aria-label="W per kg equals q over m A plus q times m P">
+          <var>W/kg</var> = <var>q</var> / (<var>m</var><sub>A</sub> + <var>q</var>·<var>m</var><sub>P</sub>)
+        </div>
+        <figcaption id="wkg-caption">
+          <var>q</var>: heat rejected per m² of panel · <var>m</var><sub>A</sub>: radiator mass per m² ·
+          <var>m</var><sub>P</sub>: pump and loop mass per watt carried
+        </figcaption>
+      </figure>
+      <p>
+        Two things follow. At a given temperature, a lighter radiator is the main lever, until the pumps dominate. And
+        the pumps set a ceiling: with <var>m</var><sub>P</sub> kilograms per kilowatt, no radiator, however light,
+        beats 1,000 ÷ <var>m</var><sub>P</sub> W/kg.
+      </p>
+      <p class="muted small">
+        A companion to <a href="../index.html">watts-to-space</a>, where the same figure appears as the
+        "Thermal rejection" readout for every scenario.
+      </p>
+    </section>
+
+    <section class="part" id="mass-explorer" aria-labelledby="mass-explorer-title">
+      <h2 id="mass-explorer-title">Where the room is</h2>
+      <p class="part-lede">
+        Each line marks one value of watts per kilogram across radiator temperature and radiator mass per m², for the
+        pump and loop mass you set. Lower and further right is better. The dots are the full model's reference cases.
+      </p>
+      <div class="layout">
+        <aside class="rail" aria-label="Inputs">
+          <div class="rail-head">
+            <p class="eyebrow">Your radiator</p>
+            <span class="rail-hint">Drag, or type a value</span>
+          </div>
+          <div id="mass-controls" class="controls"></div>
+        </aside>
+        <div class="sun-chart">
+          <h3 class="chart-title">Radiator mass per m² that reaches each W/kg</h3>
+          <div id="chart-mass-map" class="chart-box"></div>
+        </div>
+        <div class="sun-results">
+          <div id="mass-budget" class="kpi-row places"></div>
+          <p id="mass-note" class="muted small"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="everyday-section left-out" aria-labelledby="left-out-title">
+      <h2 id="left-out-title">What this page leaves out</h2>
+      <ul>
+        <li><b>The heat path.</b> The radiator's temperature is set by how hot the chips may run and how much
+          temperature the path from chip to radiator spends. The full model's Part 1 covers it.</li>
+        <li><b>Sizing margin.</b> The lines assume the radiator is exactly as big as the heat needs. The reference cases'
+          own W/kg include their margins and their own pump mass, so a dot can sit near a line it does not quite reach.</li>
+        <li><b>Sunlight and Earth.</b> The panel is knife-edge to the Sun and edge-on to Earth at 600 km, as in the full
+          model's Starmind case; at 50 °C Earth's warmth costs about 10 %.</li>
+        <li><b>The power side.</b> This is thermal mass only. The solar array that powers the payload has its own mass,
+          which the full model adds.</li>
+      </ul>
+    </section>
+
+    <section class="see-also" id="see-also" aria-labelledby="see-also-title">
+      <h2 id="see-also-title">See also</h2>
+      <ul class="see-also-list">
+        <li><a href="../index.html">Heat rejection in vacuum</a><span>The full model: the heat path, the radiator and the power supply, with every assumption sourced.</span></li>
+        <li><a href="../everyday/index.html">Your laptop in space</a><span>What a phone, laptop, server or GPU rack would do in a vacuum, and how big its radiator and solar array would be.</span></li>
+        <li><a href="../sun/index.html">Pointing a radiator at the Sun</a><span>The Sun fills almost none of the sky. Turn a radiator toward it and watch what it loses.</span></li>
+      </ul>
+    </section>
+
+    <footer class="muted small">
+      <p class="footer-links">
+        <a href="https://chrislewicki.com" rel="noopener me">chrislewicki.com</a>
+        <span class="socials">
+          <a class="social" href="https://www.linkedin.com/in/chrislewicki/" rel="noopener me" aria-label="Chris Lewicki on LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.125 2.062 2.062 0 0 1 0 4.125zM7.119 20.452H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+          <a class="social" href="https://x.com/interplanetary" rel="noopener me" aria-label="@interplanetary on X" title="X: @interplanetary"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
+        </span>
+        <span aria-hidden="true">·</span> <a href="https://github.com/interplanetarychris/watts-to-space" rel="noopener">Source on GitHub</a>
+      </p>
+      <p>Code <a href="https://github.com/interplanetarychris/watts-to-space/blob/main/LICENSE" rel="noopener">MIT</a> · text and figures <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">CC BY 4.0</a>, © 2026 Chris Lewicki.</p>
+      Model source: <span class="mono">src/model/specificRejection.ts</span> (unit-tested with <span class="mono">bun test</span>).
+    </footer>
+    <script type="module" src="../src/ui/massward.ts"></script>
+  </body>
+</html>

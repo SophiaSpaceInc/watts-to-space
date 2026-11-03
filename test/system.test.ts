@@ -180,3 +180,10 @@ test('Starmind check: the published flux needs fluid between the delivered and t
   assert.ok(c.statedFluxFluid_K! > c.modelFluid_K && c.statedFluxFluid_K! < 373, `stated-flux fluid ${c.statedFluxFluid_K}`);
   assert.ok(Math.abs(c.publishedAreaRatio! - 840 / 160) < 1e-9);
 });
+
+test('thermal rejection per kg: heat over radiator + loop mass; heritage < Starmind < aggressive < bound', () => {
+  const w = (id: ModeId) => evaluateScenario(buildScenario(id)).thermalRejection_W_per_kg;
+  const r = evaluateScenario(buildScenario('starmind'));
+  assert.ok(Math.abs(r.thermalRejection_W_per_kg - r.heatToReject_W / (r.mass_kg.radiator + r.mass_kg.thermalLoop)) < 1e-9);
+  assert.ok(w('iss') < w('starmind') && w('starmind') < w('ideal') && w('ideal') < w('physics'));
+});

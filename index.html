@@ -26,7 +26,8 @@
       </p>
       <h1>Heat rejection in vacuum</h1>
       <p class="subtitle">Every watt becomes heat. In space, the only way out is to radiate it.</p>
-      <p class="try-link"><a href="#explorer">Try the explorer ↓</a> <span class="muted">·</span> <a href="./everyday/index.html">New to this? Start with your laptop in space</a> <span class="muted">·</span> <a href="./sun/index.html">Pointing a radiator at the Sun</a></p>
+      <p class="start-here">New to this? Start with <a href="./everyday/index.html">Your laptop in space</a>, the plain-language version.</p>
+      <p class="try-link"><a href="#explorer">Or go straight to the explorer ↓</a></p>
     </header>
 
     <figure class="hero">
@@ -57,7 +58,10 @@
       <p>
         I built this explorer to make that intuition quantitative. It follows the energy from the solar array, through
         the payload, down the temperature staircase, to the radiator, and shows which assumptions actually move the size
-        and mass of the hardware. It started as a question about orbital data centers. I want it to grow into a tool
+        and mass of the hardware. One number sums up the thermal side: watts of heat rejected per kilogram of radiator
+        and pumped loop. This model's ISS-heritage case manages about <span id="iss-wkg">8 W/kg</span>;
+        <a href="./mass/index.html">Watts per kilogram</a> shows what limits it and where the room is. It started as a
+        question about orbital data centers. I want it to grow into a tool
         for any energy-hungry work in cislunar space and, eventually, on the Moon.
       </p>
       <p>
@@ -83,7 +87,7 @@
     <nav class="jump" aria-label="On this page">
       <a href="#part-heat-path">Heat path</a> · <a href="#part-radiator">Radiator</a> ·
       <a href="#part-power">Power supply</a> · <a href="#part-results">Results</a> ·
-      <a href="#assumptions-section">Assumptions</a> · <a href="#agent">Ask your AI agent</a>
+      <a href="#assumptions-section">Assumptions</a> · <a href="#see-also">See also</a> · <a href="#agent">Ask your AI agent</a>
     </nav>
 
 
@@ -221,7 +225,9 @@
               <h3 class="fig-heading">4. Where you orbit: the planet-view penalty</h3>
               <p>
                 A radiator near a body sees part of it instead of 3 K space and absorbs its infrared. Edge-on panels see less
-                than panels facing the body. The penalty fades with altitude, and is larger for colder radiators.
+                than panels facing the body. The penalty fades with altitude, and is larger for colder radiators. This model
+                keeps radiators knife-edge to the Sun; <a href="./sun/index.html">Pointing a radiator at the Sun</a> shows
+                what happens when you don't.
               </p>
               <div id="chart-altitude" class="chart-box"></div>
               <p id="altitude-note" class="muted small"></p>
@@ -291,15 +297,25 @@
               <div id="chart-mass-env" class="chart-box"></div>
             </section>
             <section>
-              <h3 class="fig-heading">8. Sensitivity slopes: what moves the mass</h3>
+              <h3 class="fig-heading" id="fig8-heading">8. Sensitivity slopes: what moves the mass</h3>
               <p>
                 Each bar moves one parameter down or up by one step and holds everything else fixed. Steps are in natural
                 units: ±10 K on temperatures, ±0.05 on emissivity, ±20 % on areal densities. Hover a bar for the value tried.
               </p>
+              <div id="tornado-switch" class="tornado-switch"></div>
               <div id="chart-tornado" class="chart-box"></div>
               <p id="tornado-note" class="muted small"></p>
             </section>
       </div>
+    </section>
+
+    <section class="see-also" id="see-also" aria-labelledby="see-also-title">
+      <h2 id="see-also-title">See also</h2>
+      <ul class="see-also-list">
+        <li><a href="./everyday/index.html">Your laptop in space</a><span>What a phone, laptop, server or GPU rack would do in a vacuum, and how big its radiator and solar array would be.</span></li>
+        <li><a href="./sun/index.html">Pointing a radiator at the Sun</a><span>The Sun fills almost none of the sky. Turn a radiator toward it and watch what it loses.</span></li>
+        <li><a href="./mass/index.html">Watts per kilogram</a><span>The figure of merit for getting rid of heat in space: what sets it, what caps it, and where the room is.</span></li>
+      </ul>
     </section>
 
     <aside class="agent-callout" id="agent" aria-labelledby="agent-callout-title">

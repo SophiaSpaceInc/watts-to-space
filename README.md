@@ -2,9 +2,15 @@
 
 **Heat rejection in vacuum.** Live at **https://watts-to-space.chrislewicki.com** · by [Chris Lewicki](https://chrislewicki.com)
 
-New to the topic? The companion page **[Your laptop in space](https://watts-to-space.chrislewicki.com/everyday/)**
-(`everyday/index.html`, model in `src/model/everyday.ts`) shows what a phone, laptop, server or GPU rack
-would do in a vacuum and how big its radiator would be, in plain language.
+Companion pages, each one idea on one page, using the same physics:
+- **[Your laptop in space](https://watts-to-space.chrislewicki.com/everyday/)** (start here if you are new):
+  what a phone, laptop, server or GPU rack would do in a vacuum, and how big its radiator and solar array
+  would be. `everyday/`, `src/model/everyday.ts`.
+- **[Pointing a radiator at the Sun](https://watts-to-space.chrislewicki.com/sun/)**: the Sun fills almost
+  none of the sky; turn a radiator toward it and watch what it loses. `sun/`, `src/model/sunward.ts`.
+- **[Watts per kilogram](https://watts-to-space.chrislewicki.com/mass/)**: the thermal figure of merit,
+  heat rejected per kg of radiator and pumps, and what sets and caps it. `mass/`,
+  `src/model/specificRejection.ts`.
 
 An interactive explorer of the power and heat-rejection hardware for energy-hungry work in
 vacuum: orbital compute, cislunar industry, and (first-order) the lunar surface.

@@ -70,6 +70,8 @@ export interface Result {
   mass_kg: Record<MassKey, number>;
   totalMass_kg: number;
   specificMass_kg_per_kW: number;
+  /** Figure of merit for the thermal side: heat rejected per kg of radiator and pumped loop, W/kg. */
+  thermalRejection_W_per_kg: number;
   /** Net rejection relative to a perfect two-sided black panel at the source limit in deep space. */
   rejectionEffectiveness: number;
   reportedCheck: ReportedCheck | null;
@@ -141,6 +143,7 @@ export function evaluateScenario(s: Scenario): Result {
     mass_kg,
     totalMass_kg,
     specificMass_kg_per_kW: totalMass_kg / (payload_W / 1000),
+    thermalRejection_W_per_kg: heatToReject_W / (mass_kg.radiator + mass_kg.thermalLoop),
     rejectionEffectiveness: netFlux_W_m2 / idealRejectionPerPanelArea(s.heatSource.maxTemperature_K, 2),
     reportedCheck: s.reported ? reportedCheck(s, s.reported.radiatorArea_m2, heatToReject_W, bus(payloadAverage_W), absorbed, chain, totalMass_kg) : null,
     warnings: warnings(s, chain, feasible, mass_kg, totalMass_kg),

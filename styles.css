@@ -335,6 +335,7 @@ svg .info-link:hover circle, svg .info-link:focus circle { stroke: var(--ink); }
 svg rect.pickable { cursor: pointer; }
 svg rect.pickable:hover { opacity: 0.85; }
 svg rect.pickable:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tornado-switch { display: flex; justify-content: flex-end; margin: 0 0 6px; }
 .chart-note { margin: 6px 0 0; font: italic 400 12px/1.4 var(--sans); color: var(--ink-2); }
 svg .infeasible { font-style: italic; }
 .chart-stamp { margin: 6px 0 0; font: 400 11.5px/1.4 var(--sans); color: var(--ink-2); font-variant-numeric: tabular-nums; }
@@ -481,3 +482,13 @@ figure.hero img { display: block; width: 100%; height: auto; aspect-ratio: 2 / 1
 figure.hero figcaption { margin-top: 6px; font-size: 12px; color: var(--ink-2); text-align: right; }
 @media (prefers-color-scheme: dark) { figure.hero img { filter: brightness(0.86); border-color: transparent; } }
 @media (max-width: 640px) { figure.hero img { aspect-ratio: 16 / 9; } }
+
+/* ---------------------------------------------------------------- navigation between pages */
+.start-here { margin: -18px 0 22px; padding: 6px 12px; border-left: 3px solid var(--accent); background: var(--surface); font: 500 15px/1.4 var(--sans); }
+.start-here + .try-link { margin-top: 0; }
+.see-also { max-width: 980px; margin: 56px auto 40px; }
+.see-also h2 { margin-bottom: 14px; }
+.see-also-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; background: var(--grid); border: 1px solid var(--grid); }
+.see-also-list li { background: var(--surface); padding: 14px 16px; }
+.see-also-list a { display: block; font: 600 16px/1.3 var(--sans); margin-bottom: 6px; }
+.see-also-list span { font-size: 14px; line-height: 1.45; color: var(--ink-2); }
