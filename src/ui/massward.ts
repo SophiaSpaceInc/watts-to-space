@@ -13,7 +13,7 @@ import { lineChart, setChartStamp, type Series } from './charts.ts';
 import { sliderPanel, type Slider } from './sliders.ts';
 
 const byId = (id: string) => document.getElementById(id) as HTMLElement;
-const fmt = (v: number, digits = 0) => v.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: 0 });
+const fmt = (v: number, digits = 0) => v.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: 0 }).replace(/^-(?=[0.]+$)/, '');
 const ALTITUDE_KM = 600;
 const LEVELS = [10, 30, 100, 300, 1000, 3000];
 const X_RANGE: [number, number] = [100, 4000];

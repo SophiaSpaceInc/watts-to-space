@@ -25,7 +25,7 @@ import { rangeBars, setChartStamp } from './charts.ts';
 
 const byId = (id: string) => document.getElementById(id) as HTMLElement;
 const esc = (s: unknown) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] as string);
-const fmt = (v: number, digits = 0) => v.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: 0 });
+const fmt = (v: number, digits = 0) => v.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: 0 }).replace(/^-(?=[0.]+$)/, '');
 /** Two significant figures, so 0.048 and 7,968 both read naturally. */
 const sig = (v: number) => (v >= 100 ? fmt(Math.round(v / 10 ** (Math.floor(Math.log10(v)) - 1)) * 10 ** (Math.floor(Math.log10(v)) - 1)) : fmt(v, v >= 10 ? 0 : v >= 1 ? 1 : 3));
 /** A ratio as "77 %" below one and "1.1 ×" above, so small fractions read naturally. */

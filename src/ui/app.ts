@@ -53,7 +53,7 @@ function byId<T extends HTMLElement = HTMLElement>(id: string): T {
   return node as T;
 }
 const nf = (d: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
-const fmt = (v: number, d = 0) => (Number.isFinite(v) ? nf(d).format(v) : '∞');
+const fmt = (v: number, d = 0) => (Number.isFinite(v) ? nf(d).format(v).replace(/^-(?=[0.]+$)/, '') : '∞'); // no minus on values that round to zero
 const fmtK = (T: number) => `${fmt(T)} K (${fmt(T - 273.15)} °C)`;
 const fmtT = (kg: number) => (kg >= 1e5 ? `${fmt(kg / 1000)} t` : kg >= 1000 ? `${fmt(kg / 1000, 1)} t` : `${fmt(kg)} kg`);
 const fmtLen = (m: number) => (m < 1e-3 ? `${fmt(m * 1e6)} µm` : m < 0.01 ? `${fmt(m * 1e3, m < 2e-3 ? 1 : 0)} mm` : m < 1 ? `${fmt(m * 100)} cm` : `${fmt(m)} m`);

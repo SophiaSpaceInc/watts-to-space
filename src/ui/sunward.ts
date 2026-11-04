@@ -8,7 +8,7 @@ import { lineChart, setChartStamp } from './charts.ts';
 import { sliderPanel, type Slider } from './sliders.ts';
 
 const byId = (id: string) => document.getElementById(id) as HTMLElement;
-const fmt = (v: number, digits = 0) => v.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: 0 }).replace(/^-/, '−');
+const fmt = (v: number, digits = 0) => v.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: 0 }).replace(/^-(?=[0.]+$)/, '').replace(/^-/, '−');
 /** A loss shown as a negative number, or 0 when it rounds away. */
 const loss = (v: number) => (v < 0.5 ? '0' : `−${fmt(v)}`);
 

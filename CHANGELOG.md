@@ -10,6 +10,13 @@ Changes to the site, the model and the command line, newest first. The format fo
 
 The version is in `package.json`, and each release is tagged `vX.Y.Z`.
 
+## [1.0.3] - 2026-11-04
+
+### Fixed
+
+- Numbers that round to zero no longer show a minus sign, such as "−0 % of the dark-sky value" on
+  the Sun page when a panel is close to its balance temperature.
+
 ## [1.0.2] - 2026-11-03
 
 ### Added
@@ -40,6 +47,7 @@ First public release.
 - Share links (`?s=w2s1...`), scenario import and export, the `bun run analyze` command line and the
   agent skill.
 
+[1.0.3]: https://github.com/interplanetarychris/watts-to-space/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/interplanetarychris/watts-to-space/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/interplanetarychris/watts-to-space/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/interplanetarychris/watts-to-space/releases/tag/v1.0.0
