@@ -1,6 +1,6 @@
 {
   "name": "watts-to-space",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Interactive power and heat-rejection explorer for industry in vacuum: orbit, cislunar space, lunar surface.",
   "license": "MIT",

@@ -12,6 +12,10 @@ Companion pages, each one idea on one page, using the same physics:
   heat rejected per kg of radiator and pumps, and what sets and caps it. `mass/`,
   `src/model/specificRejection.ts`.
 
+The Sun and Watts per kilogram pages read their slider settings from the address
+(`/sun/?sunAngle_deg=0&emissivity=0.8`), and the address follows the sliders, so a copied link
+opens the same setting. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+
 An interactive explorer of the power and heat-rejection hardware for energy-hungry work in
 vacuum: orbital compute, cislunar industry, and (first-order) the lunar surface.
 

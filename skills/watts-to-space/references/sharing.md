@@ -25,6 +25,8 @@ An unmodified reference mode is a very short string (for example `w2s1.eyJtIjoia
 - Add `--format table` to show the person the result, and read `changes` to say what the poster altered.
 - If the output reports `checksum mismatch`, the string was truncated or mangled in transit (chat clients and line wrapping do this). Ask for the full link again.
 
+The companion pages `/sun/` and `/mass/` are not part of share strings. They take their slider settings as plain query parameters named after each slider, for example `https://watts-to-space.chrislewicki.com/sun/?sunAngle_deg=0&solarAbsorptance=1&emissivity=0.8&T_C=84`. Values outside a slider's range are clamped to it; unknown names are ignored. Moving a slider updates the address.
+
 ## Files
 
 ```text

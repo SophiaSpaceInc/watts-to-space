@@ -50,14 +50,41 @@ export function buildSliders<K extends string>(box: HTMLElement, sliders: Slider
   }
 }
 
+/** Slider values from a query string such as `?T_C=150&emissivity=0.8`, clamped to each slider's range. Other keys are ignored. */
+export function fromQuery<K extends string>(sliders: Slider<K>[], search: string): Partial<Record<K, number>> {
+  const q = new URLSearchParams(search);
+  const out: Partial<Record<K, number>> = {};
+  for (const s of sliders) {
+    const raw = q.get(s.key)?.trim();
+    const v = raw ? Number(raw) : NaN;
+    if (Number.isFinite(v)) out[s.key] = Math.min(s.max, Math.max(s.min, v));
+  }
+  return out;
+}
+
+/** The query string for the sliders away from their defaults, at the precision the number box shows; '' when none are. */
+export function toQuery<K extends string>(sliders: Slider<K>[], state: Record<K, number>, defaults: Record<K, number>): string {
+  const q = new URLSearchParams();
+  for (const s of sliders) if (state[s.key] !== defaults[s.key]) q.set(s.key, String(+state[s.key].toPrecision(s.log ? 3 : 4)));
+  const text = q.toString();
+  return text ? `?${text}` : '';
+}
+
 /**
- * Sliders plus a Reset button that restores the values the page opened with. The button is
- * disabled while every slider is at its starting value.
+ * Sliders plus a Reset button that restores the page's defaults. The page opens with any values
+ * given in the address (see fromQuery), and the address follows the sliders, so copying it shares
+ * the setting. Reset is disabled while every slider is at its default.
  */
 export function sliderPanel<K extends string>(box: HTMLElement, reset: HTMLButtonElement, sliders: Slider<K>[], state: Record<K, number>, render: () => void): void {
   const defaults = { ...state };
+  Object.assign(state, fromQuery(sliders, location.search));
   const changed = () => {
     reset.disabled = sliders.every((s) => state[s.key] === defaults[s.key]);
+    try {
+      history.replaceState(history.state, '', `${location.pathname}${toQuery(sliders, state, defaults)}${location.hash}`);
+    } catch {
+      // Some file:// contexts refuse history; the page still works.
+    }
     render();
   };
   const build = () => buildSliders(box, sliders, state, changed);

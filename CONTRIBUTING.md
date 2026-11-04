@@ -158,6 +158,7 @@ The comparison charts draw every reference case, and two palette slots (`--s5`, 
 - [ ] No new runtime dependency; palette untouched.
 - [ ] Docs updated: `docs/APPROACH.md` for model changes, the skill references if a CLI option changed.
 - [ ] Format changes follow the rules above (version bump, old links still decode).
+- [ ] `CHANGELOG.md` has an entry, and `package.json` carries the new version (the changelog says when a change is a patch, minor or major).
 
 ## Good first issues
 
