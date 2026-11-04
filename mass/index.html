@@ -65,8 +65,10 @@
     <section class="part" id="mass-explorer" aria-labelledby="mass-explorer-title">
       <h2 id="mass-explorer-title">Where the room is</h2>
       <p class="part-lede">
-        Each line marks one value of watts per kilogram across radiator temperature and radiator mass per m², for the
-        pump and loop mass you set. Lower and further right is better. The dots are the full model's reference cases.
+        Every point is a radiator: the heat each square metre rejects, against what its cooling hardware weighs per
+        square metre, panel plus pumps. Watts per kilogram is one divided by the other, so each diagonal is one value
+        of W/kg. Down and to the right is better. The dots are the full model's reference cases, each on its own
+        number; yours moves with the sliders.
       </p>
       <div class="layout">
         <aside class="rail" aria-label="Inputs">
@@ -77,7 +79,7 @@
           <div id="mass-controls" class="controls"></div>
         </aside>
         <div class="sun-chart">
-          <h3 class="chart-title">Radiator mass per m² that reaches each W/kg</h3>
+          <h3 class="chart-title">Heat rejected per m² against thermal hardware per m²</h3>
           <div id="chart-mass-map" class="chart-box"></div>
         </div>
         <div class="sun-results">
@@ -97,8 +99,8 @@
       <ul>
         <li><b>The heat path.</b> The radiator's temperature is set by how hot the chips may run and how much
           temperature the path from chip to radiator spends. The full model's Part 1 covers it.</li>
-        <li><b>Sizing margin.</b> The lines assume the radiator is exactly as big as the heat needs. The reference cases'
-          own W/kg include their margins and their own pump mass, so a dot can sit near a line it does not quite reach.</li>
+        <li><b>Sizing margin.</b> Your radiator is exactly as big as the heat needs, with fins as hot as the fluid. The
+          reference cases include their own sizing margins, fin losses and pumps, which is where those dots come from.</li>
         <li><b>Sunlight and Earth.</b> The panel is knife-edge to the Sun and edge-on to Earth at 600 km, as in the full
           model's Starmind case; at 50 °C Earth's warmth costs about 10 %.</li>
         <li><b>The power side.</b> This is thermal mass only. The solar array that powers the payload has its own mass,
