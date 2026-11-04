@@ -10,6 +10,13 @@ Changes to the site, the model and the command line, newest first. The format fo
 
 The version is in `package.json`, and each release is tagged `vX.Y.Z`.
 
+## [1.0.2] - 2026-11-03
+
+### Added
+
+- A note in every page footer and the README that the project was developed with coding agents:
+  Grok, Codex and Claude all contributed, including adversarial review.
+
 ## [1.0.1] - 2026-11-03
 
 ### Added
@@ -33,5 +40,6 @@ First public release.
 - Share links (`?s=w2s1...`), scenario import and export, the `bun run analyze` command line and the
   agent skill.
 
+[1.0.2]: https://github.com/interplanetarychris/watts-to-space/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/interplanetarychris/watts-to-space/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/interplanetarychris/watts-to-space/releases/tag/v1.0.0

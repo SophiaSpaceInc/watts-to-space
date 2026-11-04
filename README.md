@@ -2,6 +2,8 @@
 
 **Heat rejection in vacuum.** Live at **https://watts-to-space.chrislewicki.com** · by [Chris Lewicki](https://chrislewicki.com)
 
+Developed with coding agents: Grok, Codex and Claude all contributed, including adversarial review.
+
 Companion pages, each one idea on one page, using the same physics:
 - **[Your laptop in space](https://watts-to-space.chrislewicki.com/everyday/)** (start here if you are new):
   what a phone, laptop, server or GPU rack would do in a vacuum, and how big its radiator and solar array
