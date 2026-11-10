@@ -24,6 +24,8 @@ The version is in `package.json`, and each release is tagged `vX.Y.Z`.
 
 ### Changed
 
+- Sliders for pump power (share of payload) and for pumps and loop hardware mass, shown for the
+  pumped cases. Both were inputs without a slider.
 - The "Power per package" slider now starts at 50 W (was 200 W) to admit a 130 W module.
 - No existing reference-case result changes. Share links made before this change still open.
 
