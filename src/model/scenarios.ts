@@ -133,7 +133,7 @@ export const SOURCES: Record<string, Source> = {
     url: 'https://doi.org/10.1088/0022-3727/13/5/018',
   },
   'thor-tdg': {
-    title: 'NVIDIA, Jetson Thor Series Modules Thermal Design Guide, TDG-12271-001 v1.2 (March 2026): T5000 130 W in MaxN mode, recommended SoC temperature 90 °C, θjp 0.180 °C/W (balanced) / 0.231 °C/W (unbalanced), 62.5 × 81.4 mm contact area. Distributed through the Jetson Download Center.',
+    title: 'NVIDIA, Jetson Thor Series Modules Thermal Design Guide, TDG-12271-001 v1.2 (March 2026): T5000 130 W in MaxN mode, recommended SoC temperature 90 °C (maximum 115 °C), θjp 0.180 °C/W (balanced) / 0.231 °C/W (unbalanced), 62.5 × 81.4 mm contact area. Distributed through the Jetson Download Center.',
     url: 'https://developer.nvidia.com/embedded/downloads',
   },
   'glassbrenner1964': {
@@ -179,7 +179,7 @@ const THOR_DIRECT_STAGES: Stage[] = [
 ];
 
 const THOR_NOTES: Record<string, string> = {
-  'heatSource.maxTemperature_K': 'Recommended Thor SoC operating temperature 90 °C; the SoC maximum is 115 °C and shutdown 118 °C, with reliability rated for 95 % of life at 90 °C [thor-tdg].',
+  'heatSource.maxTemperature_K': 'ASSUMPTION (Sophia Space): 100 °C, close to the 373 K limit of the Rubin-class cases so the architectures compare on equal terms. NVIDIA recommends 90 °C for the Thor SoC (reliability rated for 95 % of life there), allows operation to 115 °C and shuts down at 118 °C [thor-tdg].',
   'heatSource.unitPower_W': 'Jetson T5000 total module power in MaxN mode, 130 W [thor-tdg].',
   'heatSource.totalPower_W': 'Same payload as the Starmind case, 250 kW peak [spacex-starmind], so the cases compare architecture, not payload. ASSUMPTION for a Tile system.',
   'heatSource.averageFraction': 'Same 0.7 as the Starmind case [spacex-starmind]. ASSUMPTION for a Tile system.',
@@ -220,16 +220,16 @@ export const HEAT_SOURCES: Record<string, HeatSourcePreset> = {
   'thor-ttp': {
     label: 'Jetson Thor module on its transfer plate, on a heat-pipe panel',
     loopCoolant: 'passiveHeatPipe',
-    heatSource: { name: 'Jetson Thor (transfer plate)', maxTemperature_K: 363.15, unitPower_W: 130, totalPower_W: 250e3, averageFraction: 0.7, stages: THOR_TTP_STAGES },
+    heatSource: { name: 'Jetson Thor (transfer plate)', maxTemperature_K: 373.15, unitPower_W: 130, totalPower_W: 250e3, averageFraction: 0.7, stages: THOR_TTP_STAGES },
     notes: {
       ...THOR_NOTES,
-      'heatSource.stages': 'SoC to transfer plate θjp = 0.180 °C/W for a balanced workload (0.231 unbalanced) over the 62.5 × 81.4 mm contact area [thor-tdg]: 23 K at 130 W. The guide also limits the plate to 80 °C. Interface 0.2 K·cm²/W and evaporator h 20 kW/m²K over that area: ASSUMPTION.',
+      'heatSource.stages': 'SoC to transfer plate θjp = 0.180 °C/W for a balanced workload (0.231 unbalanced) over the 62.5 × 81.4 mm contact area [thor-tdg]: 23 K at 130 W. The guide also limits the plate to 80 °C; at a 100 °C junction this stack leaves the plate near 77 °C. Interface 0.2 K·cm²/W and evaporator h 20 kW/m²K over that area: ASSUMPTION.',
     },
   },
   'thor-direct': {
     label: 'Jetson Thor SoC bonded directly to a heat-pipe panel',
     loopCoolant: 'passiveHeatPipe',
-    heatSource: { name: 'Jetson Thor (direct to heat pipe)', maxTemperature_K: 363.15, unitPower_W: 130, totalPower_W: 250e3, averageFraction: 0.7, stages: THOR_DIRECT_STAGES },
+    heatSource: { name: 'Jetson Thor (direct to heat pipe)', maxTemperature_K: 373.15, unitPower_W: 130, totalPower_W: 250e3, averageFraction: 0.7, stages: THOR_DIRECT_STAGES },
     notes: {
       ...THOR_NOTES,
       'heatSource.stages': 'ASSUMPTION throughout: transfer plate removed (NVIDIA does not support this [thor-tdg]); all 130 W taken through a 15 × 30 mm SoC lid (conservative: memory and regulators dissipate part of it elsewhere); 0.5 mm silicon ×1.5 peaking; interface 0.1 K·cm²/W; heat-pipe evaporator h 20 kW/m²K on the lid footprint, which dominates the drop.',
@@ -465,8 +465,8 @@ export const MODES: Record<ModeId, ModePreset> = {
       kind: 'sharedSolar',
       area_m2: 1,
       networkingMass_kg: 1,
-      extraMassPerUnit_kg: 0.5,
-      supportStructureFraction: 0.15,
+      extraMassPerUnit_kg: 0,
+      supportStructureFraction: 0,
       converterSpecificMass_kg_per_kW: 1,
       peakDuration_h: 0,
       radiatorCoupling: 'bonded',
@@ -494,8 +494,8 @@ export const MODES: Record<ModeId, ModePreset> = {
       'power.solarArrayArealDensity_kg_m2': 'Same solar array as the Starmind case. ASSUMPTION.',
       'tile.area_m2': 'ASSUMPTION (Sophia Space): a Tile is about 1 m × 1 m.',
       'tile.networkingMass_kg': 'ASSUMPTION (Sophia Space): 1 kg of networking hardware on every Tile, which a centralized payload would not need.',
-      'tile.extraMassPerUnit_kg': 'ASSUMPTION (Sophia Space): 0.5 kg per Thor module for the enclosure and mounting a centralized payload would not need, so the penalty scales with compute. Payload mass itself is out of scope here, as for every case.',
-      'tile.supportStructureFraction': 'ASSUMPTION (Sophia Space): 15 % of everything mounted on the Tiles, for hinges, booms and support structure. The pumped cases carry this inside their radiator and solar array areal densities.',
+      'tile.extraMassPerUnit_kg': 'ASSUMPTION (Sophia Space): zero for now. Set it to charge an enclosure and mounting mass per Thor module, so the penalty scales with compute. Payload mass itself is out of scope here, as for every case.',
+      'tile.supportStructureFraction': 'ASSUMPTION (Sophia Space): zero, because the 2.5 to 7.5 kg/m² heat-pipe panel figure is taken to include hinges and support structure, as the pumped cases\' areal densities do. Set it to charge structure on everything mounted on the Tiles.',
       'tile.converterSpecificMass_kg_per_kW': 'ASSUMPTION: 1 kg/kW for an isolated 400 V step-down converter with filtering and packaging on each Tile. The pumped cases carry no converter mass (it is counted as payload there), so this is a deliberate penalty.',
     },
   },
@@ -524,8 +524,8 @@ export const MODES: Record<ModeId, ModePreset> = {
       kind: 'integratedSolar',
       area_m2: 1,
       networkingMass_kg: 1,
-      extraMassPerUnit_kg: 0.5,
-      supportStructureFraction: 0.15,
+      extraMassPerUnit_kg: 0,
+      supportStructureFraction: 0,
       converterSpecificMass_kg_per_kW: 1,
       peakDuration_h: 0,
       radiatorCoupling: 'separate',
@@ -553,8 +553,8 @@ export const MODES: Record<ModeId, ModePreset> = {
       'power.conversionEfficiency': 'Same 0.95 as the Starmind case. ASSUMPTION.',
       'tile.area_m2': 'ASSUMPTION (Sophia Space): a Tile is about 1 m × 1 m, its sunlit face fully covered in cells.',
       'tile.networkingMass_kg': 'ASSUMPTION (Sophia Space): 1 kg of networking hardware on every Tile, which a centralized payload would not need.',
-      'tile.extraMassPerUnit_kg': 'ASSUMPTION (Sophia Space): 0.5 kg per Thor module for the enclosure and mounting a centralized payload would not need, so the penalty scales with compute. Payload mass itself is out of scope here, as for every case.',
-      'tile.supportStructureFraction': 'ASSUMPTION (Sophia Space): 15 % of everything mounted on the Tiles, for hinges, booms and support structure. The pumped cases carry this inside their radiator and solar array areal densities.',
+      'tile.extraMassPerUnit_kg': 'ASSUMPTION (Sophia Space): zero for now. Set it to charge an enclosure and mounting mass per Thor module, so the penalty scales with compute. Payload mass itself is out of scope here, as for every case.',
+      'tile.supportStructureFraction': 'ASSUMPTION (Sophia Space): zero, because the 2.5 to 7.5 kg/m² heat-pipe panel figure is taken to include hinges and support structure, as the pumped cases\' areal densities do. Set it to charge structure on everything mounted on the Tiles.',
       'tile.converterSpecificMass_kg_per_kW': 'ASSUMPTION: 1 kg/kW for cell regulation and battery charge electronics on each Tile.',
       'tile.peakDuration_h': 'Zero by default, to match the other cases, which do not count battery energy for peaks above the average in sunlight (APPROACH.md, limitation 1). Set it to size the Tile batteries for a peak of that length. ASSUMPTION.',
       'tile.radiatorCoupling': 'ASSUMPTION: a heat-pipe radiator smaller than the Tile, insulated from the cells and sized for the compute heat. "bonded" ties cells and radiator to one temperature instead.',

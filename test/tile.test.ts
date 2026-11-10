@@ -18,14 +18,18 @@ test('shared-solar Tiles: the radiator is the Tile field, with no pumped-loop ma
   assert.ok(r.feasible);
   assert.equal(r.mass_kg.thermalLoop, 0);
   near(r.tile!.count * s.tile!.area_m2, r.radiatorArea_m2);
-  // 1 kg of networking per Tile plus 0.5 kg per Thor module.
-  near(r.mass_kg.tileOverhead, r.tile!.count * 1 + (250e3 / 130) * 0.5);
-  near(r.mass_kg.tileStructure, 0.15 * (r.mass_kg.radiator + r.mass_kg.powerConversion + r.mass_kg.tileOverhead));
+  // By default: 1 kg of networking per Tile, no per-module penalty, structure inside the panel density.
+  near(r.mass_kg.tileOverhead, r.tile!.count * 1);
+  assert.equal(r.mass_kg.tileStructure, 0);
+  // Both optional penalties: 0.5 kg per Thor module, and 15 % structure on what the Tiles carry.
+  const p = evaluateScenario(withPath(withPath(s, 'tile.extraMassPerUnit_kg', 0.5), 'tile.supportStructureFraction', 0.15));
+  near(p.mass_kg.tileOverhead, p.tile!.count * 1 + (250e3 / 130) * 0.5);
+  near(p.mass_kg.tileStructure, 0.15 * (p.mass_kg.radiator + p.mass_kg.powerConversion + p.mass_kg.tileOverhead));
   near(r.mass_kg.powerConversion, r.busLoad_W / 1000);
   // Per-Tile heat is the net flux divided by the sizing margin.
   near(r.tile!.heatPeak_W, r.netFlux_W_m2 / s.radiator.sizingMargin);
-  // The Thor stack reaches its 90 °C limit and no more.
-  near(r.tile!.junction_K, 363.15);
+  // The Thor stack reaches its 100 °C limit and no more.
+  near(r.tile!.junction_K, 373.15);
 });
 
 test('shared-solar Tiles: harness copper scales as 1/V²', () => {
@@ -81,12 +85,12 @@ test('integrated-solar Tiles: better cells need fewer Tiles; a held peak adds ba
   const better = evaluateScenario(withPath(s, 'power.cellEfficiency', 0.28));
   assert.ok(better.tile!.count < base.tile!.count);
   assert.equal(base.mass_kg.battery, 0);
-  const held = evaluateScenario(withPath(s, 'tile.peakDuration_h', 1));
+  const held = evaluateScenario(withPath(withPath(s, 'tile.peakDuration_h', 1), 'tile.supportStructureFraction', 0.15));
   near(held.mass_kg.battery, (held.busLoad_W - held.busLoadAverage_W) / 0.3 / 150);
   // Batteries ride on the Tiles, so the support structure grows with them.
   const m = held.mass_kg;
   near(m.tileStructure, 0.15 * (m.radiator + m.solarArray + m.battery + m.powerConversion + m.tileOverhead));
-  assert.ok(m.tileStructure > base.mass_kg.tileStructure);
+  assert.ok(m.tileStructure > 0.15 * (base.mass_kg.radiator + base.mass_kg.solarArray + base.mass_kg.powerConversion + base.mass_kg.tileOverhead));
 });
 
 test('integrated-solar Tiles: tilting away from the Sun cools the cells and needs more Tiles', () => {
