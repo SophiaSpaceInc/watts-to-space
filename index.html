@@ -26,8 +26,99 @@
       <a href="https://watts-to-space.chrislewicki.com" rel="noopener">watts-to-space</a> by Chris Lewicki
       (<a href="https://github.com/interplanetarychris/watts-to-space" rel="noopener">source</a>; code MIT, text and figures CC BY 4.0).
       The model, the page and its first-person text are his. Sophia Space added the two distributed Tile cases, their physics and
-      their assumptions; those additions are not his and have not been reviewed by him.
+      assumptions, and the three-case comparison tab; those additions are not his and have not been reviewed by him.
     </aside>
+    <nav class="view-tabs" role="tablist" aria-label="View">
+      <button type="button" role="tab" id="tab-compare" aria-controls="view-compare" aria-selected="true">Three-case comparison</button>
+      <button type="button" role="tab" id="tab-explorer" aria-controls="view-explorer" aria-selected="false">Full explorer (Chris Lewicki's page)</button>
+    </nav>
+
+    <div id="view-compare" role="tabpanel" aria-labelledby="tab-compare">
+      <header class="cmp-head">
+        <h1>Pumped loop or Tiles</h1>
+        <p class="subtitle">Three ways to power and cool the same compute payload in orbit, compared by the mass of their power and thermal hardware.</p>
+        <p class="cmp-scope">Same peak compute power, same dawn-dusk orbit at 600 km, same chip temperature limit. Compute hardware itself is left out of every case.</p>
+      </header>
+
+      <section class="cmp-block" aria-labelledby="cmp-shared-title">
+        <div class="cmp-row-head">
+          <p class="eyebrow" id="cmp-shared-title">Shared by all three cases</p>
+          <button type="button" id="cmp-reset" disabled>Reset every input</button>
+        </div>
+        <div id="cmp-controls-shared" class="cmp-sliders cmp-sliders-wide"></div>
+      </section>
+
+      <section id="cmp-cards" class="cmp-cards" aria-live="polite" aria-label="Results for the three cases"></section>
+
+      <section class="cmp-block">
+        <h2>Power and thermal mass</h2>
+        <div id="cmp-mass" class="chart-box"></div>
+      </section>
+
+      <section class="cmp-block">
+        <h2>The three cases</h2>
+        <div class="cmp-about">
+          <article>
+            <svg viewBox="0 0 230 120" class="sketch" role="img" aria-label="Starmind: a solar array faces the Sun, a pumped loop carries heat from the payload to a separate radiator held edge-on to the Sun"><defs><marker id="ar1" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L6 3L0 6z" fill="context-stroke"/></marker></defs><line x1="6" y1="35" x2="44" y2="35" stroke="var(--s4)" stroke-width="1.5" marker-end="url(#ar1)"/><line x1="6" y1="60" x2="44" y2="60" stroke="var(--s4)" stroke-width="1.5" marker-end="url(#ar1)"/><line x1="6" y1="85" x2="44" y2="85" stroke="var(--s4)" stroke-width="1.5" marker-end="url(#ar1)"/><text x="6" y="18" class="sk-t">sunlight</text><rect x="60" y="14" width="5" height="92" fill="var(--s3)"/><text x="70" y="24" class="sk-t">solar array</text><line x1="65" y1="60" x2="98" y2="60" stroke="var(--ink-2)"/><rect x="98" y="49" width="24" height="22" rx="2" fill="none" stroke="var(--ink)" stroke-width="1.5"/><text x="110" y="64" text-anchor="middle" class="sk-t">GPUs</text><path d="M122 56H138M122 64H138" stroke="var(--s2)" stroke-width="2"/><rect x="138" y="57" width="84" height="6" fill="var(--s1)"/><line x1="155" y1="54" x2="155" y2="34" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar1)"/><line x1="180" y1="54" x2="180" y2="34" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar1)"/><line x1="205" y1="54" x2="205" y2="34" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar1)"/><line x1="155" y1="66" x2="155" y2="86" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar1)"/><line x1="180" y1="66" x2="180" y2="86" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar1)"/><line x1="205" y1="66" x2="205" y2="86" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar1)"/><text x="138" y="104" class="sk-t">pumped radiator</text></svg>
+            <h3>SpaceX Starmind (pumped loop)</h3>
+            <p>The compute sits in one payload. Liquid coolant collects its heat and pumps carry it to a separate deployed radiator, held edge-on to the Sun so both faces see cold sky. A deployed solar array faces the Sun. This is Chris Lewicki's Starmind reference case, built from SpaceX's published figures plus his labelled assumptions.</p>
+          </article>
+          <article>
+            <svg viewBox="0 0 230 120" class="sketch" role="img" aria-label="Tiles without solar: the same solar array faces the Sun and feeds a field of Tiles held edge-on to the Sun; each Tile carries compute modules and radiates from both faces"><defs><marker id="ar2" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L6 3L0 6z" fill="context-stroke"/></marker></defs><line x1="6" y1="35" x2="44" y2="35" stroke="var(--s4)" stroke-width="1.5" marker-end="url(#ar2)"/><line x1="6" y1="60" x2="44" y2="60" stroke="var(--s4)" stroke-width="1.5" marker-end="url(#ar2)"/><line x1="6" y1="85" x2="44" y2="85" stroke="var(--s4)" stroke-width="1.5" marker-end="url(#ar2)"/><text x="6" y="18" class="sk-t">sunlight</text><rect x="60" y="14" width="5" height="92" fill="var(--s3)"/><text x="70" y="24" class="sk-t">solar array</text><line x1="65" y1="60" x2="104" y2="60" stroke="var(--ink-2)"/><text x="70" y="74" class="sk-t">power</text><rect x="104" y="57" width="26" height="6" fill="var(--s5)"/><rect x="113" y="52" width="8" height="5" fill="var(--ink)"/><rect x="134" y="57" width="26" height="6" fill="var(--s5)"/><rect x="143" y="52" width="8" height="5" fill="var(--ink)"/><rect x="164" y="57" width="26" height="6" fill="var(--s5)"/><rect x="173" y="52" width="8" height="5" fill="var(--ink)"/><rect x="194" y="57" width="26" height="6" fill="var(--s5)"/><rect x="203" y="52" width="8" height="5" fill="var(--ink)"/><line x1="112" y1="50" x2="112" y2="32" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar2)"/><line x1="142" y1="50" x2="142" y2="32" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar2)"/><line x1="172" y1="50" x2="172" y2="32" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar2)"/><line x1="202" y1="50" x2="202" y2="32" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar2)"/><line x1="117" y1="66" x2="117" y2="86" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar2)"/><line x1="147" y1="66" x2="147" y2="86" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar2)"/><line x1="177" y1="66" x2="177" y2="86" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar2)"/><line x1="207" y1="66" x2="207" y2="86" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar2)"/><text x="104" y="104" class="sk-t">Tiles, edge-on to the Sun</text></svg>
+            <h3>Tiles without solar</h3>
+            <p>The compute is spread across Tiles of about 1 m². Each Tile is a passive heat-pipe panel with its compute modules mounted on it, and the panel is the radiator: no pumps, no coolant lines. The Tiles are held edge-on to the Sun and radiate from both faces. Power comes from the same solar array, bus voltage and conversion as the Starmind case.</p>
+          </article>
+          <article>
+            <svg viewBox="0 0 230 120" class="sketch" role="img" aria-label="Tiles with solar: each Tile faces the Sun with solar cells on its sunlit face; a smaller heat-pipe radiator on the back carries the compute modules and radiates away from the Sun"><defs><marker id="ar3" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L6 3L0 6z" fill="context-stroke"/></marker></defs><line x1="6" y1="35" x2="44" y2="35" stroke="var(--s4)" stroke-width="1.5" marker-end="url(#ar3)"/><line x1="6" y1="60" x2="44" y2="60" stroke="var(--s4)" stroke-width="1.5" marker-end="url(#ar3)"/><line x1="6" y1="85" x2="44" y2="85" stroke="var(--s4)" stroke-width="1.5" marker-end="url(#ar3)"/><text x="6" y="18" class="sk-t">sunlight</text><rect x="70" y="14" width="4" height="92" fill="var(--s3)"/><rect x="74" y="32" width="5" height="56" fill="var(--s6)"/><rect x="79" y="44" width="5" height="8" fill="var(--ink)"/><rect x="79" y="68" width="5" height="8" fill="var(--ink)"/><line x1="88" y1="40" x2="112" y2="40" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar3)"/><line x1="88" y1="60" x2="112" y2="60" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar3)"/><line x1="88" y1="80" x2="112" y2="80" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar3)"/><line x1="68" y1="24" x2="52" y2="16" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar3)"/><line x1="68" y1="98" x2="52" y2="106" stroke="var(--accent)" stroke-width="1.3" marker-end="url(#ar3)"/><text x="118" y="36" class="sk-t">heat-pipe radiator</text><text x="118" y="48" class="sk-t">and compute, behind</text><text x="118" y="78" class="sk-t">solar cells on the</text><text x="118" y="90" class="sk-t">sunlit face</text></svg>
+            <h3>Tiles with solar</h3>
+            <p>Each Tile faces the Sun, and its sunlit face is solar cells. A heat-pipe radiator on the back, smaller than the Tile and insulated from the cells, carries the compute. There is no deployed solar array and no harness. A Tile can only run the compute its own cells can power, so each one carries far less than a two-sided Tile, and its cells run hot.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="cmp-block">
+        <h2>Assumptions for each case</h2>
+        <div class="cmp-linked">
+          <p class="eyebrow">Power subsystem: Starmind and Tiles without solar use the same one</p>
+          <div id="cmp-controls-power" class="cmp-sliders cmp-sliders-wide"></div>
+        </div>
+        <div class="cmp-knobs">
+          <section style="--case:var(--s2)">
+            <h3>Starmind</h3>
+            <div id="cmp-controls-starmind" class="cmp-sliders"></div>
+          </section>
+          <section style="--case:var(--s5)">
+            <h3>Tiles without solar</h3>
+            <div id="cmp-controls-tileShared" class="cmp-sliders"></div>
+            <p class="cmp-note">One number stands in for the Tile's heat-pipe panel, converters, networking and structure. Its solar array, harness and battery are the Starmind power subsystem above.</p>
+          </section>
+          <section style="--case:var(--s6)">
+            <h3>Tiles with solar</h3>
+            <div class="modes devices cmp-cells" id="cmp-cells" role="group" aria-label="Cell type">
+              <button type="button" data-eff="0.22" data-coef="-0.003" aria-pressed="true">22 % cells</button>
+              <button type="button" data-eff="0.28" data-coef="-0.002" aria-pressed="false">28 % cells</button>
+            </div>
+            <div id="cmp-controls-tileSolar" class="cmp-sliders"></div>
+            <p class="cmp-note">One number stands in for the Tile's heat-pipe panel, solar cells, converters, networking and structure. Better cells let each Tile carry more compute, which needs a larger radiator behind it, so raise the mass per Tile when you raise the cell efficiency: the slider does not do it for you.</p>
+          </section>
+        </div>
+      </section>
+
+      <section class="cmp-block">
+        <h2>What moves each case</h2>
+        <p class="cmp-lede">Each bar shows the power and thermal mass of one case as one input moves between the two values printed at its ends, with everything else held as set. The dark line is the case as set. All three cases share the axis, so the bars can be read against each other.</p>
+        <div id="cmp-tornado" class="chart-box"></div>
+      </section>
+
+      <section class="cmp-block">
+        <h2>How the Tile cases are sized</h2>
+        <div id="cmp-physics-tileShared" class="callout"></div>
+        <div id="cmp-physics-tileSolar" class="callout"></div>
+        <p class="cmp-note">The pumped case's sizing, and every assumption with its source, are in the full explorer tab.</p>
+      </section>
+    </div>
+
+    <div id="view-explorer" role="tabpanel" aria-labelledby="tab-explorer" hidden>
     <header class="page-header">
       <p class="byline">
         <a class="back-link" href="https://chrislewicki.com" rel="noopener me"><span aria-hidden="true">←</span> Chris Lewicki</a>
@@ -399,6 +490,8 @@
       Model source: <span class="mono">src/model/</span> (pure functions, unit-tested with <span class="mono">bun test</span>).
       See <span class="mono">docs/APPROACH.md</span> for equations, validation anchors and known gaps.
     </footer>
+    </div>
     <script type="module" src="./src/ui/app.ts"></script>
+    <script type="module" src="./src/ui/compare.ts"></script>
   </body>
 </html>

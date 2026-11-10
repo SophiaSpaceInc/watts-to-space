@@ -464,6 +464,7 @@ export const MODES: Record<ModeId, ModePreset> = {
     tile: {
       kind: 'sharedSolar',
       area_m2: 1,
+      massPerTile_kg: null,
       networkingMass_kg: 1,
       extraMassPerUnit_kg: 0,
       supportStructureFraction: 0,
@@ -493,6 +494,7 @@ export const MODES: Record<ModeId, ModePreset> = {
       'power.operatingFactor': 'Same solar array as the Starmind case (CALIBRATED there to 250 W/m²).',
       'power.solarArrayArealDensity_kg_m2': 'Same solar array as the Starmind case. ASSUMPTION.',
       'tile.area_m2': 'ASSUMPTION (Sophia Space): a Tile is about 1 m × 1 m.',
+      'tile.massPerTile_kg': 'Not set: the Tile mass is built up from the heat-pipe panel, converters, networking and the other parts listed here. ASSUMPTION. Set it to replace them with one rolled-up mass per Tile.',
       'tile.networkingMass_kg': 'ASSUMPTION (Sophia Space): 1 kg of networking hardware on every Tile, which a centralized payload would not need.',
       'tile.extraMassPerUnit_kg': 'ASSUMPTION (Sophia Space): zero for now. Set it to charge an enclosure and mounting mass per Thor module, so the penalty scales with compute. Payload mass itself is out of scope here, as for every case.',
       'tile.supportStructureFraction': 'ASSUMPTION (Sophia Space): zero, because the 2.5 to 7.5 kg/m² heat-pipe panel figure is taken to include hinges and support structure, as the pumped cases\' areal densities do. Set it to charge structure on everything mounted on the Tiles.',
@@ -523,6 +525,7 @@ export const MODES: Record<ModeId, ModePreset> = {
     tile: {
       kind: 'integratedSolar',
       area_m2: 1,
+      massPerTile_kg: null,
       networkingMass_kg: 1,
       extraMassPerUnit_kg: 0,
       supportStructureFraction: 0,
@@ -552,6 +555,7 @@ export const MODES: Record<ModeId, ModePreset> = {
       'power.harnessOneWayLength_m': 'ASSUMPTION: no harness from a central solar array.',
       'power.conversionEfficiency': 'Same 0.95 as the Starmind case. ASSUMPTION.',
       'tile.area_m2': 'ASSUMPTION (Sophia Space): a Tile is about 1 m × 1 m, its sunlit face fully covered in cells.',
+      'tile.massPerTile_kg': 'Not set: the Tile mass is built up from the heat-pipe panel, converters, networking and the other parts listed here. ASSUMPTION. Set it to replace them with one rolled-up mass per Tile.',
       'tile.networkingMass_kg': 'ASSUMPTION (Sophia Space): 1 kg of networking hardware on every Tile, which a centralized payload would not need.',
       'tile.extraMassPerUnit_kg': 'ASSUMPTION (Sophia Space): zero for now. Set it to charge an enclosure and mounting mass per Thor module, so the penalty scales with compute. Payload mass itself is out of scope here, as for every case.',
       'tile.supportStructureFraction': 'ASSUMPTION (Sophia Space): zero, because the 2.5 to 7.5 kg/m² heat-pipe panel figure is taken to include hinges and support structure, as the pumped cases\' areal densities do. Set it to charge structure on everything mounted on the Tiles.',

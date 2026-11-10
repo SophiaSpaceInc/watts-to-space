@@ -86,6 +86,8 @@ export const EXPLANATIONS: Record<string, string> = {
   'power.harnessOneWayLength_m':
     'Distance from the solar array to the load. Copper mass grows with its square for a fixed loss. Zero for Tiles that carry their own cells.',
   'tile.area_m2': 'Planform of one Tile. It sets how many Tiles a design needs, and so how much per-Tile mass it carries.',
+  'tile.massPerTile_kg':
+    'One rolled-up mass for everything a Tile carries except its compute modules and battery: heat-pipe panel, cells, converters, networking and structure. When set, it replaces those separate inputs.',
   'tile.networkingMass_kg': 'Networking hardware carried by every Tile. A centralized payload does not need it, so it is a penalty on the Tile cases.',
   'tile.extraMassPerUnit_kg':
     'Enclosure and mounting mass added for every compute module on the Tiles. A penalty that scales with compute; payload mass itself is out of scope for every case.',

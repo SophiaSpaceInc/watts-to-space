@@ -14,6 +14,10 @@ The version is in `package.json`, and each release is tagged `vX.Y.Z`.
 
 ### Added
 
+- A three-case comparison tab (`src/ui/compare.ts`): Starmind beside Tiles without solar and Tiles
+  with solar at the same peak compute power, with linked power-subsystem inputs, one rolled-up
+  mass per Tile (`tile.massPerTile_kg`), stacked mass bars and a stacked sensitivity chart on one
+  axis of actual mass. The original page is the second tab.
 - Two distributed "Tile" reference cases beside the Starmind case (`docs/APPROACH.md` section 5a):
   `tileShared` (two-sided heat-pipe Tiles on the shared solar array, 400 V distribution) and
   `tileSolar` (Sun-facing Tiles with solar cells on their sunlit face and their own battery).

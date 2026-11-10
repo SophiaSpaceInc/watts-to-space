@@ -150,6 +150,13 @@ export interface Tile {
   kind: 'sharedSolar' | 'integratedSolar';
   /** Planform of one Tile. */
   area_m2: number;
+  /**
+   * Rolled-up mass of one Tile, or null to build it up from the parts below. When set it
+   * replaces the heat-pipe panel, cell layer, converters, networking, enclosures and
+   * support structure with one number per Tile. Compute modules are not in it (payload
+   * mass is out of scope for every case); batteries are still counted separately.
+   */
+  massPerTile_kg: number | null;
   /** Networking hardware on every Tile that a centralized payload would not need. */
   networkingMass_kg: number;
   /** Extra mass per heat source (per compute module) for its enclosure and mounting. */

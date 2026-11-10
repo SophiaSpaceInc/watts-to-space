@@ -508,3 +508,48 @@ figure.hero figcaption { margin-top: 6px; font-size: 12px; color: var(--ink-2); 
 .fork-note { max-width: var(--measure); margin: 14px auto 0; padding: 10px 14px; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; background: var(--surface); font: 400 13.5px/1.5 var(--sans); color: var(--ink-2); }
 .fork-note strong { color: var(--ink); }
 .callout .balance { font: 400 14px/1.6 var(--mono); margin: 0 0 12px; padding: 10px 12px; background: var(--surface); border-radius: 6px; overflow-x: auto; white-space: pre; }
+
+/* Sophia Space fork: view tabs and the three-case comparison. */
+.view-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 18px 0 0; border-bottom: 1px solid var(--axis); }
+.view-tabs button { padding: 9px 14px; border: 0; border-bottom: 3px solid transparent; background: none; font: 500 14.5px/1.3 var(--sans); color: var(--ink-2); }
+.view-tabs button:hover { color: var(--ink); }
+.view-tabs button[aria-selected='true'] { color: var(--ink); font-weight: 600; border-bottom-color: var(--accent); }
+.cmp-head { max-width: 78ch; margin: 34px 0 8px; }
+.cmp-head h1 { margin: 0 0 8px; }
+.cmp-scope { margin: 10px 0 0; font: 400 14.5px/1.5 var(--sans); color: var(--ink-2); }
+.cmp-block { margin-top: 38px; }
+.cmp-block > h2 { margin: 0 0 14px; padding-top: 16px; border-top: 2px solid var(--ink); font: 600 clamp(21px, 2.4vw, 26px)/1.2 var(--sans); letter-spacing: -0.012em; }
+.cmp-row-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 6px; }
+.cmp-row-head button { padding: 5px 11px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); font-size: 13px; }
+.cmp-row-head button:disabled { opacity: 0.5; cursor: default; }
+.cmp-sliders { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 28px; }
+.cmp-sliders-wide { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.cmp-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; margin-top: 26px; }
+.cmp-card { min-width: 0; padding: 16px 18px 12px; background: var(--surface); border: 1px solid var(--border); border-top: 4px solid var(--case); border-radius: 6px; }
+.cmp-card h3 { margin: 0; font: 600 15px/1.3 var(--sans); }
+.cmp-mass { margin: 10px 0 0; font-variant-numeric: tabular-nums; }
+.cmp-mass b { display: block; font: 500 34px/1.1 var(--sans); letter-spacing: -0.02em; }
+.cmp-mass span { font-size: 12.5px; color: var(--ink-2); }
+.cmp-power { margin: 16px 0 0; padding-top: 12px; border-top: 1px solid var(--grid); font: 400 15px/1.3 var(--sans); font-variant-numeric: tabular-nums; }
+.cmp-power b { font: 600 24px/1.1 var(--sans); letter-spacing: -0.015em; }
+.cmp-power-sub { margin: 4px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.cmp-card dl { margin: 14px 0 0; padding-top: 4px; border-top: 1px solid var(--grid); font-size: 13px; font-variant-numeric: tabular-nums; }
+.cmp-card dl div { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--grid); }
+.cmp-card dl div:last-child { border-bottom: 0; }
+.cmp-card dt { color: var(--ink-2); }
+.cmp-card dd { margin: 0; text-align: right; }
+.cmp-problem { margin: 8px 0 4px; font-size: 13px; line-height: 1.45; color: var(--critical); }
+.cmp-about { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 22px 28px; }
+.cmp-about article { min-width: 0; }
+.cmp-about h3, .cmp-knobs h3 { margin: 10px 0 6px; font: 600 16px/1.3 var(--sans); }
+.cmp-about p { margin: 0; font: 400 15px/1.55 var(--sans); text-wrap: pretty; }
+.sketch { display: block; width: 100%; max-width: 330px; height: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
+.sketch .sk-t { font: 500 9px var(--sans); fill: var(--ink-2); }
+.cmp-linked { padding: 12px 16px 6px; background: var(--surface-2); border-radius: 6px; }
+.cmp-knobs { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 18px 28px; margin-top: 18px; }
+.cmp-knobs > section { min-width: 0; padding-top: 4px; border-top: 4px solid var(--case); }
+.modes.devices.cmp-cells { margin: 4px 0 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cmp-note, .cmp-lede { max-width: 78ch; margin: 8px 0 12px; font: 400 14px/1.5 var(--sans); color: var(--ink-2); text-wrap: pretty; }
+.cmp-lede { font-size: 15px; color: var(--ink); }
+#view-compare .callout { margin-top: 14px; }
+.table-scroll { overflow-x: auto; }

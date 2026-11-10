@@ -104,3 +104,21 @@ test('integrated-solar Tiles: tilting away from the Sun cools the cells and need
   assert.equal(evaluateScenario(bonded).feasible, false);
   assert.equal(evaluateScenario(withPath(bonded, 'tile.sunAngle_deg', 60)).feasible, true);
 });
+
+test('rolled-up mass per Tile replaces the Tile-borne parts and nothing else', () => {
+  for (const mode of ['tileShared', 'tileSolar'] as const) {
+    const s = buildScenario(mode);
+    const parts = evaluateScenario(s);
+    const rolled = evaluateScenario(withPath(s, 'tile.massPerTile_kg', 8));
+    // Sizing is untouched: same Tiles, same areas.
+    near(rolled.tile!.count, parts.tile!.count);
+    near(rolled.radiatorArea_m2, parts.radiatorArea_m2);
+    near(rolled.mass_kg.tiles, rolled.tile!.count * 8);
+    assert.equal(rolled.mass_kg.radiator + rolled.mass_kg.powerConversion + rolled.mass_kg.tileOverhead + rolled.mass_kg.tileStructure, 0);
+    // The shared-solar case keeps its separate solar array and harness; the integrated case has neither.
+    near(rolled.mass_kg.harness, parts.mass_kg.harness || 0, 1e-9);
+    if (mode === 'tileShared') near(rolled.mass_kg.solarArray, parts.mass_kg.solarArray);
+    else assert.equal(rolled.mass_kg.solarArray, 0);
+    near(rolled.totalMass_kg, rolled.mass_kg.tiles + rolled.mass_kg.solarArray + rolled.mass_kg.harness + rolled.mass_kg.battery);
+  }
+});

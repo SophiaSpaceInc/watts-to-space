@@ -17,8 +17,8 @@ import { evaluateChain, type ChainResult } from './thermalChain.ts';
 import { sharedSolarTiles, sizeIntegratedTiles, tileOverheadMass_kg, type TileSummary } from './tile.ts';
 import type { Scenario } from './types.ts';
 
-/** 'powerConversion', 'tileOverhead' and 'tileStructure' are zero except for the Tile architectures (tile.ts). */
-export type MassKey = 'radiator' | 'thermalLoop' | 'solarArray' | 'battery' | 'harness' | 'powerConversion' | 'tileOverhead' | 'tileStructure';
+/** 'powerConversion', 'tileOverhead', 'tileStructure' and 'tiles' are zero except for the Tile architectures (tile.ts). */
+export type MassKey = 'radiator' | 'thermalLoop' | 'solarArray' | 'battery' | 'harness' | 'powerConversion' | 'tileOverhead' | 'tileStructure' | 'tiles';
 
 export interface Warning {
   level: 'error' | 'warn' | 'info';
@@ -127,9 +127,15 @@ export function evaluateScenario(s: Scenario): Result {
     powerConversion: s.tile ? (busLoad_W / 1000) * s.tile.converterSpecificMass_kg_per_kW : 0,
     tileOverhead: 0,
     tileStructure: 0,
+    tiles: 0,
   };
   const tile = s.tile ? sharedSolarTiles(s, radiatorArea_m2, heatToReject_W, chain) : null;
-  if (tile && s.tile && Number.isFinite(tile.count)) {
+  if (tile && s.tile && s.tile.massPerTile_kg !== null) {
+    // One rolled-up number per Tile stands in for the panel, converters, networking and structure.
+    mass_kg.radiator = 0;
+    mass_kg.powerConversion = 0;
+    mass_kg.tiles = tile.count * s.tile.massPerTile_kg;
+  } else if (tile && s.tile && Number.isFinite(tile.count)) {
     mass_kg.tileOverhead = tileOverheadMass_kg(s, tile.count);
     // The solar array is separate here and carries its own structure in its areal density.
     mass_kg.tileStructure = s.tile.supportStructureFraction * (mass_kg.radiator + mass_kg.powerConversion + mass_kg.tileOverhead);
@@ -157,7 +163,7 @@ export function evaluateScenario(s: Scenario): Result {
     mass_kg,
     totalMass_kg,
     specificMass_kg_per_kW: totalMass_kg / (payload_W / 1000),
-    thermalRejection_W_per_kg: heatToReject_W / (mass_kg.radiator + mass_kg.thermalLoop),
+    thermalRejection_W_per_kg: heatToReject_W / (mass_kg.radiator + mass_kg.thermalLoop + mass_kg.tiles),
     rejectionEffectiveness: netFlux_W_m2 / idealRejectionPerPanelArea(s.heatSource.maxTemperature_K, 2),
     reportedCheck: s.reported ? reportedCheck(s, s.reported.radiatorArea_m2, heatToReject_W, bus(payloadAverage_W), absorbed, chain, totalMass_kg) : null,
     tile,
@@ -190,9 +196,19 @@ function evaluateIntegratedTiles(s: Scenario): Result {
     powerConversion: (busLoad_W / 1000) * t.converterSpecificMass_kg_per_kW,
     tileOverhead: tileOverheadMass_kg(s, z.summary.count),
     tileStructure: 0,
+    tiles: 0,
   };
-  // Everything rides on the Tiles, batteries included, so all of it needs support structure.
-  mass_kg.tileStructure = t.supportStructureFraction * (mass_kg.radiator + mass_kg.solarArray + mass_kg.battery + mass_kg.powerConversion + mass_kg.tileOverhead);
+  if (t.massPerTile_kg !== null) {
+    // One rolled-up number per Tile stands in for the panel, cells, converters, networking and structure.
+    mass_kg.radiator = 0;
+    mass_kg.solarArray = 0;
+    mass_kg.powerConversion = 0;
+    mass_kg.tileOverhead = 0;
+    mass_kg.tiles = z.summary.count * t.massPerTile_kg;
+  } else {
+    // Everything rides on the Tiles, batteries included, so all of it needs support structure.
+    mass_kg.tileStructure = t.supportStructureFraction * (mass_kg.radiator + mass_kg.solarArray + mass_kg.battery + mass_kg.powerConversion + mass_kg.tileOverhead);
+  }
   const totalMass_kg = Object.values(mass_kg).reduce((a, b) => a + b, 0);
   const out = warnings(s, z.chain, true, mass_kg, totalMass_kg);
   if (z.problem) out.unshift({ level: 'error', text: z.problem });
@@ -220,7 +236,7 @@ function evaluateIntegratedTiles(s: Scenario): Result {
     mass_kg,
     totalMass_kg,
     specificMass_kg_per_kW: totalMass_kg / (payload_W / 1000),
-    thermalRejection_W_per_kg: busLoad_W / (mass_kg.radiator + mass_kg.thermalLoop),
+    thermalRejection_W_per_kg: busLoad_W / (mass_kg.radiator + mass_kg.thermalLoop + mass_kg.tiles),
     rejectionEffectiveness: z.netFlux_W_m2 / idealRejectionPerPanelArea(s.heatSource.maxTemperature_K, 2),
     reportedCheck: null,
     tile: z.summary,
