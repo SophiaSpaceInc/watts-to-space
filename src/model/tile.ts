@@ -67,6 +67,13 @@ export interface TileSummary {
   peakBatteryMass_kg: number;
 }
 
+/** Networking on every Tile plus an enclosure allowance for every heat source (compute module). */
+export function tileOverheadMass_kg(s: Scenario, tileCount: number): number {
+  const tile = s.tile!;
+  const units = s.heatSource.totalPower_W / s.heatSource.unitPower_W;
+  return tileCount * tile.networkingMass_kg + units * tile.extraMassPerUnit_kg;
+}
+
 /** Count the Tiles of a 'sharedSolar' design from the radiator area the main model sized. */
 export function sharedSolarTiles(s: Scenario, radiatorArea_m2: number, heatToReject_W: number, chain: ChainResult): TileSummary {
   const tile = s.tile!;

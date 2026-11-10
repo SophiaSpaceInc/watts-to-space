@@ -18,7 +18,9 @@ test('shared-solar Tiles: the radiator is the Tile field, with no pumped-loop ma
   assert.ok(r.feasible);
   assert.equal(r.mass_kg.thermalLoop, 0);
   near(r.tile!.count * s.tile!.area_m2, r.radiatorArea_m2);
-  near(r.mass_kg.tileOverhead, r.tile!.count * 2.5);
+  // 1 kg of networking per Tile plus 0.5 kg per Thor module.
+  near(r.mass_kg.tileOverhead, r.tile!.count * 1 + (250e3 / 130) * 0.5);
+  near(r.mass_kg.tileStructure, 0.15 * (r.mass_kg.radiator + r.mass_kg.powerConversion + r.mass_kg.tileOverhead));
   near(r.mass_kg.powerConversion, r.busLoad_W / 1000);
   // Per-Tile heat is the net flux divided by the sizing margin.
   near(r.tile!.heatPeak_W, r.netFlux_W_m2 / s.radiator.sizingMargin);
@@ -81,6 +83,10 @@ test('integrated-solar Tiles: better cells need fewer Tiles; a held peak adds ba
   assert.equal(base.mass_kg.battery, 0);
   const held = evaluateScenario(withPath(s, 'tile.peakDuration_h', 1));
   near(held.mass_kg.battery, (held.busLoad_W - held.busLoadAverage_W) / 0.3 / 150);
+  // Batteries ride on the Tiles, so the support structure grows with them.
+  const m = held.mass_kg;
+  near(m.tileStructure, 0.15 * (m.radiator + m.solarArray + m.battery + m.powerConversion + m.tileOverhead));
+  assert.ok(m.tileStructure > base.mass_kg.tileStructure);
 });
 
 test('integrated-solar Tiles: tilting away from the Sun cools the cells and needs more Tiles', () => {

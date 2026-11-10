@@ -150,8 +150,16 @@ export interface Tile {
   kind: 'sharedSolar' | 'integratedSolar';
   /** Planform of one Tile. */
   area_m2: number;
-  /** Extra mass per Tile for the networking and enclosures a centralized payload would not need. */
-  extraMass_kg: number;
+  /** Networking hardware on every Tile that a centralized payload would not need. */
+  networkingMass_kg: number;
+  /** Extra mass per heat source (per compute module) for its enclosure and mounting. */
+  extraMassPerUnit_kg: number;
+  /**
+   * Deployment and support structure as a fraction of everything mounted on the Tiles
+   * (heat-pipe panel, cell layer, batteries, converters, networking and enclosures).
+   * The pumped cases fold this into their radiator and solar array areal densities.
+   */
+  supportStructureFraction: number;
   /** Power converters on the Tiles (bus step-down, or cell regulation), per kW they carry. */
   converterSpecificMass_kg_per_kW: number;
   /** integratedSolar: how long the Tile batteries must hold the peak above the average, hours. */

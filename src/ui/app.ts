@@ -623,6 +623,7 @@ const MASS_SEGMENTS: [MassKey, string, string][] = [
   ['harness', 'Harness', 'var(--s5)'],
   ['powerConversion', 'Converters on Tiles', 'var(--s6)'],
   ['tileOverhead', 'Tile networking & boxes', 'var(--muted)'],
+  ['tileStructure', 'Tile support structure', 'var(--ink-2)'],
 ];
 
 function renderMass(r: Result, presets: Preset[], modified: boolean): void {

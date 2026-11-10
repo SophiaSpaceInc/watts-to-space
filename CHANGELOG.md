@@ -19,8 +19,8 @@ The version is in `package.json`, and each release is tagged `vX.Y.Z`.
   `tileSolar` (Sun-facing Tiles with solar cells on their sunlit face and their own battery).
   New model file `src/model/tile.ts`, with tests in `test/tile.test.ts`.
 - Jetson Thor heat sources `thor-direct` and `thor-ttp`, from NVIDIA's thermal design guide.
-- Two mass categories, zero for the existing cases: converters on the Tiles, and per-Tile
-  networking and enclosures.
+- Three mass categories, zero for the existing cases: converters on the Tiles, networking
+  and enclosures (per Tile and per compute module), and Tile support structure.
 
 ### Changed
 

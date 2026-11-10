@@ -14,11 +14,11 @@ import { absorbedFluxPerFace, sunlight, type Sunlight } from './environment.ts';
 import { sizePowerSupply, type Harness, type Storage } from './power.ts';
 import { fluidTemperatureForRejection, idealRejectionPerPanelArea, netRejectionPerPanelArea } from './thermalEmission.ts';
 import { evaluateChain, type ChainResult } from './thermalChain.ts';
-import { sharedSolarTiles, sizeIntegratedTiles, type TileSummary } from './tile.ts';
+import { sharedSolarTiles, sizeIntegratedTiles, tileOverheadMass_kg, type TileSummary } from './tile.ts';
 import type { Scenario } from './types.ts';
 
-/** 'powerConversion' and 'tileOverhead' are zero except for the Tile architectures (tile.ts). */
-export type MassKey = 'radiator' | 'thermalLoop' | 'solarArray' | 'battery' | 'harness' | 'powerConversion' | 'tileOverhead';
+/** 'powerConversion', 'tileOverhead' and 'tileStructure' are zero except for the Tile architectures (tile.ts). */
+export type MassKey = 'radiator' | 'thermalLoop' | 'solarArray' | 'battery' | 'harness' | 'powerConversion' | 'tileOverhead' | 'tileStructure';
 
 export interface Warning {
   level: 'error' | 'warn' | 'info';
@@ -126,9 +126,14 @@ export function evaluateScenario(s: Scenario): Result {
     harness: wire.mass_kg,
     powerConversion: s.tile ? (busLoad_W / 1000) * s.tile.converterSpecificMass_kg_per_kW : 0,
     tileOverhead: 0,
+    tileStructure: 0,
   };
   const tile = s.tile ? sharedSolarTiles(s, radiatorArea_m2, heatToReject_W, chain) : null;
-  if (tile && s.tile && Number.isFinite(tile.count)) mass_kg.tileOverhead = tile.count * s.tile.extraMass_kg;
+  if (tile && s.tile && Number.isFinite(tile.count)) {
+    mass_kg.tileOverhead = tileOverheadMass_kg(s, tile.count);
+    // The solar array is separate here and carries its own structure in its areal density.
+    mass_kg.tileStructure = s.tile.supportStructureFraction * (mass_kg.radiator + mass_kg.powerConversion + mass_kg.tileOverhead);
+  }
   const totalMass_kg = Object.values(mass_kg).reduce((a, b) => a + b, 0);
 
   return {
@@ -183,8 +188,11 @@ function evaluateIntegratedTiles(s: Scenario): Result {
     battery: z.storage.mass_kg + z.summary.peakBatteryMass_kg,
     harness: 0,
     powerConversion: (busLoad_W / 1000) * t.converterSpecificMass_kg_per_kW,
-    tileOverhead: z.summary.count * t.extraMass_kg,
+    tileOverhead: tileOverheadMass_kg(s, z.summary.count),
+    tileStructure: 0,
   };
+  // Everything rides on the Tiles, batteries included, so all of it needs support structure.
+  mass_kg.tileStructure = t.supportStructureFraction * (mass_kg.radiator + mass_kg.solarArray + mass_kg.battery + mass_kg.powerConversion + mass_kg.tileOverhead);
   const totalMass_kg = Object.values(mass_kg).reduce((a, b) => a + b, 0);
   const out = warnings(s, z.chain, true, mass_kg, totalMass_kg);
   if (z.problem) out.unshift({ level: 'error', text: z.problem });

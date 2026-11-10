@@ -85,8 +85,10 @@ average payload and the same orbit:
 - **`tileShared`**: Tiles radiate from both faces, edge-on to the Sun, and draw power
   from the same solar array and battery assumptions as the Starmind case. It uses the
   model's ordinary radiator equations with zero loop mass and zero pump power. Additions:
-  a 400 V distribution bus (copper ∝ 1/V²), step-down converters on the Tiles, and a
-  per-Tile mass penalty for networking and enclosures.
+  a 400 V distribution bus (copper ∝ 1/V²), step-down converters on the Tiles,
+  networking mass per Tile, enclosure mass per compute module, and support structure as
+  a fraction of everything mounted on the Tiles (the pumped cases fold structure into
+  their areal densities).
 - **`tileSolar`**: the sunlit face of each Tile is solar cells, so solar array area and
   Tile area are one number and there is no harness. Per m² of Tile the cells absorb
   α S, deliver e as electricity, and keep α S − e as heat. All of e returns as heat on
@@ -100,8 +102,8 @@ average payload and the same orbit:
 
 Limits specific to these cases: a Sun-facing Tile is given the edge-on view of the body
 on both faces, which holds near the terminator only; the insulation between cells and a
-`separate` radiator is perfect; payload mass stays out of scope, so the per-Tile penalty
-is the only compute-side mass counted; and battery energy for peaks is counted only when
+`separate` radiator is perfect; payload mass stays out of scope, so the networking and
+enclosure penalties are the only compute-side mass counted; and battery energy for peaks is counted only when
 `tile.peakDuration_h` is set (the pumped cases never count it).
 
 ## 6. Validation anchors (all in `test/`)

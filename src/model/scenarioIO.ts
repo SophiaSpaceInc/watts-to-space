@@ -185,7 +185,7 @@ export function validateScenario(data: unknown): Scenario {
       c.oneOf(tile, 'kind', 'tile', ['sharedSolar', 'integratedSolar']);
       c.oneOf(tile, 'radiatorCoupling', 'tile', ['bonded', 'separate']);
       c.num(tile, 'area_m2', 'tile', POSITIVE);
-      for (const k of ['extraMass_kg', 'converterSpecificMass_kg_per_kW', 'peakDuration_h', 'cellLayerArealDensity_kg_m2']) c.num(tile, k, 'tile', NON_NEGATIVE);
+      for (const k of ['networkingMass_kg', 'extraMassPerUnit_kg', 'supportStructureFraction', 'converterSpecificMass_kg_per_kW', 'peakDuration_h', 'cellLayerArealDensity_kg_m2']) c.num(tile, k, 'tile', NON_NEGATIVE);
       for (const k of ['cellAbsorptance', 'cellEmissivity', 'cellBackEmissivity']) c.num(tile, k, 'tile', FRACTION);
       c.num(tile, 'cellTemperatureCoefficient_per_K', 'tile', R(-0.05, 0));
       c.num(tile, 'sunAngle_deg', 'tile', R(0, 89));
