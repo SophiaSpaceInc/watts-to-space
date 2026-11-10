@@ -44,7 +44,7 @@ Actions (default: evaluate and summarise):
   --sweep <path>=<a>:<b>:<step>   sweep one input, repeatable; with --metric <result.path>, repeatable
                                   (default metrics: ${DEFAULT_SWEEP_METRICS.join(', ')})
   --tornado [--metric <path>]     one-at-a-time sensitivity of each tunable input (default totalMass_kg)
-  --compare                       the four reference modes side by side (overrides and --set apply to all)
+  --compare                       the reference modes side by side (overrides and --set apply to all)
   --explain <path|all>            value, unit, slider range, provenance note and source URLs
   --share-out [--base-url <url>]  share string and public link for the resulting scenario
   --export                        the resulting scenario as an exported JSON file (same as the page's Export; pipe to a file)
@@ -268,6 +268,7 @@ function summarize(s: Scenario, r: Result): Bag {
     warnings: r.warnings,
     notices: [...NOTICES],
     reportedCheck: r.reportedCheck,
+    tile: r.tile,
     presetChangesFromModeDefault: presetNotes(s),
     changes: changesFromPresets(s),
   };
@@ -335,6 +336,13 @@ function summaryTable(sum: Bag, s: Scenario, r: Result): string {
     grid(['stage', 'T_K'], (sum.chain as { stage: string; T_K: number }[]).map((c) => [c.stage, c.T_K])),
     `\nCoolant hot ${fmt(t.coolantHot)} K | radiating (T4-mean) ${fmt(t.radiatingEffective)} K | source-stack drop ${fmt(r.chain.stackDrop_K)} K`,
   ];
+  if (r.tile) {
+    const x = r.tile;
+    parts.push(
+      `\nTiles: ${fmt(x.count)} | compute per Tile at peak ${fmt(x.payloadPeak_W)} W (${fmt(x.unitsPerTile)} heat sources) | radiator on each Tile ${fmt(x.radiatorAreaPerTile_m2)} m2 at ${fmt(x.radiator_K)} K | hottest source ${fmt(x.junction_K)} K` +
+        (x.cell_K !== null ? ` | cells ${fmt(x.cell_K)} K (free-flying solar array ${fmt(x.freeSolarArray_K)} K, output x${fmt(x.cellDerate)})` : ''),
+    );
+  }
   if (r.reportedCheck) {
     const c = r.reportedCheck;
     parts.push(
@@ -461,7 +469,7 @@ const COMPARE_FIELDS = ['radiatorArea_m2', 'solarArrayArea_m2', 'solarToRadiator
 
 function doCompare(o: Opts): Bag {
   if (o.scenario !== undefined || o.share !== undefined || o.mode !== undefined) {
-    throw new UsageError(['--compare runs all four reference modes; drop --mode, --scenario and --share (--heat-source, --environment and --set apply to every mode)']);
+    throw new UsageError(['--compare runs every reference mode; drop --mode, --scenario and --share (--heat-source, --environment and --set apply to every mode)']);
   }
   const bad = selectionProblems(o);
   if (bad.length) throw new UsageError(bad);
@@ -479,6 +487,8 @@ function doCompare(o: Opts): Bag {
       coolantHot_K: r.chain.coolantHot_K,
       radiatingEffective_K: r.chain.fluidEffective_K,
       sourceStackDrop_K: r.chain.stackDrop_K,
+      tiles: r.tile?.count ?? null,
+      payloadPerTile_W: r.tile?.payloadPeak_W ?? null,
       warnings: r.warnings.map((w) => `${w.level}: ${w.text}`),
     } as Bag;
   });

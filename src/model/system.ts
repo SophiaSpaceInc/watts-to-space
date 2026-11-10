@@ -14,9 +14,11 @@ import { absorbedFluxPerFace, sunlight, type Sunlight } from './environment.ts';
 import { sizePowerSupply, type Harness, type Storage } from './power.ts';
 import { fluidTemperatureForRejection, idealRejectionPerPanelArea, netRejectionPerPanelArea } from './thermalEmission.ts';
 import { evaluateChain, type ChainResult } from './thermalChain.ts';
+import { sharedSolarTiles, sizeIntegratedTiles, type TileSummary } from './tile.ts';
 import type { Scenario } from './types.ts';
 
-export type MassKey = 'radiator' | 'thermalLoop' | 'solarArray' | 'battery' | 'harness';
+/** 'powerConversion' and 'tileOverhead' are zero except for the Tile architectures (tile.ts). */
+export type MassKey = 'radiator' | 'thermalLoop' | 'solarArray' | 'battery' | 'harness' | 'powerConversion' | 'tileOverhead';
 
 export interface Warning {
   level: 'error' | 'warn' | 'info';
@@ -75,6 +77,8 @@ export interface Result {
   /** Net rejection relative to a perfect two-sided black panel at the source limit in deep space. */
   rejectionEffectiveness: number;
   reportedCheck: ReportedCheck | null;
+  /** Tile count, per-Tile power and temperatures; null unless the scenario is a Tile architecture. */
+  tile: TileSummary | null;
   warnings: Warning[];
 }
 
@@ -85,6 +89,7 @@ export interface Result {
  * couples the radiator and the power supply.
  */
 export function evaluateScenario(s: Scenario): Result {
+  if (s.tile?.kind === 'integratedSolar') return evaluateIntegratedTiles(s);
   // Heat-path part: its only output is the coolant temperature reaching the radiator.
   const chain = evaluateChain(s.heatSource, s.loop, s.radiator.finEfficiency);
   // Radiator part: net flux per m² at that temperature, given what the radiator sees.
@@ -119,7 +124,11 @@ export function evaluateScenario(s: Scenario): Result {
     solarArray: supply.solarArrayMass_kg,
     battery: storage.mass_kg,
     harness: wire.mass_kg,
+    powerConversion: s.tile ? (busLoad_W / 1000) * s.tile.converterSpecificMass_kg_per_kW : 0,
+    tileOverhead: 0,
   };
+  const tile = s.tile ? sharedSolarTiles(s, radiatorArea_m2, heatToReject_W, chain) : null;
+  if (tile && s.tile && Number.isFinite(tile.count)) mass_kg.tileOverhead = tile.count * s.tile.extraMass_kg;
   const totalMass_kg = Object.values(mass_kg).reduce((a, b) => a + b, 0);
 
   return {
@@ -146,7 +155,68 @@ export function evaluateScenario(s: Scenario): Result {
     thermalRejection_W_per_kg: heatToReject_W / (mass_kg.radiator + mass_kg.thermalLoop),
     rejectionEffectiveness: netFlux_W_m2 / idealRejectionPerPanelArea(s.heatSource.maxTemperature_K, 2),
     reportedCheck: s.reported ? reportedCheck(s, s.reported.radiatorArea_m2, heatToReject_W, bus(payloadAverage_W), absorbed, chain, totalMass_kg) : null,
+    tile,
     warnings: warnings(s, chain, feasible, mass_kg, totalMass_kg),
+  };
+}
+
+/**
+ * Tiles with solar cells on their sunlit face (tile.ts). The solar array area and the
+ * Tile area are one number, there is no harness from a central solar array, and the
+ * radiator rides behind the cells. Same loads, same outputs as the main path.
+ */
+function evaluateIntegratedTiles(s: Scenario): Result {
+  const p = s.power;
+  const t = s.tile!;
+  const bus = (payload: number) => payload / p.conversionEfficiency + payload * (p.overheadFraction + p.pumpFraction);
+  const payload_W = s.heatSource.totalPower_W;
+  const payloadAverage_W = payload_W * s.heatSource.averageFraction;
+  const busLoad_W = bus(payload_W);
+  const busLoadAverage_W = bus(payloadAverage_W);
+  const sun = sunlight(s.environment);
+  const z = sizeIntegratedTiles(s, busLoad_W, busLoadAverage_W, sun);
+
+  const mass_kg: Record<MassKey, number> = {
+    radiator: z.radiatorArea_m2 * s.radiator.arealDensity_kg_m2,
+    thermalLoop: (busLoad_W / 1000) * s.radiator.loopSpecificMass_kg_per_kW,
+    solarArray: z.tileArea_m2 * t.cellLayerArealDensity_kg_m2,
+    battery: z.storage.mass_kg + z.summary.peakBatteryMass_kg,
+    harness: 0,
+    powerConversion: (busLoad_W / 1000) * t.converterSpecificMass_kg_per_kW,
+    tileOverhead: z.summary.count * t.extraMass_kg,
+  };
+  const totalMass_kg = Object.values(mass_kg).reduce((a, b) => a + b, 0);
+  const out = warnings(s, z.chain, true, mass_kg, totalMass_kg);
+  if (z.problem) out.unshift({ level: 'error', text: z.problem });
+  if (s.environment.kind === 'orbit' && Math.abs(s.environment.beta_deg) < 60) {
+    out.push({ level: 'warn', text: 'A Sun-facing Tile is modelled with both faces edge-on to the body, which holds near the terminator (β above about 60°). At this β one face would look at the body for part of each orbit.' });
+  }
+  return {
+    chain: z.chain,
+    absorbedPerFace_W_m2: z.absorbedPerFace_W_m2,
+    netFlux_W_m2: z.netFlux_W_m2,
+    feasible: z.feasible,
+    payload_W,
+    payloadAverage_W,
+    busLoad_W,
+    busLoadAverage_W,
+    heatToReject_W: busLoad_W,
+    radiatorArea_m2: z.radiatorArea_m2,
+    solarArraySpecific_W_m2: z.solarSpecific_W_m2,
+    solarArrayOutput_W: z.tileArea_m2 * z.solarSpecific_W_m2,
+    solarArrayArea_m2: z.tileArea_m2,
+    solarToRadiatorAreaRatio: z.tileArea_m2 / z.radiatorArea_m2,
+    sunlight: sun,
+    storage: z.storage,
+    harness: { lossFraction: 0, conductorArea_mm2: 0, mass_kg: 0 },
+    mass_kg,
+    totalMass_kg,
+    specificMass_kg_per_kW: totalMass_kg / (payload_W / 1000),
+    thermalRejection_W_per_kg: busLoad_W / (mass_kg.radiator + mass_kg.thermalLoop),
+    rejectionEffectiveness: z.netFlux_W_m2 / idealRejectionPerPanelArea(s.heatSource.maxTemperature_K, 2),
+    reportedCheck: null,
+    tile: z.summary,
+    warnings: out,
   };
 }
 

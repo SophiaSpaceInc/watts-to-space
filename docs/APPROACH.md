@@ -75,6 +75,35 @@ budget ΔT therefore behaves like an electrical bus at V = √(L T ΔT): about 2
 Pumped loops avoid this by carrying heat in moving mass. Distance then costs pump power
 (Darcy–Weisbach with the Blasius friction factor) instead of temperature.
 
+## 5a. Distributed Tiles (`tile.ts`), a Sophia Space addition in this fork
+
+A Tile is a flat panel of about 1 m² that carries its own compute (Jetson Thor modules)
+on a passive oscillating-heat-pipe panel, which is also the radiator. There is no pumped
+loop. Two reference cases sit beside the Starmind case, at the same 250 kW peak / 175 kW
+average payload and the same orbit:
+
+- **`tileShared`**: Tiles radiate from both faces, edge-on to the Sun, and draw power
+  from the same solar array and battery assumptions as the Starmind case. It uses the
+  model's ordinary radiator equations with zero loop mass and zero pump power. Additions:
+  a 400 V distribution bus (copper ∝ 1/V²), step-down converters on the Tiles, and a
+  per-Tile mass penalty for networking and enclosures.
+- **`tileSolar`**: the sunlit face of each Tile is solar cells, so solar array area and
+  Tile area are one number and there is no harness. Per m² of Tile the cells absorb
+  α S, deliver e as electricity, and keep α S − e as heat. All of e returns as heat on
+  the same Tile. The cells are sized for the average load, the radiator for the peak.
+  `tile.radiatorCoupling` chooses how the balance closes: `separate` puts a heat-pipe
+  radiator smaller than the Tile behind the cells, insulated from them and at the
+  temperature the chip's staircase allows; `bonded` ties everything to one temperature.
+  Cells on a Tile run hotter than on a free-flying solar array, and their output is
+  derated by a temperature coefficient. `tile.sunAngle_deg` tilts the Tile away from
+  the Sun, trading Tiles for temperature.
+
+Limits specific to these cases: a Sun-facing Tile is given the edge-on view of the body
+on both faces, which holds near the terminator only; the insulation between cells and a
+`separate` radiator is perfect; payload mass stays out of scope, so the per-Tile penalty
+is the only compute-side mass counted; and battery energy for peaks is counted only when
+`tile.peakDuration_h` is set (the pumped cases never count it).
+
 ## 6. Validation anchors (all in `test/`)
 
 | Anchor | Result |

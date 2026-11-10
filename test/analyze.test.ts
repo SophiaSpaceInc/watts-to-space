@@ -13,7 +13,7 @@ const json = (argv: string[]) => {
 
 test('--list parses as JSON and names modes, presets and parameters', () => {
   const l = json(['--list']);
-  assert.deepEqual(l.modes.map((m: { id: string }) => m.id).sort(), ['ideal', 'iss', 'physics', 'starmind']);
+  assert.deepEqual(l.modes.map((m: { id: string }) => m.id).sort(), ['ideal', 'iss', 'physics', 'starmind', 'tileShared', 'tileSolar']);
   assert.ok(l.heatSources.length > 0 && l.environments.length > 0);
   const p = l.parameters.find((x: { path: string }) => x.path === 'radiator.emissivity');
   assert.deepEqual(Object.keys(p).sort(), ['group', 'label', 'max', 'min', 'part', 'path', 'unit']);
@@ -63,9 +63,9 @@ test('sweeping the source temperature limit never increases the radiator area', 
   for (let i = 1; i < ys.length; i++) assert.ok(ys[i]! <= ys[i - 1]!, `area rose at point ${i}`);
 });
 
-test('--compare returns the four reference modes, honouring overrides', () => {
+test('--compare returns every reference mode, honouring overrides', () => {
   const { modes } = json(['--compare', '--environment', 'cislunar-deep']);
-  assert.equal(modes.length, 4);
+  assert.equal(modes.length, 6);
   assert.ok(modes.every((m: { environment: string }) => m.environment === 'cislunar-deep'));
 });
 

@@ -28,9 +28,9 @@ const SLIDERS: Slider<keyof typeof state>[] = [
   { key: 'emissivity', label: 'IR emissivity ε', unit: '', min: 0.5, max: 1, step: 0.01, hint: 'How well the coating radiates heat; 0.9 is typical for white paint.', explain: '../index.html#note-radiator.emissivity' },
 ];
 
-const CASE_COLORS: Record<ModeId, string> = { iss: 'var(--s1)', starmind: 'var(--s2)', ideal: 'var(--s3)', physics: 'var(--s4)' };
-const SHORT: Record<ModeId, string> = { iss: 'ISS heritage', starmind: 'Starmind', ideal: 'Aggressive', physics: 'Idealized bound' };
-const SHORTER: Record<ModeId, string> = { iss: 'ISS', starmind: 'Starmind', ideal: 'Aggressive', physics: 'Bound' };
+const CASE_COLORS: Record<ModeId, string> = { iss: 'var(--s1)', starmind: 'var(--s2)', ideal: 'var(--s3)', physics: 'var(--s4)', tileShared: 'var(--s5)', tileSolar: 'var(--s6)' };
+const SHORT: Record<ModeId, string> = { iss: 'ISS heritage', starmind: 'Starmind', ideal: 'Aggressive', physics: 'Idealized bound', tileShared: 'Tiles, shared solar', tileSolar: 'Tiles, own solar' };
+const SHORTER: Record<ModeId, string> = { iss: 'ISS', starmind: 'Starmind', ideal: 'Aggressive', physics: 'Bound', tileShared: 'Tiles 2-sided', tileSolar: 'Tiles solar' };
 /** The full model's reference cases, placed by the same arithmetic as the lines: heat and mass per installed m². */
 const CASES = (Object.keys(MODES) as ModeId[]).map((id) => {
   const r = evaluateScenario(buildScenario(id));

@@ -51,7 +51,7 @@ Three parts joined by three quantities. **Heat path** (heat source + coolant loo
 bun run analyze --list
 ```
 
-Gives modes (`iss`, `starmind`, `ideal`, `physics`), heat-source ids, environment ids and every tunable parameter with its path, unit (stored unit: watts, not kilowatts), slider range, part and group.
+Gives modes (`iss`, `starmind`, `ideal`, `physics`, and this fork's `tileShared` and `tileSolar`), heat-source ids, environment ids and every tunable parameter with its path, unit (stored unit: watts, not kilowatts), slider range, part and group.
 
 Environment ids: `iss-leo`, `leo-600`, `llo-100`, `cislunar-deep`, `moon-equator`, `moon-polar`. Heat-source ids: `gpu-lidded`, `gpu-direct-die`, `isothermal-limit`, `process-600K`.
 

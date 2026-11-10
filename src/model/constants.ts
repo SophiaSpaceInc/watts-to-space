@@ -102,4 +102,7 @@ export const COOLANTS: Record<CoolantId, Coolant> = {
   ammonia: { name: 'Ammonia (single-phase)', min_K: 195.4, max_K: 405.4, cp_J_kgK: 4700 },
   nak78: { name: 'NaK-78 liquid metal', min_K: 260.5, max_K: 1058, cp_J_kgK: 872 },
   twoPhaseAmmonia: { name: 'Ammonia two-phase loop', min_K: 195.4, max_K: 405.4, cp_J_kgK: 4700 },
+  // No pumped coolant: an oscillating heat pipe panel. The window is that of an ammonia
+  // working fluid (same NIST limits); other fills (acetone, water, propylene) differ.
+  passiveHeatPipe: { name: 'Passive heat-pipe panel (no pumped loop)', min_K: 195.4, max_K: 405.4, cp_J_kgK: 4700 },
 };

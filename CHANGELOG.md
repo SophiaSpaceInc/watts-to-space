@@ -10,6 +10,23 @@ Changes to the site, the model and the command line, newest first. The format fo
 
 The version is in `package.json`, and each release is tagged `vX.Y.Z`.
 
+## [Unreleased] - Sophia Space fork
+
+### Added
+
+- Two distributed "Tile" reference cases beside the Starmind case (`docs/APPROACH.md` section 5a):
+  `tileShared` (two-sided heat-pipe Tiles on the shared solar array, 400 V distribution) and
+  `tileSolar` (Sun-facing Tiles with solar cells on their sunlit face and their own battery).
+  New model file `src/model/tile.ts`, with tests in `test/tile.test.ts`.
+- Jetson Thor heat sources `thor-direct` and `thor-ttp`, from NVIDIA's thermal design guide.
+- Two mass categories, zero for the existing cases: converters on the Tiles, and per-Tile
+  networking and enclosures.
+
+### Changed
+
+- The "Power per package" slider now starts at 50 W (was 200 W) to admit a 130 W module.
+- No existing reference-case result changes. Share links made before this change still open.
+
 ## [1.0.3] - 2026-11-04
 
 ### Fixed

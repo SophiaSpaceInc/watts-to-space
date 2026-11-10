@@ -81,6 +81,27 @@ export const EXPLANATIONS: Record<string, string> = {
     'Mass per m² of solar array, including blanket, cells and deployment structure. Solar array mass is its area times this.',
   'power.busVoltage_V':
     'Voltage of the power bus from the solar array to the payload. For a given loss, the copper needed scales as 1/V²: doubling the voltage quarters the harness mass. That is the "transformer" advantage electricity has; heat\'s nearest equivalent, a heat pump, costs power. In low orbit, high voltages also risk arcing to the surrounding plasma.',
+  'power.pumpFraction':
+    'Electrical power the coolant pumps draw, as a share of the payload. It is part of the bus load and ends as heat. Zero for passive heat-pipe Tiles.',
+  'power.harnessOneWayLength_m':
+    'Distance from the solar array to the load. Copper mass grows with its square for a fixed loss. Zero for Tiles that carry their own cells.',
+  'tile.area_m2': 'Planform of one Tile. It sets how many Tiles a design needs, and so how much per-Tile mass it carries.',
+  'tile.extraMass_kg':
+    'Mass added to every Tile for the networking and enclosures a distributed payload needs and a centralized one does not. A penalty on the Tile cases; payload mass itself is out of scope for every case.',
+  'tile.converterSpecificMass_kg_per_kW':
+    'Power converters mounted on the Tiles, per kW they carry: the step-down from the distribution bus, or the cell and battery regulation on a self-powered Tile.',
+  'tile.peakDuration_h':
+    'How long a self-powered Tile must hold its peak above the average on its own battery. Zero leaves that battery out, as the other cases do.',
+  'tile.radiatorCoupling':
+    'How a self-powered Tile sheds heat. "separate": a radiator smaller than the Tile sits behind the cells, insulated from them, and carries only the compute heat. "bonded": cells and radiator share one temperature and both faces radiate everything.',
+  'tile.sunAngle_deg':
+    'Angle between the Sun and the normal of a self-powered Tile. Face-on (0°) gives the most power per Tile and the hottest Tile; tilting away cools it and needs more Tiles.',
+  'tile.cellAbsorptance': 'Share of sunlight the cell face absorbs. What is not turned into electricity heats the Tile.',
+  'tile.cellEmissivity': 'Infrared emissivity of the cell face (its cover glass). The sunlit face still radiates: the Sun covers a tiny part of the sky it sees.',
+  'tile.cellBackEmissivity': 'Infrared emissivity of the back of the cell panel where no radiator covers it.',
+  'tile.cellLayerArealDensity_kg_m2': 'Cells, cover glass, wiring and their substrate per m² of Tile. It replaces the deployed solar array of the other cases.',
+  'tile.cellTemperatureCoefficient_per_K':
+    'Change in cell output per kelvin. Cells on a Tile run hotter than on a free-flying solar array, which radiates from both faces, and lose output in proportion.',
   'power.harnessLossFraction':
     'The resistive loss the copper harness is sized for, as a share of the power it carries. Designers pick the loss and size the copper to meet it; a lower target needs proportionally more copper. The lost power heats the wires, not the payload.',
   'power.battery.specificEnergy_Wh_kg':

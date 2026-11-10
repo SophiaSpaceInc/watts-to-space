@@ -122,6 +122,8 @@ The **mode switch** installs a whole assumption set; the selectors then swap par
 | ISS heritage | Flight-proven ISS architecture: water loop at crew-friendly temperatures, intermediate heat exchanger, single-phase ammonia radiators, silicon solar arrays, 124 V bus. Radiator sizing is **calibrated** to the ISS EATCS rating (70 kW on 475 m²). |
 | SpaceX Starmind (reported) | Reported AI1 figures (250 kW peak / 175 kW average, 160 m² radiators, 75 kW per ton, ~600 km) with an Earth-style lidded Rubin-class package. A callout backs out what the reported radiator area would require; it combines reported figures with assumed hardware, so it is not a reconstruction of SpaceX's design. |
 | Aggressive engineering | Aggressive near-term choices: direct-die two-phase cooling, a single isothermal loop, optical-solar-reflector coatings, multi-junction cells, light radiators. |
+| Tiles, two-sided, shared solar (this fork) | Jetson Thor modules on two-sided oscillating-heat-pipe Tiles, no pumped loop, fed by the same solar array as the Starmind case over a 400 V bus. |
+| Tiles with integrated solar (this fork) | Sun-facing Tiles with solar cells on the sunlit face, a heat-pipe radiator behind them, and their own battery. |
 | Idealized thermal bound | A bound where only physics binds: radiator at the source temperature, black surfaces, perfect fins, detailed-balance solar cells. Areal densities are placeholders (no physical floor exists). |
 
 SpaceX's Starmind is a reference case because it is the most talked-about design and SpaceX

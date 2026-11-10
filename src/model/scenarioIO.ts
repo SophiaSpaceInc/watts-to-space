@@ -179,6 +179,19 @@ export function validateScenario(data: unknown): Scenario {
     }
   }
 
+  if (s.tile !== undefined) {
+    const tile = c.obj(s, 'tile', 'scenario');
+    if (tile) {
+      c.oneOf(tile, 'kind', 'tile', ['sharedSolar', 'integratedSolar']);
+      c.oneOf(tile, 'radiatorCoupling', 'tile', ['bonded', 'separate']);
+      c.num(tile, 'area_m2', 'tile', POSITIVE);
+      for (const k of ['extraMass_kg', 'converterSpecificMass_kg_per_kW', 'peakDuration_h', 'cellLayerArealDensity_kg_m2']) c.num(tile, k, 'tile', NON_NEGATIVE);
+      for (const k of ['cellAbsorptance', 'cellEmissivity', 'cellBackEmissivity']) c.num(tile, k, 'tile', FRACTION);
+      c.num(tile, 'cellTemperatureCoefficient_per_K', 'tile', R(-0.05, 0));
+      c.num(tile, 'sunAngle_deg', 'tile', R(0, 89));
+    }
+  }
+
   if (s.reported !== null && s.reported !== undefined) {
     if (!isObj(s.reported)) c.problems.push('scenario.reported must be null or an object');
     else {
@@ -200,7 +213,7 @@ export interface Change {
 }
 
 /** Fields that describe the physics; labels and provenance notes are not "changes". */
-export const COMPARED: (keyof Scenario)[] = ['heatSourceId', 'environmentId', 'heatSource', 'environment', 'loop', 'radiator', 'power', 'reported'];
+export const COMPARED: (keyof Scenario)[] = ['heatSourceId', 'environmentId', 'heatSource', 'environment', 'loop', 'radiator', 'power', 'tile', 'reported'];
 
 /** Leaf-level differences between two scenarios, as dot-paths. */
 export function diffScenario(base: Scenario, current: Scenario): Change[] {

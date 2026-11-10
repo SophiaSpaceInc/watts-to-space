@@ -4,7 +4,7 @@
  */
 
 export type BodyId = 'earth' | 'moon';
-export type CoolantId = 'water' | 'ammonia' | 'nak78' | 'twoPhaseAmmonia';
+export type CoolantId = 'water' | 'ammonia' | 'nak78' | 'twoPhaseAmmonia' | 'passiveHeatPipe';
 
 /** Radiator orientation; the same three words apply in every environment (see environment.ts). */
 export type Orientation = 'edgeOn' | 'nadirZenith' | 'zenithOnly';
@@ -136,7 +136,46 @@ export interface Power {
   battery: Battery;
 }
 
-export type ModeId = 'iss' | 'starmind' | 'ideal' | 'physics';
+/**
+ * A distributed "Tile" architecture: flat ~1 m² panels that carry their own compute, with
+ * the chip mounted on a passive oscillating-heat-pipe panel that is itself the radiator.
+ * There is no pumped loop. Two kinds:
+ *   - 'sharedSolar':     Tiles radiate from both faces, edge-on to the Sun, and take power
+ *                        from the same central solar array and bus as the pumped cases.
+ *   - 'integratedSolar': the sunlit face of each Tile is covered in solar cells; the Tile
+ *                        faces the Sun, powers itself and carries its own battery.
+ * `radiator.arealDensity_kg_m2` is the heat-pipe panel; `radiator.finEfficiency` its spreading.
+ */
+export interface Tile {
+  kind: 'sharedSolar' | 'integratedSolar';
+  /** Planform of one Tile. */
+  area_m2: number;
+  /** Extra mass per Tile for the networking and enclosures a centralized payload would not need. */
+  extraMass_kg: number;
+  /** Power converters on the Tiles (bus step-down, or cell regulation), per kW they carry. */
+  converterSpecificMass_kg_per_kW: number;
+  /** integratedSolar: how long the Tile batteries must hold the peak above the average, hours. */
+  peakDuration_h: number;
+  /**
+   * integratedSolar: 'bonded' ties the whole Tile to one temperature (cells and heat-pipe
+   * panel, both faces radiate everything); 'separate' puts a smaller heat-pipe radiator
+   * behind the cells, insulated from them, sized for the compute heat alone.
+   */
+  radiatorCoupling: 'bonded' | 'separate';
+  /** integratedSolar: angle between the Sun and the cell face's normal, degrees (0 = face-on). Tilting trades Tiles for temperature. */
+  sunAngle_deg: number;
+  /** integratedSolar: solar absorptance and infrared emissivity of the cell face. */
+  cellAbsorptance: number;
+  cellEmissivity: number;
+  /** integratedSolar: emissivity of the back of the cell panel where no radiator covers it. */
+  cellBackEmissivity: number;
+  /** integratedSolar: cells, cover glass, wiring and their substrate, per m² of Tile. */
+  cellLayerArealDensity_kg_m2: number;
+  /** integratedSolar: fractional change in cell output per kelvin above a free-flying solar array (negative). */
+  cellTemperatureCoefficient_per_K: number;
+}
+
+export type ModeId = 'iss' | 'starmind' | 'ideal' | 'physics' | 'tileShared' | 'tileSolar';
 
 export interface Scenario {
   mode: ModeId;
@@ -149,6 +188,8 @@ export interface Scenario {
   loop: Loop;
   radiator: Radiator;
   power: Power;
+  /** Present only for the distributed Tile architectures. */
+  tile?: Tile;
   /** Published figures to check the model against, if any. */
   reported: {
     radiatorArea_m2: number;

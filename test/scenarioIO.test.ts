@@ -17,7 +17,7 @@ const problemsOf = (text: string) => {
 };
 
 test('export then import round-trips every mode exactly', () => {
-  for (const mode of ['iss', 'starmind', 'ideal', 'physics'] as const) {
+  for (const mode of ['iss', 'starmind', 'ideal', 'physics', 'tileShared', 'tileSolar'] as const) {
     const s = buildScenario(mode, { environment: 'moon-polar', heatSource: 'process-600K' });
     assert.deepEqual(importScenario(exportScenario(s)), s);
   }

@@ -19,7 +19,7 @@ import { transportCurves, wiedemannFranzEquivalentVoltage } from '../model/trans
 import type { BodyId, CoolantId, ModeId, Orientation, Scenario } from '../model/types.ts';
 import { lineChart, setChartStamp, stackedBars, tornadoChart, type Series } from './charts.ts';
 
-const MODE_COLORS: Record<ModeId, string> = { iss: 'var(--s1)', starmind: 'var(--s2)', ideal: 'var(--s3)', physics: 'var(--s4)' };
+const MODE_COLORS: Record<ModeId, string> = { iss: 'var(--s1)', starmind: 'var(--s2)', ideal: 'var(--s3)', physics: 'var(--s4)', tileShared: 'var(--s5)', tileSolar: 'var(--s6)' };
 const MODE_IDS = Object.keys(MODES) as ModeId[];
 const YOURS = 'var(--ink)';
 
@@ -558,7 +558,7 @@ function renderPowerSupply(r: Result): void {
   if (env.kind === 'orbit') {
     const betas = Array.from({ length: 91 }, (_, i) => i);
     const metric = (k: MassKey) => sweep(scenario, 'environment.beta_deg', betas, (x) => t(x.mass_kg[k]));
-    const total = sweep(scenario, 'environment.beta_deg', betas, (x) => t(x.mass_kg.solarArray + x.mass_kg.battery + x.mass_kg.harness + x.mass_kg.radiator + x.mass_kg.thermalLoop));
+    const total = sweep(scenario, 'environment.beta_deg', betas, (x) => t(x.totalMass_kg));
     const betaStar = eclipseFreeBeta_deg(BODIES[env.body], env.altitude_km);
     byId('power-heading').textContent = '5. Why terminator orbits: eclipses and the β angle';
     byId('power-lede').hidden = false;
@@ -621,6 +621,8 @@ const MASS_SEGMENTS: [MassKey, string, string][] = [
   ['solarArray', 'Solar array', 'var(--s3)'],
   ['battery', 'Eclipse/night battery', 'var(--s4)'],
   ['harness', 'Harness', 'var(--s5)'],
+  ['powerConversion', 'Converters on Tiles', 'var(--s6)'],
+  ['tileOverhead', 'Tile networking & boxes', 'var(--muted)'],
 ];
 
 function renderMass(r: Result, presets: Preset[], modified: boolean): void {
