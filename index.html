@@ -21,6 +21,13 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <aside class="fork-note" aria-label="About this copy">
+      <strong>Sophia Space internal fork.</strong> This is a private, modified copy of
+      <a href="https://watts-to-space.chrislewicki.com" rel="noopener">watts-to-space</a> by Chris Lewicki
+      (<a href="https://github.com/interplanetarychris/watts-to-space" rel="noopener">source</a>; code MIT, text and figures CC BY 4.0).
+      The model, the page and its first-person text are his. Sophia Space added the two distributed Tile cases, their physics and
+      their assumptions; those additions are not his and have not been reviewed by him.
+    </aside>
     <header class="page-header">
       <p class="byline">
         <a class="back-link" href="https://chrislewicki.com" rel="noopener me"><span aria-hidden="true">←</span> Chris Lewicki</a>
@@ -123,6 +130,7 @@
       <section id="kpis" class="kpis" aria-live="polite"></section>
       <div id="warnings"></div>
       <section id="reported" class="callout" hidden></section>
+      <section id="tile-physics" class="callout" hidden></section>
     </section>
 
     <section class="shared" aria-labelledby="shared-title">
@@ -390,9 +398,7 @@
       <p>Developed with coding agents: Grok, Codex and Claude all contributed, including adversarial review.</p>
       Model source: <span class="mono">src/model/</span> (pure functions, unit-tested with <span class="mono">bun test</span>).
       See <span class="mono">docs/APPROACH.md</span> for equations, validation anchors and known gaps.
-      <p>Visits are counted anonymously with <a href="https://www.goatcounter.com/" rel="noopener">GoatCounter</a>; no cookies.</p>
     </footer>
     <script type="module" src="./src/ui/app.ts"></script>
-    <script data-goatcounter="https://interplanetary.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
   </body>
 </html>
